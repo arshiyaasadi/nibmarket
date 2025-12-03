@@ -1,4 +1,5 @@
 // ** React Imports
+import React from 'react'
 import { useState, ChangeEvent } from 'react'
 
 // ** MUI Imports
@@ -27,7 +28,10 @@ import DialogContentText from '@mui/material/DialogContentText'
 
 // ** Third Party Imports
 import Payment from 'payment'
-import Cards, { Focused } from 'react-credit-cards'
+import CardsOriginal, { Focused } from 'react-credit-cards'
+
+// ** Type assertion for React 19 compatibility
+const Cards = CardsOriginal as any as React.ComponentType<any>
 
 // ** Custom Components Imports
 import CustomChip from 'src/@core/components/mui/chip'

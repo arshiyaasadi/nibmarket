@@ -1,5 +1,8 @@
 'use client'
 
+// ** React Imports
+import { Suspense } from 'react'
+
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
 
@@ -12,7 +15,7 @@ import CrmRewards from 'src/views/dashboards/crm/CrmRewards'
 import CrmTotalProfit from 'src/views/dashboards/crm/CrmTotalProfit'
 import CrmProjectTimeline from 'src/views/dashboards/crm/CrmProjectTimeline'
 
-const DashboardPage = () => {
+const DashboardPageContent = () => {
   return (
     <ApexChartWrapper>
       <Grid container spacing={6} className='match-height'>
@@ -31,6 +34,14 @@ const DashboardPage = () => {
         </Grid>
       </Grid>
     </ApexChartWrapper>
+  )
+}
+
+const DashboardPage = () => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <DashboardPageContent />
+    </Suspense>
   )
 }
 

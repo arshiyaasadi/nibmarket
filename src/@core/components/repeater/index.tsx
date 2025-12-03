@@ -1,5 +1,5 @@
 // ** React Imports
-import { forwardRef } from 'react'
+import React, { forwardRef } from 'react'
 
 // ** Types
 import { RepeaterProps } from './types'
@@ -9,7 +9,7 @@ const Repeater = forwardRef<any, RepeaterProps>((props, ref) => {
   const { count, tag, children, ...restProps } = props
 
   // ** Custom Tag
-  const Tag = tag || 'div'
+  const Tag = (tag || 'div') as React.ElementType
 
   // ** Default Items
   const items = []
@@ -19,7 +19,7 @@ const Repeater = forwardRef<any, RepeaterProps>((props, ref) => {
     items.push(children(i))
   }
 
-  return <Tag ref={ref} {...restProps}>{items}</Tag>
+  return React.createElement(Tag, { ref, ...restProps }, items)
 })
 
 Repeater.displayName = 'Repeater'

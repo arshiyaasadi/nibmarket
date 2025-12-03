@@ -1,6 +1,12 @@
+// ** React Imports
+import React from 'react'
+
 // ** MUI Imports
 import { useTheme } from '@mui/material/styles'
 import MuiTimelineDot from '@mui/lab/TimelineDot'
+
+// ** Type assertion for React 19 compatibility
+const TimelineDotComponent = MuiTimelineDot as React.ComponentType<any>
 
 // ** Hooks Imports
 import useBgColor, { UseBgColorType } from 'src/@core/hooks/useBgColor'
@@ -13,7 +19,7 @@ import { CustomTimelineDotProps, ColorsType } from './types'
 
 const TimelineDot = (props: CustomTimelineDotProps) => {
   // ** Props
-  const { sx, skin, color, variant } = props
+  const { sx, skin, color = 'grey', variant = 'filled' } = props
 
   // ** Hook
   const theme = useTheme()
@@ -58,16 +64,11 @@ const TimelineDot = (props: CustomTimelineDotProps) => {
   }
 
   return (
-    <MuiTimelineDot
+    <TimelineDotComponent
       {...props}
       sx={color && skin === 'light' && variant === 'filled' ? Object.assign(colors[color], sx) : sx}
     />
   )
-}
-
-TimelineDot.defaultProps = {
-  color: 'grey',
-  variant: 'filled'
 }
 
 export default TimelineDot

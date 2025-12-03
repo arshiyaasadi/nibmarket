@@ -8,13 +8,14 @@ import { useRouter } from 'next/router'
 import Tab from '@mui/material/Tab'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
-import TabPanel from '@mui/lab/TabPanel'
-import TabContext from '@mui/lab/TabContext'
+import { TabPanel } from 'src/utils/tabs-wrapper'
+import { TabContext } from 'src/utils/tabs-wrapper'
 import Typography from '@mui/material/Typography'
 import { styled, Theme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import MuiTabList, { TabListProps } from '@mui/lab/TabList'
 import CircularProgress from '@mui/material/CircularProgress'
+import TabListOriginal from '@mui/lab/TabList'
+import { TabListProps } from '@mui/lab/TabList'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -29,7 +30,7 @@ import TabSecurity from 'src/views/pages/account-settings/TabSecurity'
 import TabConnections from 'src/views/pages/account-settings/TabConnections'
 import TabNotifications from 'src/views/pages/account-settings/TabNotifications'
 
-const TabList = styled(MuiTabList)<TabListProps>(({ theme }) => ({
+const TabList = styled(TabListOriginal)<TabListProps>(({ theme }) => ({
   '& .MuiTabs-indicator': {
     display: 'none'
   },

@@ -1,5 +1,5 @@
 // ** React Imports
-import { SyntheticEvent, useState } from 'react'
+import React, { SyntheticEvent, useState } from 'react'
 
 // ** Next Import
 import Link from 'next/link'
@@ -9,11 +9,11 @@ import Tab from '@mui/material/Tab'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Alert from '@mui/material/Alert'
-import TabPanel from '@mui/lab/TabPanel'
+import { TabPanel } from 'src/utils/tabs-wrapper'
 import Switch from '@mui/material/Switch'
 import Button from '@mui/material/Button'
 import Divider from '@mui/material/Divider'
-import TabContext from '@mui/lab/TabContext'
+import { TabContext } from 'src/utils/tabs-wrapper'
 import Tooltip from '@mui/material/Tooltip'
 import { styled } from '@mui/material/styles'
 import TextField from '@mui/material/TextField'
@@ -21,8 +21,9 @@ import AlertTitle from '@mui/material/AlertTitle'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import InputAdornment from '@mui/material/InputAdornment'
-import MuiTabList, { TabListProps } from '@mui/lab/TabList'
 import FormControlLabel from '@mui/material/FormControlLabel'
+import TabListOriginal from '@mui/lab/TabList'
+import { TabListProps } from '@mui/lab/TabList'
 
 // ** Custom Components Imports
 import CustomChip from 'src/@core/components/mui/chip'
@@ -30,7 +31,7 @@ import CustomChip from 'src/@core/components/mui/chip'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-const TabList = styled(MuiTabList)<TabListProps>(({ theme }) => ({
+const TabList = styled(TabListOriginal)<TabListProps>(({ theme }) => ({
   '& .MuiTabs-indicator': {
     display: 'none'
   },

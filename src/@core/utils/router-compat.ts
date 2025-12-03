@@ -4,7 +4,7 @@
 'use client'
 
 import { usePathname, useRouter as useAppRouter, useSearchParams } from 'next/navigation'
-import { useCallback, useEffect } from 'react'
+import { useCallback } from 'react'
 
 // Mock router object that mimics next/router interface
 export const createRouterShim = () => {
@@ -49,11 +49,19 @@ export const createRouterShim = () => {
     reload: () => window.location.reload(),
     back: () => window.history.back(),
     prefetch: () => Promise.resolve(),
-    beforePopState: () => {},
+    beforePopState: () => {
+      // Empty function for compatibility
+    },
     events: {
-      on: () => {},
-      off: () => {},
-      emit: () => {}
+      on: () => {
+        // Empty function for compatibility
+      },
+      off: () => {
+        // Empty function for compatibility
+      },
+      emit: () => {
+        // Empty function for compatibility
+      }
     }
   }
 }
@@ -98,11 +106,19 @@ export const useRouterShim = () => {
     reload: () => window.location.reload(),
     back: () => appRouter.back(),
     prefetch: () => Promise.resolve(),
-    beforePopState: () => {},
+    beforePopState: () => {
+      // Empty function for compatibility
+    },
     events: {
-      on: () => {},
-      off: () => {},
-      emit: () => {}
+      on: () => {
+        // Empty function for compatibility
+      },
+      off: () => {
+        // Empty function for compatibility
+      },
+      emit: () => {
+        // Empty function for compatibility
+      }
     }
   }
 }
@@ -135,6 +151,7 @@ export const setupRouterShim = () => {
 // Get the router shim instance
 export const getRouterShim = () => {
   if (typeof window === 'undefined') return null
+
   return (window as any).__nextRouterShim || createRouterShim()
 }
 

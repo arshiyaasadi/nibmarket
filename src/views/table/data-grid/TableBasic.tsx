@@ -32,7 +32,7 @@ const columns: GridColDef[] = [
     minWidth: 130,
     headerName: 'Date',
     field: 'start_date',
-    valueGetter: params => new Date(params.value)
+    valueGetter: (params: any) => new Date(params.value)
   },
   {
     flex: 0.15,

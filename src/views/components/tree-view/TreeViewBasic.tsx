@@ -1,6 +1,6 @@
 // ** MUI Imports
-import TreeView from '@mui/lab/TreeView'
-import TreeItem from '@mui/lab/TreeItem'
+import { TreeView } from 'src/utils/treeview-wrapper'
+import { TreeItem } from 'src/utils/treeview-wrapper'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'

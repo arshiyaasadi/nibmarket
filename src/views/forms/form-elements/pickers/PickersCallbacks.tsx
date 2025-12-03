@@ -6,7 +6,8 @@ import Box from '@mui/material/Box'
 
 // ** Third Party Imports
 import toast from 'react-hot-toast'
-import DatePicker, { ReactDatePickerProps } from 'react-datepicker'
+import { DatePicker } from 'src/utils/datepicker-wrapper'
+import {ReactDatePickerProps} from 'react-datepicker'
 
 // ** Types
 import { DateType } from 'src/types/forms/reactDatepickerTypes'

@@ -1,11 +1,11 @@
 // ** React Imports
-import { SyntheticEvent, useState } from 'react'
+import React, { SyntheticEvent, useState } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Tab from '@mui/material/Tab'
-import TabPanel from '@mui/lab/TabPanel'
-import TabContext from '@mui/lab/TabContext'
+import { TabPanel } from 'src/utils/tabs-wrapper'
+import { TabContext } from 'src/utils/tabs-wrapper'
 import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 import MuiTabList, { TabListProps } from '@mui/lab/TabList'

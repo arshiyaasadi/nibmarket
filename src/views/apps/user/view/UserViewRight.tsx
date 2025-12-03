@@ -1,15 +1,15 @@
 // ** React Imports
-import { SyntheticEvent, useState, useEffect } from 'react'
+import React, { SyntheticEvent, useState, useEffect } from 'react'
 
 // ** Next Import
 import { useRouter } from 'next/router'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
-import TabList from '@mui/lab/TabList'
-import TabPanel from '@mui/lab/TabPanel'
-import TabContext from '@mui/lab/TabContext'
-import { styled } from '@mui/material/styles'
+import { TabList } from 'src/utils/tabs-wrapper'
+import { TabPanel } from 'src/utils/tabs-wrapper'
+import { TabContext } from 'src/utils/tabs-wrapper'
+import { styled, Theme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 import MuiTab, { TabProps } from '@mui/material/Tab'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -81,7 +81,7 @@ const UserViewRight = ({ tab, invoiceData }: Props) => {
         scrollButtons='auto'
         onChange={handleChange}
         aria-label='forced scroll tabs example'
-        sx={{ borderBottom: theme => `1px solid ${theme.palette.divider}` }}
+        sx={{ borderBottom: (theme: Theme) => `1px solid ${theme.palette.divider}` }}
       >
         <Tab value='overview' label='Overview' icon={<Icon icon='mdi:account-outline' />} />
         <Tab value='security' label='Security' icon={<Icon icon='mdi:lock-outline' />} />

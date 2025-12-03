@@ -12,11 +12,11 @@ import {
   Tooltip,
   PolarGrid,
   RadarChart,
-  TooltipProps,
   PolarAngleAxis,
   PolarRadiusAxis,
   ResponsiveContainer
-} from 'recharts'
+} from 'src/utils/recharts-wrapper'
+import type { TooltipProps } from 'recharts'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'

@@ -10,6 +10,7 @@ const AutocompleteCustomInput = () => {
       id='autocomplete-custom-input'
       renderInput={params => {
         const { ref, ...inputPropsRest } = params.InputProps
+
         return (
           <div {...inputPropsRest} ref={ref}>
             <input type='text' {...params.inputProps} />

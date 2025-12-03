@@ -10,7 +10,8 @@ import fr from 'date-fns/locale/fr'
 import ar from 'date-fns/locale/ar-SA'
 import en from 'date-fns/locale/en-US'
 import { useTranslation } from 'react-i18next'
-import DatePicker, { registerLocale, ReactDatePickerProps } from 'react-datepicker'
+import { DatePicker } from 'src/utils/datepicker-wrapper'
+import {registerLocale, ReactDatePickerProps} from 'react-datepicker'
 
 // ** Types
 import { DateType } from 'src/types/forms/reactDatepickerTypes'

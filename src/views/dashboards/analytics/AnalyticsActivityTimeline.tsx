@@ -1,16 +1,12 @@
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
-import { styled } from '@mui/material/styles'
-import TimelineDot from '@mui/lab/TimelineDot'
-import TimelineItem from '@mui/lab/TimelineItem'
+import { styled, Theme } from '@mui/material/styles'
 import CardHeader from '@mui/material/CardHeader'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
-import TimelineContent from '@mui/lab/TimelineContent'
-import TimelineSeparator from '@mui/lab/TimelineSeparator'
-import TimelineConnector from '@mui/lab/TimelineConnector'
 import MuiTimeline, { TimelineProps } from '@mui/lab/Timeline'
+import { TimelineItem, TimelineSeparator, TimelineConnector, TimelineContent, TimelineDot } from 'src/utils/timeline-wrapper'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -29,7 +25,6 @@ const Timeline = styled(MuiTimeline)<TimelineProps>({
     }
   }
 })
-
 const AnalyticsActivityTimeline = () => {
   return (
     <Card>
@@ -42,14 +37,14 @@ const AnalyticsActivityTimeline = () => {
           />
         }
       />
-      <CardContent sx={{ pt: theme => `${theme.spacing(2.5)} !important` }}>
+      <CardContent sx={{ pt: (theme: Theme) => `${theme.spacing(2.5)} !important` }}>
         <Timeline sx={{ my: 0, py: 0 }}>
           <TimelineItem>
             <TimelineSeparator>
               <TimelineDot color='error' />
               <TimelineConnector />
             </TimelineSeparator>
-            <TimelineContent sx={{ mt: 0, overflow: 'hidden', mb: theme => `${theme.spacing(2)} !important` }}>
+            <TimelineContent sx={{ mt: 0, overflow: 'hidden', mb: (theme: Theme) => `${theme.spacing(2)} !important` }}>
               <Box
                 sx={{
                   mb: 3,
@@ -75,13 +70,12 @@ const AnalyticsActivityTimeline = () => {
               </Box>
             </TimelineContent>
           </TimelineItem>
-
           <TimelineItem>
             <TimelineSeparator>
               <TimelineDot color='primary' />
               <TimelineConnector />
             </TimelineSeparator>
-            <TimelineContent sx={{ mt: 0, mb: theme => `${theme.spacing(2)} !important` }}>
+            <TimelineContent sx={{ mt: 0, mb: (theme: Theme) => `${theme.spacing(2)} !important` }}>
               <Box
                 sx={{
                   mb: 3,
@@ -99,13 +93,12 @@ const AnalyticsActivityTimeline = () => {
               <Typography variant='body2'>Received payment $1,490 for banking ios app</Typography>
             </TimelineContent>
           </TimelineItem>
-
           <TimelineItem sx={{ minHeight: 0 }}>
             <TimelineSeparator>
               <TimelineDot color='info' />
               <TimelineConnector sx={{ mb: 4 }} />
             </TimelineSeparator>
-            <TimelineContent sx={{ mt: 0, mb: theme => `${theme.spacing(2)} !important` }}>
+            <TimelineContent sx={{ mt: 0, mb: (theme: Theme) => `${theme.spacing(2)} !important` }}>
               <Box
                 sx={{
                   mb: 3,
@@ -136,5 +129,4 @@ const AnalyticsActivityTimeline = () => {
     </Card>
   )
 }
-
 export default AnalyticsActivityTimeline

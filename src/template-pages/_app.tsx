@@ -1,5 +1,5 @@
 // ** React Imports
-import { ReactNode } from 'react'
+import React, { ReactNode } from 'react'
 
 // ** Next Imports
 import Head from 'next/head'
@@ -9,7 +9,13 @@ import type { AppProps } from 'next/app'
 
 // ** Store Imports
 import { store } from 'src/store'
-import { Provider } from 'react-redux'
+import { Provider as ReduxProvider } from 'react-redux'
+
+// ** Type assertion for React 19 compatibility
+const Provider = ReduxProvider as any as React.ComponentType<{
+  store: typeof store
+  children: React.ReactNode
+}>
 
 // ** Loader Import
 import NProgress from 'nprogress'

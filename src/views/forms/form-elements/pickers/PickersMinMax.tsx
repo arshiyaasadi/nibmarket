@@ -7,7 +7,8 @@ import Box from '@mui/material/Box'
 // ** Third Party Imports
 import subDays from 'date-fns/subDays'
 import addDays from 'date-fns/addDays'
-import DatePicker, { ReactDatePickerProps } from 'react-datepicker'
+import { DatePicker } from 'src/utils/datepicker-wrapper'
+import {ReactDatePickerProps} from 'react-datepicker'
 
 // ** Types
 import { DateType } from 'src/types/forms/reactDatepickerTypes'

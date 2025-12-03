@@ -9,7 +9,7 @@ import CardContent from '@mui/material/CardContent'
 import Icon from 'src/@core/components/icon'
 
 // ** Third Party Imports
-import { Bubble } from 'react-chartjs-2'
+import {Bubble} from 'src/utils/chartjs-wrapper'
 import { ChartData, ChartOptions } from 'chart.js'
 
 // ** Custom Components Imports

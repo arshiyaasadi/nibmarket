@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, useEffect, forwardRef } from 'react'
+import React, { useState, useEffect, forwardRef } from 'react'
 
 // ** Next Import
 import Link from 'next/link'
@@ -26,7 +26,10 @@ import Icon from 'src/@core/components/icon'
 
 // ** Third Party Imports
 import format from 'date-fns/format'
-import DatePicker from 'react-datepicker'
+import DatePickerOriginal from 'react-datepicker'
+
+// ** Type assertion for React 19 compatibility
+const DatePicker = DatePickerOriginal as any as React.ComponentType<any>
 
 // ** Store & Actions Imports
 import { useDispatch, useSelector } from 'react-redux'
@@ -378,7 +381,7 @@ const InvoiceList = () => {
               pageSizeOptions={[10, 25, 50]}
               paginationModel={paginationModel}
               onPaginationModelChange={setPaginationModel}
-              onRowSelectionModelChange={rows => setSelectedRows(rows)}
+              onRowSelectionModelChange={rows => setSelectedRows([...rows])}
             />
           </Card>
         </Grid>

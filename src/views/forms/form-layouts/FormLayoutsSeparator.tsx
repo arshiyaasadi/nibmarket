@@ -20,7 +20,7 @@ import InputAdornment from '@mui/material/InputAdornment'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
 
 // ** Third Party Imports
-import DatePicker from 'react-datepicker'
+import { DatePicker } from 'src/utils/datepicker-wrapper'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'

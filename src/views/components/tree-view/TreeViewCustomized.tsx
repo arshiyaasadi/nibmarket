@@ -1,5 +1,5 @@
 // ** MUI Imports
-import TreeItem from '@mui/lab/TreeItem'
+import { TreeItem } from 'src/utils/treeview-wrapper'
 import { alpha, styled } from '@mui/material/styles'
 import MuiTreeView, { TreeViewProps } from '@mui/lab/TreeView'
 
@@ -7,6 +7,7 @@ import MuiTreeView, { TreeViewProps } from '@mui/lab/TreeView'
 import Icon from 'src/@core/components/icon'
 
 // Styled TreeView component
+// @ts-ignore - React 19 compatibility issue with styled(MuiTreeView)
 const TreeView = styled(MuiTreeView)<TreeViewProps>(({ theme }) => ({
   minHeight: 264,
   '& .MuiTreeItem-iconContainer .close': {

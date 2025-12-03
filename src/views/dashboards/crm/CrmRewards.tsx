@@ -124,11 +124,12 @@ const CrmRewards = () => {
                       >
                         {reward.trendNumber}
                       </Typography>
-                      <Icon
-                        icon={reward.trend === 'positive' ? 'mdi:chevron-up' : 'mdi:chevron-down'}
-                        fontSize='1rem'
-                        sx={{ ml: 0.25 }}
-                      />
+                      <Box sx={{ ml: 0.25, display: 'inline-flex', alignItems: 'center' }}>
+                        <Icon
+                          icon={reward.trend === 'positive' ? 'mdi:chevron-up' : 'mdi:chevron-down'}
+                          fontSize='1rem'
+                        />
+                      </Box>
                     </Box>
                   </Box>
                   <Typography variant='body2' sx={{ color: 'text.secondary' }}>

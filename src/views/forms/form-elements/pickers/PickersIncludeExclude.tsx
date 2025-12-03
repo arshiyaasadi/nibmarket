@@ -8,7 +8,8 @@ import Box from '@mui/material/Box'
 import addDays from 'date-fns/addDays'
 import subDays from 'date-fns/subDays'
 import setHours from 'date-fns/setHours'
-import DatePicker, { ReactDatePickerProps } from 'react-datepicker'
+import { DatePicker } from 'src/utils/datepicker-wrapper'
+import {ReactDatePickerProps} from 'react-datepicker'
 import setMinutes from 'date-fns/setMinutes'
 
 // ** Types

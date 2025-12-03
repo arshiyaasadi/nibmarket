@@ -2,16 +2,12 @@
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import Avatar from '@mui/material/Avatar'
-import { styled } from '@mui/material/styles'
-import TimelineDot from '@mui/lab/TimelineDot'
-import TimelineItem from '@mui/lab/TimelineItem'
+import { styled, Theme } from '@mui/material/styles'
 import CardHeader from '@mui/material/CardHeader'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
-import TimelineContent from '@mui/lab/TimelineContent'
-import TimelineSeparator from '@mui/lab/TimelineSeparator'
-import TimelineConnector from '@mui/lab/TimelineConnector'
 import MuiTimeline, { TimelineProps } from '@mui/lab/Timeline'
+import { TimelineItem, TimelineSeparator, TimelineConnector, TimelineContent, TimelineDot } from 'src/utils/timeline-wrapper'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -30,7 +26,6 @@ const Timeline = styled(MuiTimeline)<TimelineProps>({
     }
   }
 })
-
 const ActivityTimeline = () => {
   return (
     <Card>
@@ -53,7 +48,7 @@ const ActivityTimeline = () => {
               <TimelineDot color='warning' />
               <TimelineConnector />
             </TimelineSeparator>
-            <TimelineContent sx={{ mt: 0, mb: theme => `${theme.spacing(2)} !important` }}>
+            <TimelineContent sx={{ mt: 0, mb: (theme: Theme) => `${theme.spacing(2)} !important` }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -77,7 +72,6 @@ const ActivityTimeline = () => {
               </Box>
             </TimelineContent>
           </TimelineItem>
-
           <TimelineItem>
             <TimelineSeparator>
               <TimelineDot color='info' />
@@ -100,13 +94,12 @@ const ActivityTimeline = () => {
               <Typography sx={{ color: 'text.secondary' }}>Add files to new design folder</Typography>
             </TimelineContent>
           </TimelineItem>
-
           <TimelineItem>
             <TimelineSeparator>
               <TimelineDot color='primary' />
               <TimelineConnector />
             </TimelineSeparator>
-            <TimelineContent sx={{ mt: 0, mb: theme => `${theme.spacing(2)} !important` }}>
+            <TimelineContent sx={{ mt: 0, mb: (theme: Theme) => `${theme.spacing(2)} !important` }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -136,7 +129,6 @@ const ActivityTimeline = () => {
               </Box>
             </TimelineContent>
           </TimelineItem>
-
           <TimelineItem>
             <TimelineSeparator>
               <TimelineDot color='success' />
@@ -163,5 +155,4 @@ const ActivityTimeline = () => {
     </Card>
   )
 }
-
 export default ActivityTimeline

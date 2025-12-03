@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, ChangeEvent } from 'react'
+import React, { useState, ChangeEvent } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -37,7 +37,10 @@ import Icon from 'src/@core/components/icon'
 
 // ** Third Party Imports
 import Payment from 'payment'
-import Cards, { Focused } from 'react-credit-cards'
+import CardsOriginal, { Focused } from 'react-credit-cards'
+
+// ** Type assertion for React 19 compatibility
+const Cards = CardsOriginal as any as React.ComponentType<any>
 
 // ** Custom Components
 import CustomChip from 'src/@core/components/mui/chip'

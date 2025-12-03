@@ -24,7 +24,7 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 
 // ** Third Party Imports
 import toast from 'react-hot-toast'
-import DatePicker from 'react-datepicker'
+import { DatePicker } from 'src/utils/datepicker-wrapper'
 import { useForm, Controller } from 'react-hook-form'
 
 // ** Icon Imports
@@ -225,7 +225,7 @@ const FormValidationBasic = () => {
                     selected={value}
                     showYearDropdown
                     showMonthDropdown
-                    onChange={e => onChange(e)}
+                    onChange={(e: Date | null) => onChange(e)}
                     placeholderText='MM/DD/YYYY'
                     customInput={
                       <CustomInput

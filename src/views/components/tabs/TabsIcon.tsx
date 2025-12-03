@@ -1,11 +1,11 @@
 // ** React Imports
-import { SyntheticEvent, useState } from 'react'
+import React, { SyntheticEvent, useState } from 'react'
 
 // ** MUI Imports
 import Tab from '@mui/material/Tab'
-import TabList from '@mui/lab/TabList'
-import TabPanel from '@mui/lab/TabPanel'
-import TabContext from '@mui/lab/TabContext'
+import { TabList } from 'src/utils/tabs-wrapper'
+import { TabPanel } from 'src/utils/tabs-wrapper'
+import { TabContext } from 'src/utils/tabs-wrapper'
 import Typography from '@mui/material/Typography'
 
 // ** Icon Imports

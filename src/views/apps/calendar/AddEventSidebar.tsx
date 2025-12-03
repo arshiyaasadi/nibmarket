@@ -1,4 +1,6 @@
 // ** React Imports
+import React from 'react'
+
 import { useState, useEffect, forwardRef, useCallback, Fragment } from 'react'
 
 // ** MUI Imports
@@ -17,7 +19,7 @@ import FormHelperText from '@mui/material/FormHelperText'
 import FormControlLabel from '@mui/material/FormControlLabel'
 
 // ** Third Party Imports
-import DatePicker from 'react-datepicker'
+import { DatePicker } from 'src/utils/datepicker-wrapper'
 import { useForm, Controller } from 'react-hook-form'
 
 // ** Icon Imports

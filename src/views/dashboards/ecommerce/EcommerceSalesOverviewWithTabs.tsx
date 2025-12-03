@@ -1,15 +1,15 @@
 // ** React Imports
-import { SyntheticEvent, useState } from 'react'
+import React, { SyntheticEvent, useState } from 'react'
 
 // ** MUI Import
 import Box from '@mui/material/Box'
 import Tab from '@mui/material/Tab'
 import Card from '@mui/material/Card'
-import TabList from '@mui/lab/TabList'
+import { TabList } from 'src/utils/tabs-wrapper'
 import Table from '@mui/material/Table'
-import TabPanel from '@mui/lab/TabPanel'
+import { TabPanel } from 'src/utils/tabs-wrapper'
 import Avatar from '@mui/material/Avatar'
-import TabContext from '@mui/lab/TabContext'
+import { TabContext } from 'src/utils/tabs-wrapper'
 import TableRow from '@mui/material/TableRow'
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'

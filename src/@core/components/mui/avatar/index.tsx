@@ -14,7 +14,7 @@ import useBgColor, { UseBgColorType } from 'src/@core/hooks/useBgColor'
 
 const Avatar = forwardRef((props: CustomAvatarProps, ref: Ref<any>) => {
   // ** Props
-  const { sx, src, skin, color } = props
+  const { sx, src, skin = 'filled', color = 'primary' } = props
 
   // ** Hook
   const theme = useTheme()
@@ -48,10 +48,5 @@ const Avatar = forwardRef((props: CustomAvatarProps, ref: Ref<any>) => {
 
   return <MuiAvatar ref={ref} {...props} sx={!src && skin && color ? Object.assign(colors[color], sx) : sx} />
 })
-
-Avatar.defaultProps = {
-  skin: 'filled',
-  color: 'primary'
-}
 
 export default Avatar

@@ -5,15 +5,15 @@ import { ChangeEvent } from 'react'
 import Box from '@mui/material/Box'
 import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
-import { GridToolbarExport } from '@mui/x-data-grid'
+import { GridToolbarExport, GridToolbarProps } from '@mui/x-data-grid'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-interface Props {
-  value: string
-  clearSearch: () => void
-  onChange: (e: ChangeEvent) => void
+interface Props extends Omit<GridToolbarProps, 'onChange'> {
+  value?: string
+  clearSearch?: () => void
+  onChange?: (e: ChangeEvent<HTMLInputElement>) => void
 }
 
 const ServerSideToolbar = (props: Props) => {
@@ -31,7 +31,7 @@ const ServerSideToolbar = (props: Props) => {
       <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
       <TextField
         size='small'
-        value={props.value}
+        value={props.value || ''}
         onChange={props.onChange}
         placeholder='Search…'
         InputProps={{

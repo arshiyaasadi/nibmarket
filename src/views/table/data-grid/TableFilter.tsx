@@ -94,7 +94,7 @@ const columns: GridColDef[] = [
     minWidth: 120,
     headerName: 'Date',
     field: 'start_date',
-    valueGetter: params => new Date(params.value),
+    valueGetter: (params: any) => new Date(params.value),
     renderCell: (params: GridRenderCellParams) => (
       <Typography variant='body2' sx={{ color: 'text.primary' }}>
         {params.row.start_date}
@@ -186,7 +186,7 @@ const TableColumns = () => {
             value: searchText,
             clearSearch: () => handleSearch(''),
             onChange: (event: ChangeEvent<HTMLInputElement>) => handleSearch(event.target.value)
-          }
+          } as any
         }}
       />
     </Card>

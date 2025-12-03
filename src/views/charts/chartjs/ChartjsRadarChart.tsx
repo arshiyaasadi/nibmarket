@@ -1,4 +1,5 @@
 // ** React Imports
+import React from 'react'
 import { useRef, useState, useEffect } from 'react'
 
 // ** MUI Imports
@@ -7,7 +8,7 @@ import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
 
 // ** Third Party Imports
-import { Radar } from 'react-chartjs-2'
+import {Radar} from 'src/utils/chartjs-wrapper'
 import { ChartData, ChartOptions } from 'chart.js'
 
 interface RadarProps {

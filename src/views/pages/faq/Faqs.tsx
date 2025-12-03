@@ -1,17 +1,18 @@
 // ** React Imports
-import { SyntheticEvent } from 'react'
+import React, { SyntheticEvent } from 'react'
 
 // ** MUI Imports
 import Tab from '@mui/material/Tab'
-import TabPanel from '@mui/lab/TabPanel'
-import TabContext from '@mui/lab/TabContext'
+import { TabPanel } from 'src/utils/tabs-wrapper'
+import { TabContext } from 'src/utils/tabs-wrapper'
 import { styled } from '@mui/material/styles'
 import Accordion from '@mui/material/Accordion'
 import Typography from '@mui/material/Typography'
 import Box, { BoxProps } from '@mui/material/Box'
-import MuiTabList, { TabListProps } from '@mui/lab/TabList'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
+import TabListOriginal from '@mui/lab/TabList'
+import { TabListProps } from '@mui/lab/TabList'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -37,7 +38,7 @@ const MuiBox = styled(Box)<BoxProps>(({ theme }) => ({
   }
 }))
 
-const TabList = styled(MuiTabList)<TabListProps>(({ theme }) => ({
+const TabList = styled(TabListOriginal)<TabListProps>(({ theme }) => ({
   overflow: 'visible',
   '& .MuiTabs-flexContainer': {
     flexDirection: 'column'

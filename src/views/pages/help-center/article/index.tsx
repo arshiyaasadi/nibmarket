@@ -1,5 +1,5 @@
 // ** React Imports
-import { SyntheticEvent, useEffect, useState } from 'react'
+import React, { SyntheticEvent, useEffect, useState } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -9,15 +9,16 @@ import { useRouter } from 'next/router'
 import Box from '@mui/material/Box'
 import Tab from '@mui/material/Tab'
 import Card from '@mui/material/Card'
-import TabPanel from '@mui/lab/TabPanel'
+import { TabPanel } from 'src/utils/tabs-wrapper'
 import Button from '@mui/material/Button'
 import Divider from '@mui/material/Divider'
-import TabContext from '@mui/lab/TabContext'
+import { TabContext } from 'src/utils/tabs-wrapper'
 import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
-import MuiTabList, { TabListProps } from '@mui/lab/TabList'
 import CircularProgress from '@mui/material/CircularProgress'
+import TabListOriginal from '@mui/lab/TabList'
+import { TabListProps } from '@mui/lab/TabList'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -34,7 +35,7 @@ interface Props {
   activeArticle: HelpCenterSubcategoryArticlesType
 }
 
-const TabList = styled(MuiTabList)<TabListProps>(({ theme }) => ({
+const TabList = styled(TabListOriginal)<TabListProps>(({ theme }) => ({
   border: 0,
   marginRight: 0,
   overflow: 'visible',

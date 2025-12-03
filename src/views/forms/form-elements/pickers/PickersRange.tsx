@@ -8,7 +8,8 @@ import TextField from '@mui/material/TextField'
 // ** Third Party Imports
 import format from 'date-fns/format'
 import addDays from 'date-fns/addDays'
-import DatePicker, { ReactDatePickerProps } from 'react-datepicker'
+import { DatePicker } from 'src/utils/datepicker-wrapper'
+import {ReactDatePickerProps} from 'react-datepicker'
 
 // ** Types
 import { DateType } from 'src/types/forms/reactDatepickerTypes'

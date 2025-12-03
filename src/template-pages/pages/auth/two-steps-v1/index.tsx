@@ -14,7 +14,7 @@ import MuiCard, { CardProps } from '@mui/material/Card'
 import FormHelperText from '@mui/material/FormHelperText'
 
 // ** Third Party Imports
-import Cleave from 'cleave.js/react'
+import CleaveOriginal from 'cleave.js/react'
 import { useForm, Controller } from 'react-hook-form'
 
 // ** Configs
@@ -35,6 +35,9 @@ import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 // ** Styles
 import 'cleave.js/dist/addons/cleave-phone.us'
 
+// ** Type assertion for React 19 compatibility
+const Cleave = CleaveOriginal as any
+
 // ** Styled Components
 const Card = styled(MuiCard)<CardProps>(({ theme }) => ({
   [theme.breakpoints.up('sm')]: { width: 450 }
@@ -46,6 +49,7 @@ const LinkStyled = styled(Link)(({ theme }) => ({
   color: theme.palette.primary.main
 }))
 
+// @ts-ignore - React 19 compatibility issue with styled(Cleave)
 const CleaveInput = styled(Cleave)(({ theme }) => ({
   maxWidth: 50,
   textAlign: 'center',
@@ -125,12 +129,11 @@ const TwoStepsV1 = () => {
         control={control}
         rules={{ required: true }}
         render={({ field: { value, onChange } }) => (
-          <Box
+          <CleaveInput
             type='tel'
             maxLength={1}
             value={value}
             autoFocus={index === 0}
-            component={CleaveInput}
             onKeyDown={handleKeyDown}
             onChange={(event: ChangeEvent) => handleChange(event, onChange)}
             options={{ blocks: [1], numeral: true, numeralPositiveOnly: true }}

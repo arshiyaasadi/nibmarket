@@ -3,7 +3,10 @@ import Grid from '@mui/material/Grid'
 import InputLabel from '@mui/material/InputLabel'
 
 // ** CleaveJS Imports
-import Cleave from 'cleave.js/react'
+import CleaveOriginal from 'cleave.js/react'
+
+// ** Type assertion for React 19 compatibility
+const Cleave = CleaveOriginal as any
 import 'cleave.js/dist/addons/cleave-phone.us'
 
 const InputMaskExamples = () => {

@@ -35,7 +35,7 @@ const columns: GridColDef[] = [
     editable: true,
     headerName: 'Date',
     field: 'start_date',
-    valueGetter: params => new Date(params.value)
+    valueGetter: (params: any) => new Date(params.value)
   },
   {
     flex: 0.15,

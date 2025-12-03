@@ -1,7 +1,7 @@
 'use client'
 
 // ** React Imports
-import { ReactNode, useEffect, useState, ComponentType } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 
 // ** Next Imports
 import { useRouter, usePathname } from 'next/navigation'
@@ -60,6 +60,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   // Return UserLayout with menu and header
   // Router shim ensures next/router imports are compatible with App Router
   const LayoutComponent = UserLayout as any
+
   return <LayoutComponent>{children}</LayoutComponent>
 }
 

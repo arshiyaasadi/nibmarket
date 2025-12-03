@@ -20,8 +20,6 @@ import { ApexOptions } from 'apexcharts'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 
-// ** Util Import
-import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
 // Sample leaderboard data with growth data
 const leaderboardData = [

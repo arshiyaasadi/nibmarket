@@ -20,7 +20,7 @@ import CustomChip from 'src/@core/components/mui/chip'
 
 // ** Third Party Imports
 import format from 'date-fns/format'
-import DatePicker from 'react-datepicker'
+import { DatePicker } from 'src/utils/datepicker-wrapper'
 
 // ** Types
 import { DateType } from 'src/types/forms/reactDatepickerTypes'

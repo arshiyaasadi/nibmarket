@@ -9,9 +9,15 @@ import { useCallback, useMemo } from 'react'
 
 // Router events mock
 const routerEvents = {
-  on: () => {},
-  off: () => {},
-  emit: () => {}
+  on: () => {
+    // Empty function for compatibility
+  },
+  off: () => {
+    // Empty function for compatibility
+  },
+  emit: () => {
+    // Empty function for compatibility
+  }
 }
 
 // Router type compatible with next/router
@@ -45,11 +51,13 @@ export function useRouter(): NextRouterShim {
     searchParams.forEach((value, key) => {
       params[key] = value
     })
+
     return params
   }, [searchParams])
 
   const asPath = useMemo(() => {
     const queryString = searchParams.toString()
+
     return pathname + (queryString ? `?${queryString}` : '')
   }, [pathname, searchParams])
 
@@ -91,6 +99,7 @@ export function useRouter(): NextRouterShim {
     back: () => appRouter.back(),
     prefetch: async () => {
       // App Router handles prefetching automatically
+
       return Promise.resolve()
     },
     beforePopState: () => {
@@ -137,7 +146,9 @@ export class Router {
     return Promise.resolve()
   }
   
-  beforePopState() {}
+  beforePopState() {
+    // Empty function for compatibility
+  }
 }
 
 // withRouter HOC mock
@@ -146,6 +157,7 @@ export function withRouter<P extends object>(
 ) {
   return function WithRouterComponent(props: P) {
     const router = useRouter()
+
     return React.createElement(Component, { ...props, router })
   }
 }

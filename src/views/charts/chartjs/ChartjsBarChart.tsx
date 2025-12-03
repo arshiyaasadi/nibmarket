@@ -1,4 +1,5 @@
 // ** React Imports
+import React from 'react'
 import { forwardRef, useState } from 'react'
 
 // ** MUI Imports
@@ -10,8 +11,8 @@ import InputAdornment from '@mui/material/InputAdornment'
 
 // ** Third Party Imports
 import format from 'date-fns/format'
-import { Bar } from 'react-chartjs-2'
-import DatePicker from 'react-datepicker'
+import {Bar} from 'src/utils/chartjs-wrapper'
+import { DatePicker } from 'src/utils/datepicker-wrapper'
 import { ChartData, ChartOptions } from 'chart.js'
 
 // ** Icon Imports

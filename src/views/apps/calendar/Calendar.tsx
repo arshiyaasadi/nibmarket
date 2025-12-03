@@ -45,7 +45,7 @@ const Calendar = (props: CalendarType) => {
   } = props
 
   // ** Refs
-  const calendarRef = useRef()
+  const calendarRef = useRef<FullCalendar>(null)
 
   useEffect(() => {
     if (calendarApi === null) {

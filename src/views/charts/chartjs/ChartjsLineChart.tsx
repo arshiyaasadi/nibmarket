@@ -4,7 +4,7 @@ import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
 
 // ** Third Party Imports
-import { Line } from 'react-chartjs-2'
+import {Line} from 'src/utils/chartjs-wrapper'
 import { ChartData, ChartOptions } from 'chart.js'
 
 interface LineProps {

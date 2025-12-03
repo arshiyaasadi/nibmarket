@@ -12,7 +12,7 @@ import InputAdornment from '@mui/material/InputAdornment'
 import FormControlLabel from '@mui/material/FormControlLabel'
 
 // ** Third Party Imports
-import DatePicker from 'react-datepicker'
+import { DatePicker } from 'src/utils/datepicker-wrapper'
 
 // ** Types
 import { DateType } from 'src/types/forms/reactDatepickerTypes'

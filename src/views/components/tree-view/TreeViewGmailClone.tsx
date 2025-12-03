@@ -1,6 +1,6 @@
 // ** MUI Imports
 import Box from '@mui/material/Box'
-import TreeView from '@mui/lab/TreeView'
+import { TreeView } from 'src/utils/treeview-wrapper'
 import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 import TreeItem, { TreeItemProps } from '@mui/lab/TreeItem'
@@ -19,6 +19,7 @@ type StyledTreeItemProps = TreeItemProps & {
 }
 
 // Styled TreeItem component
+// @ts-ignore - React 19 compatibility issue with styled(TreeItem)
 const StyledTreeItemRoot = styled(TreeItem)<TreeItemProps>(({ theme }) => ({
   '&:hover > .MuiTreeItem-content:not(.Mui-selected)': {
     backgroundColor: theme.palette.action.hover

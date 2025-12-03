@@ -1,4 +1,6 @@
 // ** React Imports
+import React from 'react'
+
 import { useState, forwardRef, ForwardedRef } from 'react'
 
 // ** MUI Imports
@@ -16,7 +18,7 @@ import FormControl from '@mui/material/FormControl'
 import InputAdornment from '@mui/material/InputAdornment'
 
 // ** Third Party Imports
-import DatePicker from 'react-datepicker'
+import { DatePicker } from 'src/utils/datepicker-wrapper'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'

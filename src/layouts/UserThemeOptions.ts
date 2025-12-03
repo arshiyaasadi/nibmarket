@@ -29,6 +29,7 @@ const UserThemeOptions = (): ThemeOptions => {
         contrastText: '#FFF'
       }
     },
+
     /*
     breakpoints: {
       values: {

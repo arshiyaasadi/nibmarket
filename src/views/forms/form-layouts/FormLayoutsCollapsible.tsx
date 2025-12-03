@@ -1,4 +1,5 @@
 // ** React Imports
+import React from 'react'
 import { ChangeEvent, SyntheticEvent, useState } from 'react'
 
 // ** MUI Imports
@@ -23,7 +24,10 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 
 // ** Third Party Imports
 import Payment from 'payment'
-import Cards, { Focused } from 'react-credit-cards'
+import CardsOriginal, { Focused } from 'react-credit-cards'
+
+// ** Type assertion for React 19 compatibility
+const Cards = CardsOriginal as any as React.ComponentType<any>
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'

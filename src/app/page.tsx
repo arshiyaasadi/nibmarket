@@ -1,7 +1,7 @@
 'use client'
 
 // ** React Imports
-import { ChangeEvent, useState, FormEvent } from 'react'
+import React, { ChangeEvent, useState, FormEvent } from 'react'
 
 // ** Next Import
 import Link from 'next/link'
@@ -10,7 +10,6 @@ import Image from 'next/image'
 // ** MUI Components
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import Divider from '@mui/material/Divider'
 import Checkbox from '@mui/material/Checkbox'
 import TextField from '@mui/material/TextField'
 import InputLabel from '@mui/material/InputLabel'
@@ -19,7 +18,7 @@ import IconButton from '@mui/material/IconButton'
 import CardContent from '@mui/material/CardContent'
 import FormControl from '@mui/material/FormControl'
 import OutlinedInput from '@mui/material/OutlinedInput'
-import { styled, useTheme } from '@mui/material/styles'
+import { styled } from '@mui/material/styles'
 import MuiCard, { CardProps } from '@mui/material/Card'
 import InputAdornment from '@mui/material/InputAdornment'
 import MuiFormControlLabel, { FormControlLabelProps } from '@mui/material/FormControlLabel'
@@ -69,7 +68,6 @@ export default function LoginPage() {
   })
 
   // ** Hooks
-  const theme = useTheme()
   const auth = useAuth()
   const { t } = useTranslation()
 
@@ -148,7 +146,7 @@ export default function LoginPage() {
                         edge='end'
                         onClick={handleClickShowPassword}
                         onMouseDown={e => e.preventDefault()}
-                        aria-label={t('toggle password visibility')}
+                        aria-label={String(t('toggle password visibility') || '')}
                       >
                         <Icon icon={values.showPassword ? 'mdi:eye-outline' : 'mdi:eye-off-outline'} />
                       </IconButton>

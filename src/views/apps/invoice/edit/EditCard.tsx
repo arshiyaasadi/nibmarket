@@ -1,4 +1,6 @@
 // ** React Imports
+import React from 'react'
+
 import { useEffect, useState, forwardRef, SyntheticEvent, ForwardedRef } from 'react'
 
 // ** MUI Imports
@@ -29,7 +31,7 @@ import Icon from 'src/@core/components/icon'
 
 // ** Third Party Imports
 import axios from 'axios'
-import DatePicker from 'react-datepicker'
+import { DatePicker } from 'src/utils/datepicker-wrapper'
 
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'

@@ -13,8 +13,8 @@ import InputAdornment from '@mui/material/InputAdornment'
 
 // ** Third Party Imports
 import format from 'date-fns/format'
-import DatePicker from 'react-datepicker'
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts'
+import { DatePicker } from 'src/utils/datepicker-wrapper'
+import {ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, ResponsiveContainer} from 'src/utils/recharts-wrapper'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'

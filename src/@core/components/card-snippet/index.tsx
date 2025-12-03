@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -47,10 +47,15 @@ const CardSnippet = (props: CardSnippetProps) => {
 
   const codeToCopy = () => {
     if (code.tsx !== null && tabValue === 'tsx') {
-      return code.tsx.props.children.props.children
+      const tsxElement = code.tsx as React.ReactElement<{ children: React.ReactElement<{ children: string }> }>
+
+      return tsxElement.props?.children?.props?.children || ''
     } else if (code.jsx !== null && tabValue === 'jsx') {
-      return code.jsx.props.children.props.children
+      const jsxElement = code.jsx as React.ReactElement<{ children: React.ReactElement<{ children: string }> }>
+
+      return jsxElement.props?.children?.props?.children || ''
     } else {
+
       return ''
     }
   }

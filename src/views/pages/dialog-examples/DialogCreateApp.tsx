@@ -1,16 +1,16 @@
 // ** React Imports
-import { Ref, useState, forwardRef, ReactElement } from 'react'
+import { Ref, useState, forwardRef, ReactElement, SyntheticEvent } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Tab from '@mui/material/Tab'
 import Card from '@mui/material/Card'
-import TabList from '@mui/lab/TabList'
-import TabPanel from '@mui/lab/TabPanel'
+import { TabList } from 'src/utils/tabs-wrapper'
+import { TabPanel } from 'src/utils/tabs-wrapper'
 import Avatar from '@mui/material/Avatar'
 import Dialog from '@mui/material/Dialog'
 import Button from '@mui/material/Button'
-import TabContext from '@mui/lab/TabContext'
+import { TabContext } from 'src/utils/tabs-wrapper'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
@@ -167,7 +167,7 @@ const DialogCreateApp = () => {
             <TabContext value={activeTab}>
               <TabList
                 orientation='vertical'
-                onChange={(e, newValue: string) => setActiveTab(newValue)}
+                onChange={(e: SyntheticEvent, newValue: string) => setActiveTab(newValue)}
                 sx={{
                   border: 0,
                   minWidth: 200,

@@ -1,3 +1,6 @@
+// ** React Imports
+import React from 'react'
+
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -13,6 +16,14 @@ import TimelineContent from '@mui/lab/TimelineContent'
 import TimelineSeparator from '@mui/lab/TimelineSeparator'
 import TimelineConnector from '@mui/lab/TimelineConnector'
 import MuiTimeline, { TimelineProps } from '@mui/lab/Timeline'
+
+
+// ** Type assertions for React 19 compatibility
+const TimelineItemComponent = TimelineItem as any as React.ComponentType<any>
+const TimelineSeparatorComponent = TimelineSeparator as any as React.ComponentType<any>
+const TimelineDotComponent = TimelineDot as any as React.ComponentType<any>
+const TimelineConnectorComponent = TimelineConnector as any as React.ComponentType<any>
+const TimelineContentComponent = TimelineContent as any as React.ComponentType<any>
 
 // ** Types
 import { InvoiceType } from 'src/types/apps/invoiceTypes'
@@ -51,12 +62,12 @@ const UserViewOverview = ({ invoiceData }: Props) => {
           <CardHeader title='User Activity Timeline' />
           <CardContent>
             <Timeline>
-              <TimelineItem>
-                <TimelineSeparator>
-                  <TimelineDot color='error' />
-                  <TimelineConnector />
-                </TimelineSeparator>
-                <TimelineContent>
+              <TimelineItemComponent>
+                <TimelineSeparatorComponent>
+                  <TimelineDotComponent color='error' />
+                  <TimelineConnectorComponent />
+                </TimelineSeparatorComponent>
+                <TimelineContentComponent>
                   <Box
                     sx={{
                       mb: 2,
@@ -72,15 +83,15 @@ const UserViewOverview = ({ invoiceData }: Props) => {
                     <Typography variant='caption'>12 min ago</Typography>
                   </Box>
                   <Typography variant='body2'>User login at 2:12pm</Typography>
-                </TimelineContent>
-              </TimelineItem>
+                </TimelineContentComponent>
+              </TimelineItemComponent>
 
-              <TimelineItem>
-                <TimelineSeparator>
-                  <TimelineDot color='primary' />
-                  <TimelineConnector />
-                </TimelineSeparator>
-                <TimelineContent>
+              <TimelineItemComponent>
+                <TimelineSeparatorComponent>
+                  <TimelineDotComponent color='primary' />
+                  <TimelineConnectorComponent />
+                </TimelineSeparatorComponent>
+                <TimelineContentComponent>
                   <Box
                     sx={{
                       mb: 2,
@@ -107,15 +118,15 @@ const UserViewOverview = ({ invoiceData }: Props) => {
                       <Typography variant='body2'>CEO of Watkins Group</Typography>
                     </Box>
                   </Box>
-                </TimelineContent>
-              </TimelineItem>
+                </TimelineContentComponent>
+              </TimelineItemComponent>
 
-              <TimelineItem>
-                <TimelineSeparator>
-                  <TimelineDot color='info' />
-                  <TimelineConnector />
-                </TimelineSeparator>
-                <TimelineContent>
+              <TimelineItemComponent>
+                <TimelineSeparatorComponent>
+                  <TimelineDotComponent color='info' />
+                  <TimelineConnectorComponent />
+                </TimelineSeparatorComponent>
+                <TimelineContentComponent>
                   <Box
                     sx={{
                       mb: 2,
@@ -131,15 +142,15 @@ const UserViewOverview = ({ invoiceData }: Props) => {
                     <Typography variant='caption'>2 day ago</Typography>
                   </Box>
                   <Typography variant='body2'>Add files to new design folder</Typography>
-                </TimelineContent>
-              </TimelineItem>
+                </TimelineContentComponent>
+              </TimelineItemComponent>
 
-              <TimelineItem>
-                <TimelineSeparator>
-                  <TimelineDot color='success' />
-                  <TimelineConnector />
-                </TimelineSeparator>
-                <TimelineContent>
+              <TimelineItemComponent>
+                <TimelineSeparatorComponent>
+                  <TimelineDotComponent color='success' />
+                  <TimelineConnectorComponent />
+                </TimelineSeparatorComponent>
+                <TimelineContentComponent>
                   <Box
                     sx={{
                       mb: 2,
@@ -163,8 +174,8 @@ const UserViewOverview = ({ invoiceData }: Props) => {
                       invoice.pdf
                     </Typography>
                   </Box>
-                </TimelineContent>
-              </TimelineItem>
+                </TimelineContentComponent>
+              </TimelineItemComponent>
             </Timeline>
           </CardContent>
         </Card>

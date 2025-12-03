@@ -1,7 +1,7 @@
 'use client'
 
 // ** React Imports
-import { ReactNode, useEffect } from 'react'
+import React, { ReactNode, Suspense, useEffect } from 'react'
 
 // ** Config Imports
 import 'src/configs/i18n'
@@ -19,7 +19,13 @@ import 'src/iconify-bundle/icons-bundle-react'
 
 // ** Store Imports
 import { store } from 'src/store'
-import { Provider } from 'react-redux'
+import { Provider as ReduxProvider } from 'react-redux'
+
+// ** Type assertion for React 19 compatibility
+const Provider = ReduxProvider as any as React.ComponentType<{
+  store: typeof store
+  children: React.ReactNode
+}>
 
 // ** Emotion Imports
 import { CacheProvider } from '@emotion/react'
@@ -53,24 +59,25 @@ export default function Providers({ children }: { children: ReactNode }) {
   return (
     <Provider store={store}>
       <CacheProvider value={clientSideEmotionCache}>
-        <AuthProvider>
-          <SettingsProvider>
-            <SettingsConsumer>
-              {({ settings }) => {
-                return (
-                  <ThemeComponent settings={settings}>
-                    {children}
-                    <ReactHotToast>
-                      <Toaster position={settings.toastPosition} toastOptions={{ className: 'react-hot-toast' }} />
-                    </ReactHotToast>
-                  </ThemeComponent>
-                )
-              }}
-            </SettingsConsumer>
-          </SettingsProvider>
-        </AuthProvider>
+        <Suspense fallback={<div>Loading...</div>}>
+          <AuthProvider>
+            <SettingsProvider>
+              <SettingsConsumer>
+                {({ settings }) => {
+                  return (
+                    <ThemeComponent settings={settings}>
+                      {children}
+                      <ReactHotToast>
+                        <Toaster position={settings.toastPosition} toastOptions={{ className: 'react-hot-toast' }} />
+                      </ReactHotToast>
+                    </ThemeComponent>
+                  )
+                }}
+              </SettingsConsumer>
+            </SettingsProvider>
+          </AuthProvider>
+        </Suspense>
       </CacheProvider>
     </Provider>
   )
 }
-

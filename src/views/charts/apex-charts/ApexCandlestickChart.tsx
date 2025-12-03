@@ -12,7 +12,7 @@ import InputAdornment from '@mui/material/InputAdornment'
 // ** Third Party Imports
 import format from 'date-fns/format'
 import { ApexOptions } from 'apexcharts'
-import DatePicker from 'react-datepicker'
+import { DatePicker } from 'src/utils/datepicker-wrapper'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'

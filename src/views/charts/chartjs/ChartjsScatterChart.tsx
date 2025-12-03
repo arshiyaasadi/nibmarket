@@ -9,7 +9,7 @@ import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 
 // ** Third Party Imports
-import { Scatter } from 'react-chartjs-2'
+import {Scatter} from 'src/utils/chartjs-wrapper'
 import { ChartData, ChartOptions } from 'chart.js'
 
 interface ScatterProps {

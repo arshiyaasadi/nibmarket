@@ -1,4 +1,6 @@
 // ** React Imports
+import React from 'react'
+
 import { useState, forwardRef, SyntheticEvent, ForwardedRef } from 'react'
 
 // ** MUI Imports
@@ -28,7 +30,7 @@ import CardContent, { CardContentProps } from '@mui/material/CardContent'
 import Icon from 'src/@core/components/icon'
 
 // ** Third Party Imports
-import DatePicker from 'react-datepicker'
+import { DatePicker } from 'src/utils/datepicker-wrapper'
 
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'

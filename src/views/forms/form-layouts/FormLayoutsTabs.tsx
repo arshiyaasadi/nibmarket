@@ -1,15 +1,15 @@
 // ** React Imports
-import { ChangeEvent, forwardRef, SyntheticEvent, useState } from 'react'
+import React, { ChangeEvent, forwardRef, SyntheticEvent, useState } from 'react'
 
 // ** MUI Imports
 import Tab from '@mui/material/Tab'
 import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
-import TabList from '@mui/lab/TabList'
-import TabPanel from '@mui/lab/TabPanel'
+import { TabList } from 'src/utils/tabs-wrapper'
+import { TabPanel } from 'src/utils/tabs-wrapper'
 import Button from '@mui/material/Button'
 import Divider from '@mui/material/Divider'
-import TabContext from '@mui/lab/TabContext'
+import { TabContext } from 'src/utils/tabs-wrapper'
 import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import InputLabel from '@mui/material/InputLabel'
@@ -22,7 +22,8 @@ import InputAdornment from '@mui/material/InputAdornment'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
 
 // ** Third Party Imports
-import DatePicker from 'react-datepicker'
+import { DatePicker } from 'src/utils/datepicker-wrapper'
+import { Theme } from '@mui/material/styles'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -85,7 +86,7 @@ const FormLayoutsTabs = () => {
           variant='scrollable'
           scrollButtons={false}
           onChange={handleTabsChange}
-          sx={{ borderBottom: theme => `1px solid ${theme.palette.divider}` }}
+          sx={{ borderBottom: (theme: Theme) => `1px solid ${theme.palette.divider}` }}
         >
           <Tab value='personal-info' label='Personal Info' />
           <Tab value='account-details' label='Account Details' />
