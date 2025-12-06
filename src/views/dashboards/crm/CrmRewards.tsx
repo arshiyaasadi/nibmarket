@@ -69,19 +69,19 @@ const missionsData: MissionType[] = [
     id: 1,
     title: 'ماموریت اول',
     completed: true,
-    reward: '+100'
+    reward: 'A توکن'
   },
   {
     id: 2,
     title: 'ماموریت دوم',
     completed: false,
-    reward: '+50'
+    reward: 'B توکن'
   },
   {
     id: 3,
     title: 'ماموریت سوم',
     completed: false,
-    reward: '+75'
+    reward: 'C توکن'
   }
 ]
 
@@ -96,9 +96,9 @@ const CrmRewards = () => {
     <Card>
       <CardHeader
         title='پاداش‌ها'
-        titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }}
+        titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600, letterSpacing: '0.15px' } }}
       />
-      <CardContent>
+      <CardContent sx={{ p: 6 }}>
         <Grid container spacing={4}>
           {rewardsData.map((reward: RewardDataType, index: number) => (
             <Grid item xs={12} sm={4} key={index}>
@@ -132,7 +132,7 @@ const CrmRewards = () => {
                       </Box>
                     </Box>
                   </Box>
-                  <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  <Typography variant='body2' sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
                     {reward.title}
                   </Typography>
                 </Box>
@@ -144,7 +144,7 @@ const CrmRewards = () => {
         <Divider sx={{ my: 4 }} />
 
         <Box>
-          <Typography variant='h6' sx={{ fontWeight: 600, mb: 2 }}>
+          <Typography variant='h6' sx={{ fontWeight: 600, mb: 3, fontSize: '1rem' }}>
             ماموریت‌ها
           </Typography>
           {missionsData.map((mission: MissionType) => (

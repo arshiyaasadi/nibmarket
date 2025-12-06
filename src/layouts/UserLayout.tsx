@@ -1,8 +1,14 @@
 // ** React Imports
 import { ReactNode } from 'react'
 
+// ** Next Imports
+import Link from 'next/link'
+
 // ** MUI Imports
 import { Theme } from '@mui/material/styles'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import Typography from '@mui/material/Typography'
 import useMediaQuery from '@mui/material/useMediaQuery'
 
 // ** Layout Imports
@@ -21,6 +27,9 @@ import VerticalAppBarContent from './components/vertical/AppBarContent'
 
 // ** Hook Import
 import { useSettings } from 'src/@core/hooks/useSettings'
+
+// ** Icon Import
+import Icon from 'src/@core/components/icon'
 
 interface Props {
   children: ReactNode
@@ -49,6 +58,108 @@ const UserLayout = ({ children, contentHeightFixed }: Props) => {
     settings.layout = 'vertical'
   }
 
+  // ** Bottom Navbar Buttons Component
+  const BottomNavButtons = (props?: any) => {
+    // Get navHover and settings from props (passed from Navigation component)
+    const navHover = props?.navHover || false
+    const settingsFromProps = props?.settings || settings
+    const navCollapsed = settingsFromProps?.navCollapsed || false
+    
+    // Menu is open when: !navCollapsed || navHover
+    // Menu is closed when: navCollapsed && !navHover
+    const isMenuOpen = !navCollapsed || navHover
+    const isMenuClosed = navCollapsed && !navHover
+    
+    return (
+      <Box
+        sx={{
+          width: '100%',
+          p: 2,
+          borderTop: theme => `1px solid ${theme.palette.divider}`,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+          backgroundColor: 'background.default'
+        }}
+      >
+        <Button
+          component={Link}
+          href='/rules'
+          fullWidth
+          variant='text'
+          startIcon={<Icon icon='mdi:file-document-outline' />}
+          sx={{
+            justifyContent: isMenuClosed ? 'center' : 'flex-start',
+            textTransform: 'none',
+            color: 'text.primary',
+            transition: 'background-color .2s ease-in-out',
+            // Hide text when menu is closed
+            '& .MuiButton-startIcon': {
+              ...(isMenuClosed && { mr: 0 })
+            },
+            // Hover styles when menu is open
+            '&:hover': {
+              ...(isMenuOpen && {
+                backgroundColor: 'action.hover'
+              }),
+              // Hover styles when menu is closed
+              ...(isMenuClosed && {
+                backgroundColor: 'action.selected'
+              })
+            }
+          }}
+        >
+          <Box
+            sx={{
+              opacity: isMenuClosed ? 0 : 1,
+              transition: 'opacity .25s ease-in-out',
+              ...(isMenuClosed && { width: 0, overflow: 'hidden' })
+            }}
+          >
+            <Typography sx={{ textTransform: 'none' }}>قوانین و مقررات</Typography>
+          </Box>
+        </Button>
+        <Button
+          component={Link}
+          href='/support'
+          fullWidth
+          variant='text'
+          startIcon={<Icon icon='mdi:help-circle-outline' />}
+          sx={{
+            justifyContent: isMenuClosed ? 'center' : 'flex-start',
+            textTransform: 'none',
+            color: 'text.primary',
+            transition: 'background-color .2s ease-in-out',
+            // Hide text when menu is closed
+            '& .MuiButton-startIcon': {
+              ...(isMenuClosed && { mr: 0 })
+            },
+            // Hover styles when menu is open
+            '&:hover': {
+              ...(isMenuOpen && {
+                backgroundColor: 'action.hover'
+              }),
+              // Hover styles when menu is closed
+              ...(isMenuClosed && {
+                backgroundColor: 'action.selected'
+              })
+            }
+          }}
+        >
+          <Box
+            sx={{
+              opacity: isMenuClosed ? 0 : 1,
+              transition: 'opacity .25s ease-in-out',
+              ...(isMenuClosed && { width: 0, overflow: 'hidden' })
+            }}
+          >
+            <Typography sx={{ textTransform: 'none' }}>پشتیبانی</Typography>
+          </Box>
+        </Button>
+      </Box>
+    )
+  }
+
   return (
     <Layout
       hidden={hidden}
@@ -57,7 +168,8 @@ const UserLayout = ({ children, contentHeightFixed }: Props) => {
       contentHeightFixed={contentHeightFixed}
       verticalLayoutProps={{
         navMenu: {
-          navItems: VerticalNavItems()
+          navItems: VerticalNavItems(),
+          afterContent: (props?: any) => <BottomNavButtons {...props} />
 
           // Uncomment the below line when using server-side menu in vertical layout and comment the above line
           // navItems: verticalMenuItems

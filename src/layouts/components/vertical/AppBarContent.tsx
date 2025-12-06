@@ -1,5 +1,6 @@
 // ** MUI Imports
 import Box from '@mui/material/Box'
+import IconButton from '@mui/material/IconButton'
 
 // ** Type Import
 import { Settings } from 'src/@core/context/settingsContext'
@@ -13,8 +14,13 @@ import NotificationDropdown, {
 // ** Hook Import
 import { useAuth } from 'src/hooks/useAuth'
 
+// ** Icon Import
+import Icon from 'src/@core/components/icon'
+
 interface Props {
   settings: Settings
+  hidden?: boolean
+  toggleNavVisibility?: () => void
 }
 
 const notifications: NotificationsType[] = [
@@ -65,14 +71,35 @@ const notifications: NotificationsType[] = [
 
 const AppBarContent = (props: Props) => {
   // ** Props
-  const { settings } = props
+  const { settings, hidden, toggleNavVisibility } = props
 
   // ** Hook
   const auth = useAuth()
 
   return (
-    <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-      <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
+    <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      {/* Hamburger Menu Button - Only visible on mobile */}
+      {hidden && toggleNavVisibility && (
+        <IconButton
+          onClick={toggleNavVisibility}
+          sx={{
+            mr: 2,
+            color: 'text.primary',
+            display: { xs: 'flex', lg: 'none' }
+          }}
+        >
+          <Icon icon='mdi:menu' />
+        </IconButton>
+      )}
+      
+      <Box 
+        className='actions-right' 
+        sx={{ 
+          display: 'flex', 
+          alignItems: 'center',
+          ml: 'auto'
+        }}
+      >
         {auth.user && (
           <>
             <NotificationDropdown settings={settings} notifications={notifications} />

@@ -37,6 +37,7 @@ export default function RootLayout({
           rel='stylesheet'
           href='https://cdn.jsdelivr.net/gh/rastikerdar/vazirfont@v30.1.0/dist/font-face.css'
         />
+        <link rel='stylesheet' href='/fonts/IRANSans/Iransansx.css' />
         <link rel='apple-touch-icon' sizes='180x180' href='/images/apple-touch-icon.png' />
         <link rel='shortcut icon' href='/images/favicon.png' />
       </head>

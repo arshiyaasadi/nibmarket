@@ -80,6 +80,20 @@ const MenuItem = styled(MuiMenuItem)<MenuItemProps>(({ theme }) => ({
   }
 }))
 
+// ** Styled News/Announcement Item component
+const NewsItem = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(2.5),
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: theme.palette.mode === 'light' ? theme.palette.grey[50] : theme.palette.customColors.bodyBg,
+  border: `1px solid ${theme.palette.divider}`,
+  transition: 'all 0.2s ease-in-out',
+  cursor: 'pointer',
+  '&:hover': {
+    backgroundColor: theme.palette.mode === 'light' ? theme.palette.grey[100] : theme.palette.action.hover,
+    borderColor: theme.palette.primary.main
+  }
+}))
+
 // ** Styled PerfectScrollbar component
 const PerfectScrollbar = styled(PerfectScrollbarComponent)({
   maxHeight: 344
@@ -162,7 +176,37 @@ const NotificationDropdown = (props: Props) => {
 
   return (
     <Fragment>
-      <IconButton color='inherit' aria-haspopup='true' onClick={handleDropdownOpen} aria-controls='customized-menu'>
+      <Box
+        component='button'
+        onClick={handleDropdownOpen}
+        aria-haspopup='true'
+        aria-controls='customized-menu'
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          border: 'none',
+          background: 'transparent',
+          cursor: 'pointer',
+          padding: theme => theme.spacing(1, 1.5),
+          borderRadius: 1,
+          transition: 'all 0.2s',
+          color: 'text.primary',
+          '&:hover': {
+            backgroundColor: theme => theme.palette.action.hover
+          }
+        }}
+      >
+        <Typography 
+          sx={{ 
+            fontWeight: 500, 
+            fontSize: '0.875rem',
+            color: 'inherit',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          اخبار و اطلاعیه ها
+        </Typography>
         <Badge
           color='error'
           variant='dot'
@@ -173,7 +217,7 @@ const NotificationDropdown = (props: Props) => {
         >
           <Icon icon='mdi:bell-outline' />
         </Badge>
-      </IconButton>
+      </Box>
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
@@ -187,29 +231,71 @@ const NotificationDropdown = (props: Props) => {
           sx={{ cursor: 'default', userSelect: 'auto', backgroundColor: 'transparent !important' }}
         >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-            <Typography sx={{ cursor: 'text', fontWeight: 600 }}>Notifications</Typography>
+            <Typography sx={{ cursor: 'text', fontWeight: 600 }}>اعلان‌ها</Typography>
             <CustomChip
               skin='light'
               size='small'
               color='primary'
-              label={`${notifications.length} New`}
+              label={`${notifications.length} جدید`}
               sx={{ height: 20, fontSize: '0.75rem', fontWeight: 500, borderRadius: '10px' }}
             />
           </Box>
         </MenuItem>
         <ScrollWrapper hidden={hidden}>
           {notifications.map((notification: NotificationsType, index: number) => (
-            <MenuItem key={index} onClick={handleDropdownClose}>
-              <Box sx={{ width: '100%', display: 'flex', alignItems: 'center' }}>
-                <RenderAvatar notification={notification} />
-                <Box sx={{ mx: 4, flex: '1 1', display: 'flex', overflow: 'hidden', flexDirection: 'column' }}>
-                  <MenuItemTitle>{notification.title}</MenuItemTitle>
-                  <MenuItemSubtitle variant='body2'>{notification.subtitle}</MenuItemSubtitle>
+            <MenuItem 
+              key={index} 
+              onClick={handleDropdownClose}
+              sx={{ 
+                padding: 2,
+                '&:hover': {
+                  backgroundColor: 'transparent'
+                }
+              }}
+            >
+              <NewsItem sx={{ width: '100%' }}>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                  <Box
+                    sx={{
+                      minWidth: 40,
+                      height: 40,
+                      borderRadius: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: theme => theme.palette.primary.main,
+                      color: 'common.white'
+                    }}
+                  >
+                    <Icon icon='mdi:newspaper-variant-outline' fontSize='1.25rem' />
                 </Box>
-                <Typography variant='caption' sx={{ color: 'text.disabled' }}>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                      <MenuItemTitle sx={{ fontSize: '0.875rem', fontWeight: 600, color: 'text.primary' }}>
+                        {notification.title}
+                      </MenuItemTitle>
+                      <Typography variant='caption' sx={{ color: 'text.disabled', whiteSpace: 'nowrap', ml: 1 }}>
                   {notification.meta}
                 </Typography>
               </Box>
+                    <MenuItemSubtitle 
+                      variant='body2' 
+                      sx={{ 
+                        color: 'text.secondary',
+                        fontSize: '0.8125rem',
+                        lineHeight: 1.5,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    >
+                      {notification.subtitle}
+                    </MenuItemSubtitle>
+                  </Box>
+                </Box>
+              </NewsItem>
             </MenuItem>
           ))}
         </ScrollWrapper>
@@ -226,7 +312,7 @@ const NotificationDropdown = (props: Props) => {
           }}
         >
           <Button fullWidth variant='contained' onClick={handleDropdownClose}>
-            Read All Notifications
+            مشاهده همه
           </Button>
         </MenuItem>
       </Menu>

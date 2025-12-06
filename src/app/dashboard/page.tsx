@@ -14,6 +14,9 @@ import CrmAward from 'src/views/dashboards/crm/CrmAward'
 import CrmRewards from 'src/views/dashboards/crm/CrmRewards'
 import CrmTotalProfit from 'src/views/dashboards/crm/CrmTotalProfit'
 import CrmProjectTimeline from 'src/views/dashboards/crm/CrmProjectTimeline'
+import CrmMonthlyRewardsLine from 'src/views/dashboards/crm/CrmMonthlyRewardsLine'
+import CrmDailyGrowthLine from 'src/views/dashboards/crm/CrmDailyGrowthLine'
+import CrmMonthlyRewardsBar from 'src/views/dashboards/crm/CrmMonthlyRewardsBar'
 
 const DashboardPageContent = () => {
   return (
@@ -31,6 +34,15 @@ const DashboardPageContent = () => {
        
         <Grid item xs={12} md={8}>
           <CrmProjectTimeline />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <CrmMonthlyRewardsLine />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <CrmDailyGrowthLine />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <CrmMonthlyRewardsBar />
         </Grid>
       </Grid>
     </ApexChartWrapper>

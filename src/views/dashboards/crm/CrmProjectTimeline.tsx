@@ -117,7 +117,7 @@ const CrmProjectTimeline = () => {
     <Card>
       <CardHeader
         title='لیدربورد'
-        titleTypographyProps={{ sx: { letterSpacing: '0.15px', fontWeight: 600 } }}
+        titleTypographyProps={{ variant: 'h6', sx: { letterSpacing: '0.15px', fontWeight: 600 } }}
         action={
           <ToggleButtonGroup exclusive value={filter} onChange={handleFilter} size='small'>
             <ToggleButton value='current'>ماه جاری</ToggleButton>
@@ -131,7 +131,7 @@ const CrmProjectTimeline = () => {
         }}
       />
       <Divider />
-      <CardContent>
+      <CardContent sx={{ p: 6 }}>
         <Stack spacing={3}>
           {leaderboardData.map((person, index) => (
             <Box key={person.rank}>
@@ -156,7 +156,7 @@ const CrmProjectTimeline = () => {
                   >
                     {person.rank}
                   </CustomAvatar>
-                  <Typography variant='body1' sx={{ fontWeight: 600, minWidth: 0, mr: 2 }}>
+                  <Typography variant='body2' sx={{ fontWeight: 600, minWidth: 0, mr: 2, fontSize: '0.875rem' }}>
                     {person.name}
                   </Typography>
                   <Box sx={{ width: 60, height: 30 }}>
@@ -180,19 +180,19 @@ const CrmProjectTimeline = () => {
                 
                 <Box sx={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                   <Box sx={{ textAlign: 'center', minWidth: 130 }}>
-                    <Typography variant='caption' sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                    <Typography variant='caption' sx={{ color: 'text.secondary', display: 'block', mb: 0.5, fontSize: '0.75rem' }}>
                       تعداد زیرمجموعه
                     </Typography>
-                    <Typography variant='body2' sx={{ fontWeight: 600 }}>
+                    <Typography variant='body2' sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
                       {person.subordinates}
                     </Typography>
                   </Box>
                   
                   <Box sx={{ textAlign: 'center', minWidth: 130 }}>
-                    <Typography variant='caption' sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                    <Typography variant='caption' sx={{ color: 'text.secondary', display: 'block', mb: 0.5, fontSize: '0.75rem' }}>
                       مجموع امتیازات
                     </Typography>
-                    <Typography variant='body2' sx={{ fontWeight: 600 }}>
+                    <Typography variant='body2' sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
                       {person.totalPoints.toLocaleString('fa-IR')}
                     </Typography>
                   </Box>

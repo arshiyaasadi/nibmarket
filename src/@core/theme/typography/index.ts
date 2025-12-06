@@ -1,8 +1,9 @@
 const typography = {
   fontFamily: [
-    'Vazir',
     'IRANSans',
+    'iranSansRegular',
     'IranSans',
+    'Vazir',
     'Tahoma',
     'Arial',
     'sans-serif',

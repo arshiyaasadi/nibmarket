@@ -85,11 +85,17 @@ const CrmAward = () => {
   const open = Boolean(anchorEl)
 
   return (
-    <Card>
-      <CardContent>
+    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <CardContent sx={{ 
+        p: 6, 
+        display: 'flex', 
+        flexDirection: 'column', 
+        flex: 1,
+        minHeight: 0
+      }}>
         {/* Title with count and Show All button */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
-          <Typography variant='h6' sx={{ fontWeight: 600 }}>
+          <Typography variant='h6' sx={{ fontWeight: 600, letterSpacing: '0.15px' }}>
             دعوت شدگان ({totalInvited})
           </Typography>
           <Typography
@@ -98,6 +104,7 @@ const CrmAward = () => {
               color: 'primary.main',
               cursor: 'pointer',
               fontWeight: 500,
+              fontSize: '0.875rem',
               '&:hover': {
                 textDecoration: 'underline'
               }
@@ -132,10 +139,10 @@ const CrmAward = () => {
                 {user.name.split(' ').map(n => n[0]).join('')}
               </Avatar>
               <Box sx={{ flex: 1 }}>
-                <Typography variant='body2' sx={{ fontWeight: 500, mb: 0.5 }}>
+                <Typography variant='body2' sx={{ fontWeight: 500, mb: 0.5, fontSize: '0.875rem' }}>
                   {user.name}
                 </Typography>
-                <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                <Typography variant='caption' sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
                   {user.date}
                 </Typography>
               </Box>
@@ -146,9 +153,15 @@ const CrmAward = () => {
         {/* Divider */}
         <Divider sx={{ my: 3 }} />
 
-        {/* Referral Code Section */}
-        <Box>
-          <Typography variant='body2' sx={{ fontWeight: 600, mb: 2 }}>
+        {/* Referral Code Section - Centered vertically */}
+        <Box sx={{ 
+          flex: 1, 
+          display: 'flex', 
+          flexDirection: 'column', 
+          justifyContent: 'center',
+          minHeight: 0
+        }}>
+          <Typography variant='body2' sx={{ fontWeight: 600, mb: 3, fontSize: '0.875rem' }}>
             کد دعوت
           </Typography>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>

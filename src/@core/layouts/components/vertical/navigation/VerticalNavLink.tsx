@@ -95,11 +95,27 @@ const VerticalNavLink = ({
   const icon = parent && !item.icon ? themeConfig.navSubItemIcon : item.icon
 
   const isNavLinkActive = () => {
-    if (router.pathname === item.path || handleURLQueries(router, item.path)) {
+    if (!item.path) return false
+    
+    const currentPath = router.pathname || router.asPath
+    
+    // Exact match
+    if (currentPath === item.path) {
       return true
-    } else {
-      return false
     }
+    
+    // For nested routes, check if current path starts with item path
+    // But exclude root path to avoid matching everything
+    if (item.path !== '/' && currentPath.startsWith(item.path)) {
+      return true
+    }
+    
+    // Check URL queries
+    if (handleURLQueries(router, item.path)) {
+      return true
+    }
+    
+    return false
   }
 
   return (
