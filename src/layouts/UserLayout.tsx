@@ -93,15 +93,18 @@ const UserLayout = ({ children, contentHeightFixed }: Props) => {
             textTransform: 'none',
             color: 'text.primary',
             transition: 'background-color .2s ease-in-out',
+
             // Hide text when menu is closed
             '& .MuiButton-startIcon': {
               ...(isMenuClosed && { mr: 0 })
             },
+
             // Hover styles when menu is open
             '&:hover': {
               ...(isMenuOpen && {
                 backgroundColor: 'action.hover'
               }),
+
               // Hover styles when menu is closed
               ...(isMenuClosed && {
                 backgroundColor: 'action.selected'
@@ -130,15 +133,18 @@ const UserLayout = ({ children, contentHeightFixed }: Props) => {
             textTransform: 'none',
             color: 'text.primary',
             transition: 'background-color .2s ease-in-out',
+
             // Hide text when menu is closed
             '& .MuiButton-startIcon': {
               ...(isMenuClosed && { mr: 0 })
             },
+
             // Hover styles when menu is open
             '&:hover': {
               ...(isMenuOpen && {
                 backgroundColor: 'action.hover'
               }),
+
               // Hover styles when menu is closed
               ...(isMenuClosed && {
                 backgroundColor: 'action.selected'

@@ -69,6 +69,7 @@ const CrmMonthlyRewardsLine = () => {
         style: { colors: theme.palette.text.disabled },
         formatter: (val: string) => {
           const months = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
+
           return months[parseInt(val) - 1] || val
         }
       },

@@ -86,6 +86,7 @@ const CrmDailyGrowthLine = () => {
         style: { colors: theme.palette.text.disabled },
         formatter: (val: string) => {
           const day = parseInt(val)
+
           return day <= 30 ? `روز ${day}` : val
         }
       },

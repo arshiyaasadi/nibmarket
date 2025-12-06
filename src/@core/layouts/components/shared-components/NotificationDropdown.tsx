@@ -5,7 +5,6 @@ import { useState, SyntheticEvent, Fragment, ReactNode } from 'react'
 import Box from '@mui/material/Box'
 import Badge from '@mui/material/Badge'
 import Button from '@mui/material/Button'
-import IconButton from '@mui/material/IconButton'
 import { styled, Theme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import MuiMenu, { MenuProps } from '@mui/material/Menu'
@@ -21,14 +20,9 @@ import PerfectScrollbarComponent from 'react-perfect-scrollbar'
 // ** Type Imports
 import { ThemeColor } from 'src/@core/layouts/types'
 import { Settings } from 'src/@core/context/settingsContext'
-import { CustomAvatarProps } from 'src/@core/components/mui/avatar/types'
 
 // ** Custom Components Imports
 import CustomChip from 'src/@core/components/mui/chip'
-import CustomAvatar from 'src/@core/components/mui/avatar'
-
-// ** Util Import
-import { getInitials } from 'src/@core/utils/get-initials'
 
 export type NotificationsType = {
   meta: string
@@ -99,13 +93,6 @@ const PerfectScrollbar = styled(PerfectScrollbarComponent)({
   maxHeight: 344
 })
 
-// ** Styled Avatar component
-const Avatar = styled(CustomAvatar)<CustomAvatarProps>({
-  width: 38,
-  height: 38,
-  fontSize: '1.125rem'
-})
-
 // ** Styled component for the title in MenuItems
 const MenuItemTitle = styled(Typography)<TypographyProps>(({ theme }) => ({
   fontWeight: 600,
@@ -152,26 +139,6 @@ const NotificationDropdown = (props: Props) => {
 
   const handleDropdownClose = () => {
     setAnchorEl(null)
-  }
-
-  const RenderAvatar = ({ notification }: { notification: NotificationsType }) => {
-    const { avatarAlt, avatarImg, avatarIcon, avatarText, avatarColor } = notification
-
-    if (avatarImg) {
-      return <Avatar alt={avatarAlt} src={avatarImg} />
-    } else if (avatarIcon) {
-      return (
-        <Avatar skin='light' color={avatarColor}>
-          {avatarIcon}
-        </Avatar>
-      )
-    } else {
-      return (
-        <Avatar skin='light' color={avatarColor}>
-          {getInitials(avatarText as string)}
-        </Avatar>
-      )
-    }
   }
 
   return (

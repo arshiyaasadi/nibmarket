@@ -12,7 +12,7 @@ import { styled } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 
 // ** Styled Component for TWIN Badge
-const TwinBadge = styled(Box)(({ theme }) => ({
+const TwinBadge = styled(Box)(() => ({
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
