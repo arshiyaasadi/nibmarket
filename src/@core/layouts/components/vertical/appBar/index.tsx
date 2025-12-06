@@ -13,6 +13,7 @@ import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 interface Props {
   hidden: LayoutProps['hidden']
   toggleNavVisibility: () => void
+  navVisible?: boolean
   settings: LayoutProps['settings']
   saveSettings: LayoutProps['saveSettings']
   appBarContent: NonNullable<LayoutProps['verticalLayoutProps']['appBar']>['content']

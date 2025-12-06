@@ -20,6 +20,7 @@ import Icon from 'src/@core/components/icon'
 interface Props {
   settings: Settings
   hidden?: boolean
+  navVisible?: boolean
   toggleNavVisibility?: () => void
 }
 
@@ -71,7 +72,7 @@ const notifications: NotificationsType[] = [
 
 const AppBarContent = (props: Props) => {
   // ** Props
-  const { settings, hidden, toggleNavVisibility } = props
+  const { settings, hidden, navVisible, toggleNavVisibility } = props
 
   // ** Hook
   const auth = useAuth()
@@ -82,13 +83,21 @@ const AppBarContent = (props: Props) => {
       {hidden && toggleNavVisibility && (
         <IconButton
           onClick={toggleNavVisibility}
+          aria-label={navVisible ? 'close navigation menu' : 'open navigation menu'}
           sx={{
             mr: 2,
             color: 'text.primary',
-            display: { xs: 'flex', lg: 'none' }
+            display: 'flex',
+            transition: 'transform 0.2s ease-in-out',
+            '&:hover': {
+              backgroundColor: 'action.hover'
+            }
           }}
         >
-          <Icon icon='mdi:menu' />
+          <Icon 
+            icon={navVisible ? 'mdi:close' : 'mdi:menu'} 
+            fontSize={24} 
+          />
         </IconButton>
       )}
       

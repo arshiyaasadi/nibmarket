@@ -27,6 +27,7 @@ interface SubsetNode {
   children?: SubsetNode[]
 }
 
+
 const SubsetTreePageContent = () => {
   // ** Hooks
   const { settings } = useSettings()
@@ -136,18 +137,54 @@ const SubsetTreePageContent = () => {
         درخت زیر مجموعه
       </Typography>
       <Card>
-        <CardContent>
+        <CardContent sx={{ p: theme => `${theme.spacing(5)} !important` }}>
           {treeData.length > 0 ? (
-            <TreeView
-              sx={{ minHeight: 400, width: '100%' }}
-              defaultExpanded={defaultExpanded}
-              defaultExpandIcon={<Icon icon={ExpandIcon} />}
-              defaultCollapseIcon={<Icon icon='mdi:chevron-down' />}
+            <Box 
+              sx={{ 
+                width: '100%', 
+                minHeight: 400,
+                direction: direction,
+                '& .MuiTreeView-root': {
+                  width: '100%',
+                  direction: direction
+                },
+                '& .MuiTreeItem-root': {
+                  marginBottom: theme => theme.spacing(0.5)
+                },
+                '& .MuiTreeItem-content': {
+                  padding: theme => theme.spacing(1, 2),
+                  borderRadius: theme => theme.spacing(1),
+                  '&:hover': {
+                    backgroundColor: theme => theme.palette.action.hover
+                  }
+                },
+                '& .MuiTreeItem-group': {
+                  marginLeft: direction === 'rtl' ? 0 : theme => theme.spacing(2),
+                  marginRight: direction === 'rtl' ? theme => theme.spacing(2) : 0,
+                  paddingLeft: direction === 'rtl' ? 0 : theme => theme.spacing(2),
+                  paddingRight: direction === 'rtl' ? theme => theme.spacing(2) : 0,
+                  borderLeft: direction === 'rtl' ? 'none' : theme => `1px solid ${theme.palette.divider}`,
+                  borderRight: direction === 'rtl' ? theme => `1px solid ${theme.palette.divider}` : 'none'
+                }
+              }}
             >
-              {treeData.map(node => renderTree(node))}
-            </TreeView>
+              <TreeView
+                sx={{ 
+                  minHeight: 400, 
+                  width: '100%',
+                  flexGrow: 1,
+                  overflowY: 'auto',
+                  direction: direction
+                }}
+                defaultExpanded={defaultExpanded}
+                defaultExpandIcon={<Icon icon={ExpandIcon} />}
+                defaultCollapseIcon={<Icon icon='mdi:chevron-down' />}
+              >
+                {treeData.map(node => renderTree(node))}
+              </TreeView>
+            </Box>
           ) : (
-            <Typography variant='body2' color='text.secondary'>
+            <Typography variant='body2' color='text.secondary' sx={{ textAlign: 'center', py: 4 }}>
               داده‌ای برای نمایش وجود ندارد
             </Typography>
           )}

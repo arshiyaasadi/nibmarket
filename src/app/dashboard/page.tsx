@@ -28,7 +28,7 @@ const DashboardPageContent = () => {
         <Grid item xs={12} md={4}>
           <CrmAward />
         </Grid>
-        <Grid item xs={12} sm={4} md={4}>
+        <Grid item xs={12} sm={12} md={4}>
           <CrmTotalProfit />
         </Grid>
        

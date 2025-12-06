@@ -47,7 +47,7 @@ const DataGrid = () => {
           color: theme.palette.divider
         }),
         row: {
-          '&:last-child': {
+          '&:last-of-type': {
             '& .MuiDataGrid-cell': {
               borderBottom: 0
             }

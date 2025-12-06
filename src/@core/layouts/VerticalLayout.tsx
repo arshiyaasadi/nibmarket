@@ -93,6 +93,7 @@ const VerticalLayout = (props: LayoutProps) => {
           {/* AppBar Component */}
           <AppBar
             toggleNavVisibility={toggleNavVisibility}
+            navVisible={navVisible}
             appBarContent={verticalLayoutProps.appBar?.content}
             appBarProps={verticalLayoutProps.appBar?.componentProps}
             {...props}
