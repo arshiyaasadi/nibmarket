@@ -15,7 +15,7 @@ const navigation = (): VerticalNavItemsType => {
       auth: false,
       children: [
         {
-          title: 'زیر محموعه های من',
+          title: 'زیر مجموعه های من',
           path: '/network/my-subsets',
           auth: false
         },

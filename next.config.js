@@ -21,5 +21,7 @@ module.exports = {
     }
 
     return config
-  }
+  },
+  // Turbopack configuration to work alongside webpack config
+  turbopack: {}
 }
