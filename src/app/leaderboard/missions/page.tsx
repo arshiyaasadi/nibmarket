@@ -6,74 +6,51 @@ import { Suspense } from 'react'
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
-import Checkbox from '@mui/material/Checkbox'
+import Grid from '@mui/material/Grid'
+import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import CardHeader from '@mui/material/CardHeader'
-import ListItem from '@mui/material/ListItem'
-import ListItemText from '@mui/material/ListItemText'
-import ListItemButton from '@mui/material/ListItemButton'
+import { styled } from '@mui/material/styles'
+
+// ** Icon Imports
+import Icon from 'src/@core/components/icon'
 
 // ** Custom Components Imports
+import CustomAvatar from 'src/@core/components/mui/avatar'
 import CustomChip from 'src/@core/components/mui/chip'
 
-interface MissionType {
-  id: number
-  title: string
-  completed: boolean
-  reward: string
-}
+// ** Global Missions Data
+import { missionsData, MissionType } from 'src/data/missions'
 
-const missionsData: MissionType[] = [
-  {
-    id: 1,
-    title: 'ثبت نام در سامانه',
-    completed: false,
-    reward: 'A توکن'
-  },
-  {
-    id: 2,
-    title: 'احراز هویت',
-    completed: false,
-    reward: 'B توکن'
-  },
-  {
-    id: 3,
-    title: 'معرفی هر فرد جدید',
-    completed: false,
-    reward: 'C توکن'
-  },
-  {
-    id: 4,
-    title: 'لاگین روزانه',
-    completed: false,
-    reward: 'D توکن'
-  },
-  {
-    id: 5,
-    title: 'رسیدن به ۳ زیر مجموعه مستقیم',
-    completed: false,
-    reward: 'E توکن'
-  },
-  {
-    id: 6,
-    title: 'رسیدن به ۷ زیر مجموعه مستقیم',
-    completed: false,
-    reward: 'F توکن'
-  },
-  {
-    id: 7,
-    title: 'رسیدن به ۲۰ زیر مجموعه مستقیم و غیر مستقیم',
-    completed: false,
-    reward: 'G توکن'
-  },
-  {
-    id: 8,
-    title: 'رسیدن به ۵۰ زیر مجموعه مستقیم و غیر مستقیم',
-    completed: false,
-    reward: 'H توکن'
+// ** Styled Components
+const MissionCard = styled(Card)(({ theme }) => ({
+  position: 'relative',
+  height: '100%',
+  cursor: 'pointer',
+  transition: 'all 0.3s ease-in-out',
+  border: `1px solid ${theme.palette.divider}`,
+  '&:hover': {
+    transform: 'translateY(-4px)',
+    boxShadow: theme.shadows[8],
+    borderColor: theme.palette.primary.main
   }
-]
+}))
+
+// Mission icons mapping
+const getMissionIcon = (id: number) => {
+  const icons = [
+    'mdi:account-plus',
+    'mdi:shield-check',
+    'mdi:account-group',
+    'mdi:login',
+    'mdi:account-network',
+    'mdi:account-multiple',
+    'mdi:account-supervisor',
+    'mdi:account-multiple-check'
+  ]
+  return icons[id - 1] || 'mdi:star'
+}
 
 const MissionsPageContent = () => {
   const handleMissionClick = (mission: MissionType) => {
@@ -94,64 +71,83 @@ const MissionsPageContent = () => {
           titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }}
         />
         <CardContent>
-          <Box>
+          <Grid container spacing={7}>
             {missionsData.map((mission: MissionType) => (
-              <ListItem
-                key={mission.id}
-                disablePadding
-                sx={{
-                  mb: 4,
-                  borderRadius: 1,
-                  border: theme => `1px solid ${theme.palette.divider}`,
-                  '&:hover': {
-                    backgroundColor: theme => `rgba(${theme.palette.customColors.main}, 0.04)`
-                  }
-                }}
-              >
-                <ListItemButton
-                  onClick={() => handleMissionClick(mission)}
-                  sx={{
-                    borderRadius: 1,
-                    py: 1.5,
-                    px: 2
-                  }}
-                >
-                  <Checkbox
-                    checked={mission.completed}
-                    disabled
-                    size='small'
-                    sx={{
-                      mr: 1.5,
-                      '&.Mui-checked': {
-                        color: 'success.main'
-                      },
-                      '&.Mui-disabled': {
-                        color: mission.completed ? 'success.main' : 'action.disabled'
-                      }
-                    }}
-                  />
-                  <ListItemText
-                    primary={mission.title}
-                    sx={{
-                      flex: 1,
-                      '& .MuiListItemText-primary': {
-                        fontSize: '0.875rem',
-                        textDecoration: mission.completed ? 'line-through' : 'none',
-                        color: mission.completed ? 'text.secondary' : 'text.primary'
-                      }
-                    }}
-                  />
-                  <CustomChip
-                    size='small'
-                    label={mission.reward}
-                    color='success'
-                    skin='light'
-                    sx={{ height: 24, fontSize: '0.75rem', fontWeight: 600 }}
-                  />
-                </ListItemButton>
-              </ListItem>
+              <Grid item xs={12} sm={6} key={mission.id}>
+                <MissionCard onClick={() => handleMissionClick(mission)}>
+                  <CardContent sx={{ p: 4 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3 }}>
+                      <CustomAvatar
+                        skin='light'
+                        variant='rounded'
+                        color={mission.completed ? 'success' : 'primary'}
+                        sx={{
+                          width: 56,
+                          height: 56,
+                          mr: 3,
+                          borderRadius: 1.5
+                        }}
+                      >
+                        <Icon icon={getMissionIcon(mission.id)} fontSize='1.75rem' />
+                      </CustomAvatar>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography
+                          variant='body1'
+                          sx={{
+                            fontWeight: 600,
+                            mb: 1,
+                            fontSize: '0.9375rem',
+                            textDecoration: mission.completed ? 'line-through' : 'none',
+                            color: mission.completed ? 'text.secondary' : 'text.primary'
+                          }}
+                        >
+                          {mission.title}
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1.5 }}>
+                          <Icon
+                            icon={mission.completed ? 'mdi:check-circle' : 'mdi:clock-outline'}
+                            fontSize={16}
+                            style={{
+                              color: mission.completed ? '#2e7d32' : '#9e9e9e'
+                            }}
+                          />
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              color: mission.completed ? 'success.main' : 'text.secondary',
+                              fontWeight: 500,
+                              fontSize: '0.75rem'
+                            }}
+                          >
+                            {mission.completed ? 'تکمیل شده' : 'در انتظار'}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                    <Divider sx={{ my: 2.5 }} />
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Typography variant='body2' sx={{ color: 'text.secondary', fontSize: '0.8125rem' }}>
+                        پاداش:
+                      </Typography>
+                      <CustomChip
+                        size='small'
+                        label={mission.reward}
+                        color='success'
+                        skin='light'
+                        sx={{
+                          height: 28,
+                          fontSize: '0.875rem',
+                          fontWeight: 700,
+                          px: 2,
+                          borderRadius: 1
+                        }}
+                      />
+                    </Box>
+                  </CardContent>
+                </MissionCard>
+              </Grid>
             ))}
-          </Box>
+          </Grid>
         </CardContent>
       </Card>
     </Box>

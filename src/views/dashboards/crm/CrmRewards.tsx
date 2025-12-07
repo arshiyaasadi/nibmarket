@@ -3,13 +3,10 @@ import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
 import Divider from '@mui/material/Divider'
-import Checkbox from '@mui/material/Checkbox'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import CardHeader from '@mui/material/CardHeader'
-import ListItem from '@mui/material/ListItem'
-import ListItemText from '@mui/material/ListItemText'
-import ListItemButton from '@mui/material/ListItemButton'
+import { styled } from '@mui/material/styles'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -57,38 +54,64 @@ const rewardsData: RewardDataType[] = [
   }
 ]
 
-interface MissionType {
-  id: number
-  title: string
-  completed: boolean
-  reward: string
-}
+// ** Global Missions Data
+import { missionsData, MissionType } from 'src/data/missions'
 
-const missionsData: MissionType[] = [
-  {
-    id: 1,
-    title: 'ماموریت اول',
-    completed: true,
-    reward: 'A توکن'
-  },
-  {
-    id: 2,
-    title: 'ماموریت دوم',
-    completed: false,
-    reward: 'B توکن'
-  },
-  {
-    id: 3,
-    title: 'ماموریت سوم',
-    completed: false,
-    reward: 'C توکن'
+// ** Styled Components
+const MissionCard = styled(Card)(({ theme }) => ({
+  position: 'relative',
+  height: '100%',
+  cursor: 'pointer',
+  transition: 'all 0.3s ease-in-out',
+  border: `1px solid ${theme.palette.divider}`,
+  flexShrink: 0,
+  minWidth: 280,
+  '&:hover': {
+    transform: 'translateY(-4px)',
+    boxShadow: theme.shadows[8],
+    borderColor: theme.palette.primary.main
   }
-]
+}))
+
+const MissionsScrollContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  gap: theme.spacing(3),
+  overflowX: 'auto',
+  overflowY: 'hidden',
+  pb: 2,
+  '&::-webkit-scrollbar': {
+    height: 8
+  },
+  '&::-webkit-scrollbar-thumb': {
+    borderRadius: 4,
+    backgroundColor: theme.palette.mode === 'light' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)'
+  },
+  '&::-webkit-scrollbar-track': {
+    borderRadius: 4,
+    backgroundColor: 'transparent'
+  }
+}))
+
+// Mission icons mapping
+const getMissionIcon = (id: number) => {
+  const icons = [
+    'mdi:account-plus',
+    'mdi:shield-check',
+    'mdi:account-group',
+    'mdi:login',
+    'mdi:account-network',
+    'mdi:account-multiple',
+    'mdi:account-supervisor',
+    'mdi:account-multiple-check'
+  ]
+  return icons[id - 1] || 'mdi:star'
+}
 
 const CrmRewards = () => {
   const handleMissionClick = (mission: MissionType) => {
     if (!mission.completed) {
-      alert('ماموریت هنوز شروع نشده')
+      // Handle mission click
+      console.log('Mission clicked:', mission)
     }
   }
 
@@ -147,62 +170,81 @@ const CrmRewards = () => {
           <Typography variant='h6' sx={{ fontWeight: 600, mb: 3, fontSize: '1rem' }}>
             ماموریت‌ها
           </Typography>
-          {missionsData.map((mission: MissionType) => (
-            <ListItem
-              key={mission.id}
-              disablePadding
-              sx={{
-                mb: 1.5,
-                borderRadius: 1,
-                border: theme => `1px solid ${theme.palette.divider}`,
-                '&:hover': {
-                  backgroundColor: theme => `rgba(${theme.palette.customColors.main}, 0.04)`
-                }
-              }}
-            >
-              <ListItemButton
-                onClick={() => handleMissionClick(mission)}
-                sx={{
-                  borderRadius: 1,
-                  py: 1.5,
-                  px: 2
-                }}
-              >
-                <Checkbox
-                  checked={mission.completed}
-                  disabled
-                  size='small'
-                  sx={{
-                    mr: 1.5,
-                    '&.Mui-checked': {
-                      color: 'success.main'
-                    },
-                    '&.Mui-disabled': {
-                      color: mission.completed ? 'success.main' : 'action.disabled'
-                    }
-                  }}
-                />
-                <ListItemText
-                  primary={mission.title}
-                  sx={{
-                    flex: 1,
-                    '& .MuiListItemText-primary': {
-                      fontSize: '0.875rem',
-                      textDecoration: mission.completed ? 'line-through' : 'none',
-                      color: mission.completed ? 'text.secondary' : 'text.primary'
-                    }
-                  }}
-                />
-                <CustomChip
-                  size='small'
-                  label={mission.reward}
-                  color='success'
-                  skin='light'
-                  sx={{ height: 24, fontSize: '0.75rem', fontWeight: 600 }}
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
+          <MissionsScrollContainer>
+            {missionsData.slice(0, 3).map((mission: MissionType) => (
+              <MissionCard key={mission.id} onClick={() => handleMissionClick(mission)}>
+                <CardContent sx={{ p: 4 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3 }}>
+                    <CustomAvatar
+                      skin='light'
+                      variant='rounded'
+                      color={mission.completed ? 'success' : 'primary'}
+                      sx={{
+                        width: 56,
+                        height: 56,
+                        mr: 3,
+                        borderRadius: 1.5
+                      }}
+                    >
+                      <Icon icon={getMissionIcon(mission.id)} fontSize='1.75rem' />
+                    </CustomAvatar>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography
+                        variant='body1'
+                        sx={{
+                          fontWeight: 600,
+                          mb: 1,
+                          fontSize: '0.9375rem',
+                          textDecoration: mission.completed ? 'line-through' : 'none',
+                          color: mission.completed ? 'text.secondary' : 'text.primary'
+                        }}
+                      >
+                        {mission.title}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1.5 }}>
+                        <Icon
+                          icon={mission.completed ? 'mdi:check-circle' : 'mdi:clock-outline'}
+                          fontSize={16}
+                          style={{
+                            color: mission.completed ? '#2e7d32' : '#9e9e9e'
+                          }}
+                        />
+                        <Typography
+                          variant='caption'
+                          sx={{
+                            color: mission.completed ? 'success.main' : 'text.secondary',
+                            fontWeight: 500,
+                            fontSize: '0.75rem'
+                          }}
+                        >
+                          {mission.completed ? 'تکمیل شده' : 'در انتظار'}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+                  <Divider sx={{ my: 2.5 }} />
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Typography variant='body2' sx={{ color: 'text.secondary', fontSize: '0.8125rem' }}>
+                      پاداش:
+                    </Typography>
+                    <CustomChip
+                      size='small'
+                      label={mission.reward}
+                      color='success'
+                      skin='light'
+                      sx={{
+                        height: 28,
+                        fontSize: '0.875rem',
+                        fontWeight: 700,
+                        px: 2,
+                        borderRadius: 1
+                      }}
+                    />
+                  </Box>
+                </CardContent>
+              </MissionCard>
+            ))}
+          </MissionsScrollContainer>
         </Box>
       </CardContent>
     </Card>
