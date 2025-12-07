@@ -108,6 +108,12 @@ const getMissionIcon = (id: number) => {
 }
 
 const CrmRewards = () => {
+  // Create a local copy of missions for display with first one completed for visual variety
+  const displayMissions: MissionType[] = missionsData.slice(0, 3).map((mission, index) => ({
+    ...mission,
+    completed: index === 0 // Mark first mission as completed for demo
+  }))
+
   const handleMissionClick = (mission: MissionType) => {
     if (!mission.completed) {
       // Handle mission click
@@ -171,7 +177,7 @@ const CrmRewards = () => {
             ماموریت‌ها
           </Typography>
           <MissionsScrollContainer>
-            {missionsData.slice(0, 3).map((mission: MissionType) => (
+            {displayMissions.map((mission: MissionType) => (
               <MissionCard key={mission.id} onClick={() => handleMissionClick(mission)}>
                 <CardContent sx={{ p: 4 }}>
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3 }}>
