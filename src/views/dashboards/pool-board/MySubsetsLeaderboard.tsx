@@ -5,8 +5,8 @@ import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import CardHeader from '@mui/material/CardHeader'
+import { useTheme } from '@mui/material/styles'
 import { styled } from '@mui/material/styles'
-
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -51,13 +51,15 @@ const mySubsetsLeaderboard = [
 ]
 
 const MySubsetsLeaderboard = () => {
+  const theme = useTheme()
+
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardHeader
         title='لیدربورد زیرمجموعه‌های شما'
         titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600, letterSpacing: '0.15px' } }}
         action={
-          <Icon icon='mdi:account-group' fontSize={20} style={{ color: 'primary.main' }} />
+          <Icon icon='mdi:account-group' fontSize={20} style={{ color: theme.palette.primary.main }} />
         }
       />
       <CardContent sx={{ p: 6, flex: 1 }}>
@@ -89,7 +91,7 @@ const MySubsetsLeaderboard = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                   {/* Subordinates */}
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Icon icon='mdi:account-multiple' fontSize={18} style={{ color: 'primary.main' }} />
+                    <Icon icon='mdi:account-multiple' fontSize={18} style={{ color: theme.palette.primary.main }} />
                     <Typography variant='body2' sx={{ color: 'text.secondary' }}>
                       زیر مجموعه:
                     </Typography>

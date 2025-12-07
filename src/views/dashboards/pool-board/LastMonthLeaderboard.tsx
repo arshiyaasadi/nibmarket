@@ -11,6 +11,7 @@ import CardContent from '@mui/material/CardContent'
 import CardHeader from '@mui/material/CardHeader'
 import FormControl from '@mui/material/FormControl'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
+import { useTheme } from '@mui/material/styles'
 import { styled } from '@mui/material/styles'
 
 // ** Icon Imports
@@ -58,6 +59,7 @@ const lastMonthLeaderboard = [
 const LastMonthLeaderboard = () => {
   // ** State
   const [filter, setFilter] = useState<string>('all')
+  const theme = useTheme()
 
   // ** Handlers
   const handleFilterChange = (event: SelectChangeEvent) => {
@@ -89,7 +91,7 @@ const LastMonthLeaderboard = () => {
                 <MenuItem value='top50'>۵۰ نفر اول</MenuItem>
               </Select>
             </FormControl>
-            <Icon icon='mdi:calendar-clock' fontSize={20} style={{ color: 'text.secondary' }} />
+            <Icon icon='mdi:calendar-clock' fontSize={20} style={{ color: theme.palette.text.secondary }} />
           </Box>
         }
       />
@@ -110,7 +112,7 @@ const LastMonthLeaderboard = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 3, pr: 5 }}>
                   {/* Subordinates */}
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Icon icon='mdi:account-multiple' fontSize={18} style={{ color: 'primary.main' }} />
+                    <Icon icon='mdi:account-multiple' fontSize={18} style={{ color: theme.palette.primary.main }} />
                     <Typography variant='body2' sx={{ color: 'text.secondary' }}>
                       زیر مجموعه:
                     </Typography>

@@ -5,8 +5,8 @@ import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import CardHeader from '@mui/material/CardHeader'
+import { useTheme } from '@mui/material/styles'
 import { styled } from '@mui/material/styles'
-
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -51,6 +51,8 @@ const currentMonthLeaderboard = [
 ]
 
 const CurrentMonthLeaderboard = () => {
+  const theme = useTheme()
+
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardHeader
@@ -77,7 +79,7 @@ const CurrentMonthLeaderboard = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 3, pr: 5 }}>
                   {/* Subordinates */}
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Icon icon='mdi:account-multiple' fontSize={18} style={{ color: 'primary.main' }} />
+                    <Icon icon='mdi:account-multiple' fontSize={18} style={{ color: theme.palette.primary.main }} />
                     <Typography variant='body2' sx={{ color: 'text.secondary' }}>
                       زیر مجموعه:
                     </Typography>
