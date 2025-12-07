@@ -15,6 +15,7 @@ import CardHeader from '@mui/material/CardHeader'
 import InputLabel from '@mui/material/InputLabel'
 import OutlinedInput from '@mui/material/OutlinedInput'
 import FormControl from '@mui/material/FormControl'
+import InputAdornment from '@mui/material/InputAdornment'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -54,7 +55,9 @@ const MyReferrerPageContent = () => {
 
   // Helper function to get initials
   const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName[0]}${lastName[0]}`
+    const firstInitial = firstName && firstName.length > 0 ? firstName[0] : ''
+    const lastInitial = lastName && lastName.length > 0 ? lastName[0] : ''
+    return `${firstInitial}${lastInitial}` || '?'
   }
 
   return (
@@ -62,7 +65,7 @@ const MyReferrerPageContent = () => {
       <Typography variant='h4' sx={{ mb: 4 }}>
         معرف من
       </Typography>
-      
+
       <Grid container spacing={6}>
         {/* Referral Code Input / Referrer Info Section */}
         <Grid item xs={12} md={6}>
@@ -142,7 +145,9 @@ const MyReferrerPageContent = () => {
                           }
                         }}
                         startAdornment={
-                          <Icon icon='mdi:ticket-percent' fontSize={20} style={{ marginRight: 8, color: 'inherit' }} />
+                          <InputAdornment position='start'>
+                            <Icon icon='mdi:ticket-percent' fontSize={20} />
+                          </InputAdornment>
                         }
                       />
                     </FormControl>
