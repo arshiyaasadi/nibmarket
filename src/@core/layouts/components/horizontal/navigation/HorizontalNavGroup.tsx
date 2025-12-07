@@ -1,8 +1,10 @@
+'use client'
+
 // ** React Imports
 import { SyntheticEvent, useState, useEffect, Fragment } from 'react'
 
 // ** Next Import
-import { useRouter } from 'next/router'
+import { useRouter } from 'src/lib/next-router-shim'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'

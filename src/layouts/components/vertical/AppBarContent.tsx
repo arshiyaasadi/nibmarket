@@ -26,46 +26,46 @@ interface Props {
 
 const notifications: NotificationsType[] = [
   {
-    meta: 'Today',
+    meta: 'امروز',
     avatarAlt: 'Flora',
-    title: 'Congratulation Flora! 🎉',
+    title: 'تبریک فلورا! 🎉',
     avatarImg: '/images/avatars/4.png',
-    subtitle: 'Won the monthly best seller badge'
+    subtitle: 'برنده نشان بهترین فروشنده ماه شد'
   },
   {
-    meta: 'Yesterday',
+    meta: 'دیروز',
     avatarColor: 'primary',
-    subtitle: '5 hours ago',
-    avatarText: 'Robert Austin',
-    title: 'New user registered.'
+    subtitle: '۵ ساعت پیش',
+    avatarText: 'رابرت آستین',
+    title: 'کاربر جدید ثبت نام کرد.'
   },
   {
-    meta: '11 Aug',
+    meta: '۱۱ مرداد',
     avatarAlt: 'message',
-    title: 'New message received 👋🏻',
+    title: 'پیام جدید دریافت شد 👋🏻',
     avatarImg: '/images/avatars/5.png',
-    subtitle: 'You have 10 unread messages'
+    subtitle: 'شما ۱۰ پیام خوانده نشده دارید'
   },
   {
-    meta: '25 May',
-    title: 'Paypal',
+    meta: '۲۵ اردیبهشت',
+    title: 'پی‌پال',
     avatarAlt: 'paypal',
-    subtitle: 'Received Payment',
+    subtitle: 'پرداخت دریافت شد',
     avatarImg: '/images/misc/paypal.png'
   },
   {
-    meta: '19 Mar',
+    meta: '۱۹ اسفند',
     avatarAlt: 'order',
-    title: 'Received Order 📦',
+    title: 'سفارش دریافت شد 📦',
     avatarImg: '/images/avatars/3.png',
-    subtitle: 'New order received from John'
+    subtitle: 'سفارش جدید از جان دریافت شد'
   },
   {
-    meta: '27 Dec',
+    meta: '۲۷ آذر',
     avatarAlt: 'chart',
-    subtitle: '25 hrs ago',
+    subtitle: '۲۵ ساعت پیش',
     avatarImg: '/images/misc/chart.png',
-    title: 'Finance report has been generated'
+    title: 'گزارش مالی تولید شد'
   }
 ]
 

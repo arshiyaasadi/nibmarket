@@ -49,17 +49,17 @@ const transactions = [
 const CrmTotalProfit = () => {
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', width: '100%' }}>
-      <CardContent sx={{ 
-        p: { xs: 4, sm: 5, md: 6 }, 
-        display: 'flex', 
-        flexDirection: 'column', 
-        flex: 1, 
-        minHeight: 0 
+      <CardContent sx={{
+        p: { xs: 4, sm: 5, md: 6 },
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        minHeight: 0
       }}>
         <Typography variant='h6' sx={{ mb: 4, fontWeight: 600, letterSpacing: '0.15px' }}>
-          ولت
+          کیف پول
         </Typography>
-        
+
         <Stack spacing={4} sx={{ mb: 5 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant='body2' sx={{ fontWeight: 500, fontSize: '0.875rem' }}>
@@ -72,7 +72,7 @@ const CrmTotalProfit = () => {
               <TwinBadge>TWIN</TwinBadge>
             </Box>
           </Box>
-          
+
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant='body2' sx={{ fontWeight: 500, fontSize: '0.875rem' }}>
               توکن قابل برداشت:
@@ -84,7 +84,7 @@ const CrmTotalProfit = () => {
               <TwinBadge>TWIN</TwinBadge>
             </Box>
           </Box>
-          
+
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant='body2' sx={{ fontWeight: 500, fontSize: '0.875rem' }}>
               توکن فریز:
@@ -97,10 +97,10 @@ const CrmTotalProfit = () => {
             </Box>
           </Box>
         </Stack>
-        
-        <Button 
-          variant='contained' 
-          fullWidth 
+
+        <Button
+          variant='contained'
+          fullWidth
           sx={{ mb: 4, py: 2, fontSize: '0.875rem' }}
         >
           انتقال توکن

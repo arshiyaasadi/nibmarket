@@ -37,7 +37,7 @@ const navigation = (): VerticalNavItemsType => {
       ]
     },
     {
-      title: 'گذارش',
+      title: 'گزارش',
       icon: 'mdi:chart-box-outline',
       auth: false,
       children: [

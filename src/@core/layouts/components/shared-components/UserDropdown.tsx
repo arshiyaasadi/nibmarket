@@ -1,8 +1,10 @@
+'use client'
+
 // ** React Imports
 import { useState, SyntheticEvent, Fragment } from 'react'
 
 // ** Next Import
-import { useRouter } from 'next/router'
+import { useRouter } from 'src/lib/next-router-shim'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -98,7 +100,7 @@ const UserDropdown = (props: Props) => {
         }}
       >
         <Avatar
-          alt='John Doe'
+          alt='علی احمدی'
           onClick={handleDropdownOpen}
           sx={{ width: 40, height: 40 }}
           src='/images/avatars/1.png'
@@ -122,33 +124,20 @@ const UserDropdown = (props: Props) => {
                 horizontal: 'right'
               }}
             >
-              <Avatar alt='John Doe' src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
+              <Avatar alt='علی احمدی' src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
             </Badge>
             <Box sx={{ display: 'flex', ml: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
-              <Typography sx={{ fontWeight: 600 }}>{t('John Doe')}</Typography>
+              <Typography sx={{ fontWeight: 600 }}>علی احمدی</Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-                {t('Admin')}
+                کاربر عادی
               </Typography>
             </Box>
           </Box>
         </Box>
-        <Divider sx={{ mt: '0 !important' }} />
         <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/pages/user-profile/profile')}>
           <Box sx={styles}>
             <Icon icon='mdi:account-outline' />
             {t('Profile')}
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/apps/email')}>
-          <Box sx={styles}>
-            <Icon icon='mdi:email-outline' />
-            {t('Inbox')}
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/apps/chat')}>
-          <Box sx={styles}>
-            <Icon icon='mdi:message-outline' />
-            {t('Chat')}
           </Box>
         </MenuItem>
         <Divider />
@@ -156,12 +145,6 @@ const UserDropdown = (props: Props) => {
           <Box sx={styles}>
             <Icon icon='mdi:cog-outline' />
             {t('Settings')}
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/pages/pricing')}>
-          <Box sx={styles}>
-            <Icon icon='mdi:currency-usd' />
-            {t('Pricing')}
           </Box>
         </MenuItem>
         <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/pages/faq')}>

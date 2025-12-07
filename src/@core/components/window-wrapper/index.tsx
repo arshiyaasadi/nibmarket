@@ -1,8 +1,10 @@
+'use client'
+
 // ** React Imports
 import { useState, useEffect, ReactNode } from 'react'
 
 // ** Next Import
-import { useRouter } from 'next/router'
+import { useRouter } from 'src/lib/next-router-shim'
 
 interface Props {
   children: ReactNode

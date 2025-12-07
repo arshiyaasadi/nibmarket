@@ -1,6 +1,6 @@
 // ** Types
 import { NavGroup, NavLink } from 'src/@core/layouts/types'
-import { NextRouter } from 'next/router'
+import { NextRouterShim } from 'src/lib/next-router-shim'
 
 /**
  * Check for URL queries as well for matching
@@ -9,7 +9,7 @@ import { NextRouter } from 'next/router'
  * @param item
  * @param activeItem
  */
-export const handleURLQueries = (router: NextRouter, path: string | undefined): boolean => {
+export const handleURLQueries = (router: NextRouterShim, path: string | undefined): boolean => {
   if (Object.keys(router.query).length && path) {
     const arr = Object.keys(router.query)
 

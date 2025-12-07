@@ -29,22 +29,22 @@ export type NotificationsType = {
   title: string
   subtitle: string
 } & (
-  | { avatarAlt: string; avatarImg: string; avatarText?: never; avatarColor?: never; avatarIcon?: never }
-  | {
+    | { avatarAlt: string; avatarImg: string; avatarText?: never; avatarColor?: never; avatarIcon?: never }
+    | {
       avatarAlt?: never
       avatarImg?: never
       avatarText: string
       avatarIcon?: never
       avatarColor?: ThemeColor
     }
-  | {
+    | {
       avatarAlt?: never
       avatarImg?: never
       avatarText?: never
       avatarIcon: ReactNode
       avatarColor?: ThemeColor
     }
-)
+  )
 interface Props {
   settings: Settings
   notifications: NotificationsType[]
@@ -164,9 +164,9 @@ const NotificationDropdown = (props: Props) => {
           }
         }}
       >
-        <Typography 
-          sx={{ 
-            fontWeight: 500, 
+        <Typography
+          sx={{
+            fontWeight: 500,
             fontSize: '0.875rem',
             color: 'inherit',
             whiteSpace: 'nowrap'
@@ -198,7 +198,7 @@ const NotificationDropdown = (props: Props) => {
           sx={{ cursor: 'default', userSelect: 'auto', backgroundColor: 'transparent !important' }}
         >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-            <Typography sx={{ cursor: 'text', fontWeight: 600 }}>اعلان‌ها</Typography>
+            <Typography sx={{ cursor: 'text', fontWeight: 600 }}>اخبار و اطلاعیه ها</Typography>
             <CustomChip
               skin='light'
               size='small'
@@ -210,10 +210,10 @@ const NotificationDropdown = (props: Props) => {
         </MenuItem>
         <ScrollWrapper hidden={hidden}>
           {notifications.map((notification: NotificationsType, index: number) => (
-            <MenuItem 
-              key={index} 
+            <MenuItem
+              key={index}
               onClick={handleDropdownClose}
-              sx={{ 
+              sx={{
                 padding: 2,
                 '&:hover': {
                   backgroundColor: 'transparent'
@@ -235,19 +235,19 @@ const NotificationDropdown = (props: Props) => {
                     }}
                   >
                     <Icon icon='mdi:newspaper-variant-outline' fontSize='1.25rem' />
-                </Box>
+                  </Box>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                       <MenuItemTitle sx={{ fontSize: '0.875rem', fontWeight: 600, color: 'text.primary' }}>
                         {notification.title}
                       </MenuItemTitle>
                       <Typography variant='caption' sx={{ color: 'text.disabled', whiteSpace: 'nowrap', ml: 1 }}>
-                  {notification.meta}
-                </Typography>
-              </Box>
-                    <MenuItemSubtitle 
-                      variant='body2' 
-                      sx={{ 
+                        {notification.meta}
+                      </Typography>
+                    </Box>
+                    <MenuItemSubtitle
+                      variant='body2'
+                      sx={{
                         color: 'text.secondary',
                         fontSize: '0.8125rem',
                         lineHeight: 1.5,
