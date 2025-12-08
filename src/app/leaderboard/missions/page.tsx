@@ -97,7 +97,6 @@ const MissionsPageContent = () => {
                             fontWeight: 600,
                             mb: 1,
                             fontSize: '0.9375rem',
-                            textDecoration: mission.completed ? 'line-through' : 'none',
                             color: mission.completed ? 'text.secondary' : 'text.primary'
                           }}
                         >

@@ -13,6 +13,7 @@ import IconButton from '@mui/material/IconButton'
 import CardContent from '@mui/material/CardContent'
 import OutlinedInput from '@mui/material/OutlinedInput'
 import InputAdornment from '@mui/material/InputAdornment'
+import { useTheme } from '@mui/material/styles'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -36,10 +37,11 @@ const CrmAward = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
   // ** Hooks
+  const theme = useTheme()
   const { settings } = useSettings()
   const clipboard = useClipboard({
     onSuccess: () => {
-      alert('کد دعوت کپی شد')
+      alert('کد معرف کپی شد')
     }
   })
 
@@ -57,7 +59,7 @@ const CrmAward = () => {
   }
 
   const handleShare = (platform: string) => {
-    const shareText = `کد دعوت من: ${referralCode}`
+    const shareText = `کد معرف من: ${referralCode}`
     const shareUrl = `${window.location.origin}?ref=${referralCode}`
     
     let url = ''
@@ -130,13 +132,12 @@ const CrmAward = () => {
                   width: 40,
                   height: 40,
                   mr: 2,
-                  backgroundColor: 'primary.main',
-                  color: 'primary.contrastText',
-                  fontSize: '0.875rem',
-                  fontWeight: 600
+                  backgroundColor: 'rgba(76, 78, 100, 0.08)',
+                  color: theme.palette.primary.main,
+                  fontSize: '1.25rem'
                 }}
               >
-                {user.name.split(' ').map(n => n[0]).join('')}
+                <Icon icon='mdi:account' fontSize='1.25rem' />
               </Avatar>
               <Box sx={{ flex: 1 }}>
                 <Typography variant='body2' sx={{ fontWeight: 500, mb: 0.5, fontSize: '0.875rem' }}>
@@ -162,7 +163,7 @@ const CrmAward = () => {
           minHeight: 0
         }}>
           <Typography variant='body2' sx={{ fontWeight: 600, mb: 3, fontSize: '0.875rem' }}>
-            کد دعوت
+            کد معرف
           </Typography>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <OutlinedInput
@@ -182,7 +183,7 @@ const CrmAward = () => {
                   <IconButton
                     edge='end'
                     onClick={handleCopy}
-                    aria-label='کپی کد دعوت'
+                    aria-label='کپی کد معرف'
                     sx={{ mr: -1 }}
                   >
                     <Icon icon='mdi:content-copy' fontSize={20} />

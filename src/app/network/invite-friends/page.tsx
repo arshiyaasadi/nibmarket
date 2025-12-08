@@ -83,7 +83,7 @@ const InviteFriendsPageContent = () => {
   const clipboard = useClipboard({
     onSuccess: () => {
       // You can replace this with a toast notification
-      alert('کد دعوت با موفقیت کپی شد!')
+      alert('کد معرف با موفقیت کپی شد!')
     }
   })
 
@@ -120,7 +120,7 @@ const InviteFriendsPageContent = () => {
   }
 
   const handleShare = (platform: string) => {
-    const shareText = `کد دعوت من: ${referralCode}\nبا استفاده از این کد دعوت، به ${themeConfig.templateName} بپیوندید!`
+    const shareText = `کد معرف من: ${referralCode}\nبا استفاده از این کد معرف، به ${themeConfig.templateName} بپیوندید!`
     const shareUrl = referralLink || `${typeof window !== 'undefined' ? window.location.origin : ''}?ref=${referralCode}`
 
     let url = ''
@@ -157,7 +157,7 @@ const InviteFriendsPageContent = () => {
           <Card>
             <CardContent sx={{ p: 6 }}>
               <Typography variant='h6' sx={{ mb: 4, fontWeight: 600 }}>
-                کد دعوت شما
+                کد معرف شما
               </Typography>
               <Box sx={{ mb: 4 }}>
                 <InputLabel
@@ -168,7 +168,7 @@ const InviteFriendsPageContent = () => {
                     color: 'text.secondary'
                   }}
                 >
-                  کد دعوت خود را کپی کنید و برای دوستانتان ارسال کنید
+                  کد معرف خود را کپی کنید و برای دوستانتان ارسال کنید
                 </InputLabel>
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                   <OutlinedInput
@@ -190,7 +190,7 @@ const InviteFriendsPageContent = () => {
                         <IconButton
                           edge='end'
                           onClick={handleCopyCode}
-                          aria-label='کپی کد دعوت'
+                          aria-label='کپی کد معرف'
                           sx={{ mr: -1 }}
                         >
                           <Icon icon='mdi:content-copy' fontSize={20} />
@@ -340,18 +340,16 @@ const InviteFriendsPageContent = () => {
                       }}
                     >
                       <Avatar
-                        src={user.avatar}
                         sx={{
                           width: 48,
                           height: 48,
                           mr: 2,
                           backgroundColor: 'primary.main',
                           color: 'primary.contrastText',
-                          fontSize: '0.875rem',
-                          fontWeight: 600
+                          fontSize: '1.5rem'
                         }}
                       >
-                        {user.name.split(' ').map(n => n[0]).join('')}
+                        <Icon icon='mdi:account' fontSize='1.5rem' />
                       </Avatar>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Typography variant='body2' sx={{ fontWeight: 600, mb: 0.5 }}>

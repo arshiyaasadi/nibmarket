@@ -151,7 +151,8 @@ const CrmProjectTimeline = () => {
                       height: 40,
                       fontSize: '1rem',
                       fontWeight: 600,
-                      bgcolor: index === 0 ? 'primary.main' : index === 1 ? 'secondary.main' : index === 2 ? 'success.main' : 'action.selected'
+                      backgroundColor: 'rgba(76, 78, 100, 0.08)',
+                      color: theme.palette.primary.main
                     }}
                   >
                     {person.rank}

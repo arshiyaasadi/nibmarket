@@ -49,7 +49,7 @@ const MyReferrerPageContent = () => {
         lastName: 'رضایی',
         usedDate: '۱۴۰۳/۰۹/۱۵'
       })
-      toast.success('کد دعوت با موفقیت ثبت شد')
+      toast.success('کد معرف با موفقیت ثبت شد')
     }
   }
 
@@ -109,7 +109,7 @@ const MyReferrerPageContent = () => {
                       <Icon icon='mdi:calendar-clock' fontSize={20} style={{ color: 'inherit' }} />
                       <Box sx={{ flex: 1 }}>
                         <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
-                          تاریخ استفاده از کد دعوت:
+                          تاریخ استفاده از کد معرف:
                         </Typography>
                         <Typography variant='body1' sx={{ fontWeight: 600 }}>
                           {referrerInfo.usedDate}
@@ -122,19 +122,19 @@ const MyReferrerPageContent = () => {
             ) : (
               <>
                 <CardHeader
-                  title='وارد کردن کد دعوت'
+                  title='وارد کردن کد معرف'
                   titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }}
                 />
                 <CardContent sx={{ p: 6 }}>
                   <form onSubmit={handleSubmit}>
                     <FormControl fullWidth sx={{ mb: 4 }}>
-                      <InputLabel htmlFor='referral-code-input'>کد دعوت</InputLabel>
+                      <InputLabel htmlFor='referral-code-input'>کد معرف</InputLabel>
                       <OutlinedInput
                         id='referral-code-input'
-                        label='کد دعوت'
+                        label='کد معرف'
                         value={referralCode}
                         onChange={(e) => setReferralCode(e.target.value)}
-                        placeholder='کد دعوت را وارد کنید'
+                        placeholder='کد معرف را وارد کنید'
                         disabled={hasSubsets}
                         sx={{
                           '& .MuiOutlinedInput-input': {
@@ -158,11 +158,11 @@ const MyReferrerPageContent = () => {
                       disabled={!referralCode.trim() || hasSubsets}
                       sx={{ py: 1.5 }}
                     >
-                      ثبت کد دعوت
+                      ثبت کد معرف
                     </Button>
                     {hasSubsets && (
                       <Typography variant='body2' sx={{ mt: 2, color: 'error.main', textAlign: 'center' }}>
-                        شما قبلاً زیرمجموعه گرفته‌اید و نمی‌توانید از کد دعوت استفاده کنید
+                        شما قبلاً زیرمجموعه گرفته‌اید و نمی‌توانید از کد معرف استفاده کنید
                       </Typography>
                     )}
                   </form>
@@ -176,7 +176,7 @@ const MyReferrerPageContent = () => {
         <Grid item xs={12} md={6}>
           <Card>
             <CardHeader
-              title='قوانین استفاده از کد دعوت'
+              title='قوانین استفاده از کد معرف'
               titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }}
             />
             <CardContent sx={{ p: 6 }}>
@@ -199,10 +199,10 @@ const MyReferrerPageContent = () => {
                   </Box>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant='body1' sx={{ fontWeight: 600, mb: 0.5 }}>
-                      استفاده از کد دعوت
+                      استفاده از کد معرف
                     </Typography>
                     <Typography variant='body2' sx={{ color: 'text.secondary', lineHeight: 1.8 }}>
-                      اگر تا کنون کد دعوت شخصی رو استفاده نکرده اید می‌توانید استفاده کنید.
+                      اگر تا کنون کد معرف شخصی رو استفاده نکرده اید می‌توانید استفاده کنید.
                     </Typography>
                   </Box>
                 </Box>
@@ -230,7 +230,7 @@ const MyReferrerPageContent = () => {
                       محدودیت استفاده
                     </Typography>
                     <Typography variant='body2' sx={{ color: 'text.secondary', lineHeight: 1.8 }}>
-                      اگر زیرمجموعه گرفته باشید دیگر نمی‌توانید از کد دعوت شخصی استفاده کنید.
+                      درصورتی که دارای زیرمجموعه باشید امکان ثبت کد معرف مقدور نمی‌باشد.
                     </Typography>
                   </Box>
                 </Box>

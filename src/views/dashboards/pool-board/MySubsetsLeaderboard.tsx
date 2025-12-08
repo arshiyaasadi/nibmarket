@@ -12,21 +12,7 @@ import { styled } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 
 // ** Styled Components
-const RankBadge = styled(Box)<{ rank: number }>(({ theme, rank }) => {
-  let backgroundColor = theme.palette.grey[300]
-  let color = theme.palette.text.primary
-
-  if (rank === 1) {
-    backgroundColor = '#FFD700'
-    color = '#000'
-  } else if (rank === 2) {
-    backgroundColor = '#C0C0C0'
-    color = '#000'
-  } else if (rank === 3) {
-    backgroundColor = '#CD7F32'
-    color = '#fff'
-  }
-
+const RankBadge = styled(Box)<{ rank: number }>(({ theme }) => {
   return {
     display: 'flex',
     alignItems: 'center',
@@ -34,8 +20,8 @@ const RankBadge = styled(Box)<{ rank: number }>(({ theme, rank }) => {
     minWidth: 32,
     height: 32,
     borderRadius: '50%',
-    backgroundColor,
-    color,
+    backgroundColor: 'rgba(76, 78, 100, 0.08)',
+    color: theme.palette.primary.main,
     fontWeight: 700,
     fontSize: '0.875rem'
   }
