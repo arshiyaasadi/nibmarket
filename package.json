@@ -32,6 +32,7 @@
     "@mui/material": "5.18.0",
     "@mui/system": "5.18.0",
     "@mui/x-data-grid": "7.28.1",
+    "@mui/x-tree-view": "^8.21.0",
     "@popperjs/core": "2.11.6",
     "@reduxjs/toolkit": "1.9.3",
     "apexcharts": "^5.3.6",
