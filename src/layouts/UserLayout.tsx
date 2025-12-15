@@ -84,6 +84,46 @@ const UserLayout = ({ children, contentHeightFixed }: Props) => {
       >
         <Button
           component={Link}
+          href='/notifications'
+          fullWidth
+          variant='text'
+          startIcon={<Icon icon='mdi:bell-outline' />}
+          sx={{
+            justifyContent: isMenuClosed ? 'center' : 'flex-start',
+            textTransform: 'none',
+            color: 'text.primary',
+            transition: 'background-color .2s ease-in-out',
+
+            // Hide text when menu is closed
+            '& .MuiButton-startIcon': {
+              ...(isMenuClosed && { mr: 0 })
+            },
+
+            // Hover styles when menu is open
+            '&:hover': {
+              ...(isMenuOpen && {
+                backgroundColor: 'action.hover'
+              }),
+
+              // Hover styles when menu is closed
+              ...(isMenuClosed && {
+                backgroundColor: 'action.selected'
+              })
+            }
+          }}
+        >
+          <Box
+            sx={{
+              opacity: isMenuClosed ? 0 : 1,
+              transition: 'opacity .25s ease-in-out',
+              ...(isMenuClosed && { width: 0, overflow: 'hidden' })
+            }}
+          >
+            <Typography sx={{ textTransform: 'none' }}>اخبار و اطلاعیه ها</Typography>
+          </Box>
+        </Button>
+        <Button
+          component={Link}
           href='/rules'
           fullWidth
           variant='text'

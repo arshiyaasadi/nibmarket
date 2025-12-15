@@ -1,7 +1,7 @@
 'use client'
 
 // ** React Imports
-import { Suspense, useMemo, useEffect } from 'react'
+import { Suspense, useMemo, useLayoutEffect, useRef, useState } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -9,472 +9,334 @@ import Typography from '@mui/material/Typography'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 
-// ** MUI X Tree View Imports
-import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView'
-import { TreeItem } from '@mui/x-tree-view/TreeItem'
-
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
-
-// ** Custom Component Imports
-import CustomAvatar from 'src/@core/components/mui/avatar'
-
 // ** Hooks
 import { useSettings } from 'src/@core/hooks/useSettings'
 
-// ** Types
-interface SubsetNode {
+// ** Types for network tree
+interface NetworkNode {
   id: string
-  firstName: string
-  lastName: string
-  avatar?: string
-  membershipDate?: string
-  averageCapital?: string | number
-  children?: SubsetNode[]
+  name: string
+  family: string
+  balance: string | number
+  networks: NetworkNode[]
 }
 
+interface Edge {
+  parentId: string
+  childId: string
+}
 
-const SubsetTreePageContent = () => {
-  // ** Hooks
-  const { settings } = useSettings()
-  const direction = settings.direction || 'rtl'
+// ** BFS helper to flatten nested network structure into levels
+const buildNetworkLevels = (root: NetworkNode): { edges: Edge[] } => {
+  const edges: Edge[] = []
 
-  // ** Helper function to get initials
-  const getInitials = (firstName: string, lastName: string) => {
-    const firstInitial = firstName && firstName.length > 0 ? firstName[0] : ''
-    const lastInitial = lastName && lastName.length > 0 ? lastName[0] : ''
-    return `${firstInitial}${lastInitial}` || '?'
+  const queue: Array<{ node: NetworkNode; parentId: string | null }> = [
+    { node: root, parentId: null }
+  ]
+
+  while (queue.length > 0) {
+    const { node, parentId } = queue.shift() as {
+      node: NetworkNode
+      parentId: string | null
+    }
+
+    if (node.networks && node.networks.length > 0) {
+      node.networks.forEach(child => {
+        queue.push({ node: child, parentId: node.id })
+        edges.push({ parentId: node.id, childId: child.id })
+      })
+    }
   }
 
-  // ** Sample data structure - replace with your actual data
-  const treeData: SubsetNode[] = useMemo(
-    () => [
-      {
-        id: '1',
-        firstName: 'علی',
-        lastName: 'احمدی',
-        membershipDate: '۱۴۰۳/۰۱/۱۵',
-        averageCapital: 5000000,
-        children: [
-          {
-            id: '1-1',
-            firstName: 'محمد',
-            lastName: 'رضایی',
-            membershipDate: '۱۴۰۳/۰۲/۱۰',
-            averageCapital: 3000000,
-            children: [
-              {
-                id: '1-1-1',
-                firstName: 'حسن',
-                lastName: 'کریمی',
-                membershipDate: '۱۴۰۳/۰۳/۰۵',
-                averageCapital: 1500000
-              }
-            ]
-          },
-          {
-            id: '1-2',
-            firstName: 'رضا',
-            lastName: 'محمدی',
-            membershipDate: '۱۴۰۳/۰۲/۲۰',
-            averageCapital: 2500000,
-            children: [
-              {
-                id: '1-2-1',
-                firstName: 'امیر',
-                lastName: 'حسینی',
-                membershipDate: '۱۴۰۳/۰۳/۱۲',
-                averageCapital: 1200000,
-                children: [
-                  {
-                    id: '1-2-1-1',
-                    firstName: 'سعید',
-                    lastName: 'نوری',
-                    membershipDate: '۱۴۰۳/۰۴/۰۱',
-                    averageCapital: 800000
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ],
-    []
-  )
+  return { edges }
+}
 
-  // ** Render node content
-  const renderNodeContent = (nodes: SubsetNode, isRoot: boolean = false) => {
-    const fullName = `${nodes.firstName} ${nodes.lastName}`.trim() || '(بدون نام)'
-    
+// ** Network Tree Visualization Component
+const NetworkTree = ({ root }: { root: NetworkNode }) => {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const nodeRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const [lines, setLines] = useState<
+    { parentId: string; childId: string; fromX: number; fromY: number; toX: number; toY: number }[]
+  >([])
+
+  const { edges } = useMemo(() => buildNetworkLevels(root), [root])
+
+  // Compute SVG connector positions after layout
+  useLayoutEffect(() => {
+    if (!containerRef.current) return
+
+    const containerRect = containerRef.current.getBoundingClientRect()
+    const newLines: {
+      parentId: string
+      childId: string
+      fromX: number
+      fromY: number
+      toX: number
+      toY: number
+    }[] = []
+
+    edges.forEach(edge => {
+      const parentEl = nodeRefs.current[edge.parentId]
+      const childEl = nodeRefs.current[edge.childId]
+
+      if (!parentEl || !childEl) {
+        return
+      }
+
+      const parentRect = parentEl.getBoundingClientRect()
+      const childRect = childEl.getBoundingClientRect()
+
+      const fromX = parentRect.left + parentRect.width / 2 - containerRect.left
+      const fromY = parentRect.bottom - containerRect.top
+      const toX = childRect.left + childRect.width / 2 - containerRect.left
+      const toY = childRect.top - containerRect.top
+
+      newLines.push({
+        parentId: edge.parentId,
+        childId: edge.childId,
+        fromX,
+        fromY,
+        toX,
+        toY
+      })
+    })
+
+    setLines(newLines)
+  }, [edges])
+
+  const renderCard = (node: NetworkNode, isRoot: boolean) => {
+    const fullName = `${node.name} ${node.family}`.trim()
+
     return (
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 1,
-          py: 2,
-          px: 2,
-          position: 'relative'
+      <Box
+        ref={el => {
+          nodeRefs.current[node.id] = el as HTMLDivElement | null
+        }}
+        sx={{
+          position: 'relative',
+          zIndex: 2,
+          width: 180,
+          aspectRatio: '4 / 3'
         }}
       >
-        {/* Node Shape - Circle for root, Square for children */}
-        <Box
+        <Card
           sx={{
-            width: isRoot ? 80 : 100,
-            height: isRoot ? 80 : 100,
-            borderRadius: isRoot ? '50%' : 2,
-            backgroundColor: isRoot ? '#FFD700' : '#17A2B8', // Yellow for root, Teal for children
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: theme => theme.shadows[2],
-            position: 'relative',
-            zIndex: 2
+            borderRadius: 3,
+            boxShadow: theme => theme.shadows[4],
+            border: theme => `1px solid ${theme.palette.divider}`,
+            backgroundColor: theme => theme.palette.background.paper,
+            color: 'text.primary',
+            height: '100%'
           }}
         >
-          {/* User Avatar or Initials */}
-          {nodes.avatar ? (
-            <CustomAvatar
-              src={nodes.avatar}
-              alt={fullName}
-              sx={{ 
-                width: isRoot ? 70 : 90, 
-                height: isRoot ? 70 : 90,
-                borderRadius: isRoot ? '50%' : 2
-              }}
-            />
-          ) : (
-            <Typography 
-              variant={isRoot ? 'h6' : 'body1'} 
-              sx={{ 
-                color: 'white', 
-                fontWeight: 600,
-                fontSize: isRoot ? '1.5rem' : '1rem'
+          <CardContent
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              height: '100%',
+              py: 2,
+              px: 3,
+              textAlign: 'center'
+            }}
+          >
+            <Typography
+              variant='subtitle1'
+              sx={{
+                fontWeight: 700,
+                mb: 0.5
               }}
             >
-              {getInitials(nodes.firstName, nodes.lastName)}
+              {fullName}
             </Typography>
-          )}
-        </Box>
-
-        {/* User Info */}
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          gap: 0.5, 
-          textAlign: 'center',
-          maxWidth: 150
-        }}>
-          <Typography variant='body2' sx={{ fontWeight: 600 }}>
-            {fullName}
-          </Typography>
-          {nodes.membershipDate && (
-            <Typography variant='caption' color='text.secondary'>
-              {nodes.membershipDate}
+            <Typography
+              variant='body2'
+              sx={{
+                fontWeight: 600
+              }}
+            >
+              {typeof node.balance === 'number'
+                ? node.balance.toLocaleString('fa-IR')
+                : Number(node.balance).toLocaleString('fa-IR')}{' '}
+              تومان
             </Typography>
-          )}
-          {nodes.averageCapital !== undefined && (
-            <Typography variant='caption' color='text.secondary'>
-              {typeof nodes.averageCapital === 'number' 
-                ? nodes.averageCapital.toLocaleString('fa-IR') 
-                : nodes.averageCapital} تومان
-            </Typography>
-          )}
-        </Box>
+          </CardContent>
+        </Card>
       </Box>
     )
   }
 
-  // ** Render tree recursively with custom label
-  const renderTree = (nodes: SubsetNode, isRoot: boolean = false) => {
-    const hasChildren = Array.isArray(nodes.children) && nodes.children.length > 0
-    
-    // If root node with children, render children horizontally
-    if (isRoot && hasChildren) {
-      return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-          <TreeItem key={nodes.id} itemId={nodes.id} label={renderNodeContent(nodes, true)} />
-           <Box
-             sx={{
-               display: 'flex',
-               flexDirection: 'row',
-               justifyContent: 'space-around',
-               alignItems: 'flex-start',
-               gap: theme => theme.spacing(4),
-               marginTop: theme => theme.spacing(3),
-               paddingTop: theme => theme.spacing(3),
-               position: 'relative',
-               width: '100%',
-               '&::before': {
-                 content: '""',
-                 position: 'absolute',
-                 top: 0,
-                 left: '50%',
-                 transform: 'translateX(-50%)',
-                 width: '2px',
-                 height: theme => theme.spacing(3),
-                 backgroundColor: '#6C757D',
-                 zIndex: 1
-               },
-               '&::after': {
-                 content: '""',
-                 position: 'absolute',
-                 top: theme => theme.spacing(3),
-                 left: '5%',
-                 right: '5%',
-                 height: '2px',
-                 backgroundColor: '#6C757D',
-                 zIndex: 1
-               }
-             }}
-           >
-            {nodes.children!.map((child) => (
-              <Box
-                key={child.id}
-                sx={{
-                  position: 'relative',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: theme => `-${theme.spacing(3)}`,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    width: '2px',
-                    height: theme => theme.spacing(3),
-                    backgroundColor: '#6C757D',
-                    zIndex: 1
-                  }
-                }}
-              >
-                <SimpleTreeView
-                  defaultExpandedItems={getAllNodeIds([child])}
-                  sx={{
-                    '& .MuiTreeItem-group': {
-                      display: 'flex',
-                      flexDirection: 'row',
-                      justifyContent: 'center',
-                      alignItems: 'flex-start',
-                      gap: theme => theme.spacing(4)
-                    }
-                  }}
-                >
-                  {renderTree(child, false)}
-                </SimpleTreeView>
-              </Box>
-            ))}
-          </Box>
-        </Box>
-      )
-    }
+  const renderSubtree = (node: NetworkNode, isRoot: boolean) => {
+    const hasChildren = node.networks && node.networks.length > 0
 
     return (
-      <TreeItem key={nodes.id} itemId={nodes.id} label={renderNodeContent(nodes, isRoot)}>
-        {hasChildren
-          ? nodes.children!.map(node => renderTree(node, false))
-          : null}
-      </TreeItem>
+      <Box
+        key={node.id}
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          px: 3,
+          py: 2
+        }}
+      >
+        {renderCard(node, isRoot)}
+        {hasChildren && (
+          <Box
+            sx={{
+              mt: 4,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'flex-start',
+              gap: 4,
+              flexWrap: 'nowrap'
+            }}
+          >
+            {node.networks.map(child => renderSubtree(child, false))}
+          </Box>
+        )}
+      </Box>
     )
   }
 
-  // ** Get all node IDs for default expanded
-  const getAllNodeIds = (nodes: SubsetNode[]): string[] => {
-    const ids: string[] = []
-    const traverse = (node: SubsetNode) => {
-      ids.push(node.id)
-      if (node.children) {
-        node.children.forEach(traverse)
-      }
-    }
-    nodes.forEach(traverse)
-    return ids
-  }
+  return (
+    <Box
+      ref={containerRef}
+      sx={{
+        position: 'relative',
+        width: '100%',
+        minHeight: 400,
+        py: 6,
+        overflow: 'auto'
+      }}
+    >
+      {/* SVG connectors behind cards */}
+      <Box
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 1,
+          pointerEvents: 'none'
+        }}
+      >
+        <svg width='100%' height='100%'>
+          {lines.map((line, index) => {
+            const midY = (line.fromY + line.toY) / 2
+            const path = `M ${line.fromX},${line.fromY} C ${line.fromX},${midY} ${line.toX},${midY} ${line.toX},${line.toY}`
 
-  const defaultExpandedItems = useMemo(() => getAllNodeIds(treeData), [treeData])
+            return (
+              <path
+                key={`${line.parentId}-${line.childId}-${index}`}
+                d={path}
+                stroke='#D1D5DB'
+                strokeWidth={2}
+                fill='none'
+              />
+            )
+          })}
+        </svg>
+      </Box>
 
-  // ** Add global style to force horizontal layout
-  useEffect(() => {
-    const style = document.createElement('style')
-    style.textContent = `
-      .MuiTreeItem-group {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        justify-content: center !important;
-        align-items: flex-start !important;
-      }
-      .MuiTreeItem-group > .MuiTreeItem-root {
-        display: inline-flex !important;
-        flex: 0 0 auto !important;
-        width: auto !important;
-        max-width: none !important;
-      }
-    `
-    document.head.appendChild(style)
-    return () => {
-      document.head.removeChild(style)
-    }
-  }, [])
+      {/* Recursive tree layout */}
+      <Box
+        sx={{
+          position: 'relative',
+          zIndex: 2,
+          display: 'flex',
+          justifyContent: 'center'
+        }}
+      >
+        {renderSubtree(root, true)}
+      </Box>
+    </Box>
+  )
+}
+
+const SubsetTreePageContent = () => {
+  const { settings } = useSettings()
+  const direction = settings.direction || 'rtl'
+
+  // Example mock data - each node has at least 2 children
+  const rootNode: NetworkNode = useMemo(
+    () => ({
+      id: '1',
+      name: 'علی',
+      family: 'احمدی',
+      balance: 5000000,
+      networks: [
+        {
+          id: '2',
+          name: 'محمد',
+          family: 'رضایی',
+          balance: 3000000,
+          networks: [
+            {
+              id: '4',
+              name: 'حسن',
+              family: 'کریمی',
+              balance: 1500000,
+              networks: [
+              ]
+            },
+            {
+              id: '5',
+              name: 'سارا',
+              family: 'رضایی',
+              balance: 1100000,
+              networks: []
+            }
+          ]
+        },
+        {
+          id: '3',
+          name: 'رضا',
+          family: 'محمدی',
+          balance: 2500000,
+          networks: [
+            {
+              id: '13',
+              name: 'الهام',
+              family: 'صبوری',
+              balance: 1200000,
+              networks: [
+                {
+                  id: '14',
+                  name: 'نگین',
+                  family: 'صبوری',
+                  balance: 510000,
+                  networks: [
+                    {
+                      id: '15',
+                      name: 'سارا',
+                      family: 'رضایی',
+                      balance: 1100000,
+                      networks: []
+                    },
+                    {
+                      id: '16',
+                      name: 'سارا',
+                      family: 'رضایی',
+                      balance: 1100000,
+                      networks: []
+                    }]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }),
+    []
+  )
 
   return (
-    <Box>
+    <Box dir={direction}>
       <Typography variant='h4' sx={{ mb: 4 }}>
         درخت زیر مجموعه
       </Typography>
       <Card>
         <CardContent sx={{ p: theme => `${theme.spacing(5)} !important` }}>
-          {treeData.length > 0 ? (
-            <Box
-              sx={{
-                width: '100%',
-                minHeight: 400,
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'flex-start',
-                py: 4,
-                // Global style override for TreeItem groups
-                '& .MuiTreeItem-group': {
-                  display: 'flex !important',
-                  flexDirection: 'row !important',
-                  flexWrap: 'nowrap !important',
-                  justifyContent: 'center !important',
-                  alignItems: 'flex-start !important'
-                },
-                '& .MuiSimpleTreeView-root': {
-                  width: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  '& .MuiTreeItem-group': {
-                    display: 'flex !important',
-                    flexDirection: 'row !important',
-                    flexWrap: 'nowrap !important',
-                    justifyContent: 'center !important',
-                    alignItems: 'flex-start !important'
-                  }
-                },
-                '& .MuiTreeItem-root': {
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  marginBottom: theme => theme.spacing(2),
-                  width: 'auto',
-                  minWidth: 'auto'
-                },
-                '& > .MuiTreeItem-root': {
-                  width: '100%'
-                },
-                '& .MuiTreeItem-content': {
-                  padding: 0,
-                  justifyContent: 'center',
-                  '&:hover': {
-                    backgroundColor: 'transparent'
-                  }
-                },
-                '& .MuiTreeItem-iconContainer': {
-                  display: 'none' // Hide default expand/collapse icons
-                },
-                '& .MuiTreeItem-group': {
-                  display: 'flex !important',
-                  flexDirection: 'row !important',
-                  flexWrap: 'nowrap !important',
-                  justifyContent: 'center !important',
-                  alignItems: 'flex-start !important',
-                  gap: theme => `${theme.spacing(4)} !important`,
-                  marginTop: theme => `${theme.spacing(3)} !important`,
-                  paddingTop: theme => `${theme.spacing(3)} !important`,
-                  paddingLeft: '0 !important',
-                  paddingRight: '0 !important',
-                  marginLeft: '0 !important',
-                  marginRight: '0 !important',
-                  position: 'relative',
-                  width: '100%',
-                  '& > *': {
-                    flexShrink: 0,
-                    display: 'inline-flex !important',
-                    flexDirection: 'column !important',
-                    width: 'auto !important',
-                    maxWidth: 'none !important'
-                  },
-                  '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    width: '2px',
-                    height: theme => theme.spacing(3),
-                    backgroundColor: '#6C757D', // Vertical connector line from parent
-                    zIndex: 1
-                  },
-                  '&::after': {
-                    content: '""',
-                    position: 'absolute',
-                    top: theme => theme.spacing(3),
-                    left: '5%',
-                    right: '5%',
-                    height: '2px',
-                    backgroundColor: '#6C757D', // Horizontal connector line
-                    zIndex: 1
-                  },
-                  '& > .MuiTreeItem-root': {
-                    position: 'relative !important',
-                    display: 'inline-flex !important',
-                    flex: '0 0 auto !important',
-                    width: 'auto !important',
-                    maxWidth: 'none !important',
-                    minWidth: 'auto !important',
-                    marginBottom: theme => `${theme.spacing(2)} !important`,
-                    marginLeft: '0 !important',
-                    marginRight: '0 !important',
-                    marginTop: '0 !important',
-                    '&::before': {
-                      content: '""',
-                      position: 'absolute',
-                      top: theme => `-${theme.spacing(3)}`,
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      width: '2px',
-                      height: theme => theme.spacing(3),
-                      backgroundColor: '#6C757D', // Vertical connector line to child
-                      zIndex: 1
-                    }
-                  }
-                },
-                // Additional global override
-                '& * .MuiTreeItem-group': {
-                  display: 'flex !important',
-                  flexDirection: 'row !important',
-                  flexWrap: 'nowrap !important'
-                },
-                '& .MuiTreeItem-label': {
-                  padding: 0
-                }
-              }}
-            >
-              <SimpleTreeView
-                defaultExpandedItems={defaultExpandedItems}
-                sx={{
-                  minHeight: 400,
-                  width: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center'
-                }}
-              >
-                {treeData.map(node => renderTree(node, true))}
-              </SimpleTreeView>
-            </Box>
-          ) : (
-            <Typography variant='body2' color='text.secondary' sx={{ textAlign: 'center', py: 4 }}>
-              داده‌ای برای نمایش وجود ندارد
-            </Typography>
-          )}
+          <NetworkTree root={rootNode} />
         </CardContent>
       </Card>
     </Box>
