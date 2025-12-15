@@ -43,8 +43,7 @@ const NotificationsLayout = ({ children }: NotificationsLayoutProps) => {
         router.replace(`/?returnUrl=${encodeURIComponent(pathname)}`)
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mounted, auth.loading, auth.user, pathname])
+  }, [mounted, auth.loading, auth.user, pathname, router])
 
   // Show spinner while loading or not mounted
   if (!mounted || auth.loading) {
