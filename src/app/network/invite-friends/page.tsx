@@ -25,6 +25,9 @@ import TextField from '@mui/material/TextField'
 import { styled } from '@mui/material/styles'
 import { IconButtonProps } from '@mui/material/IconButton'
 
+// ** Third Party Imports
+import toast from 'react-hot-toast'
+
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
@@ -84,6 +87,7 @@ const InviteFriendsPageContent = () => {
   const [inviteName, setInviteName] = useState('')
   const [inviteMobile, setInviteMobile] = useState('')
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
+  const [isSendingInvite, setIsSendingInvite] = useState(false)
 
   const normalizeToEnglishDigits = (value: string) => {
     const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹']
@@ -189,6 +193,33 @@ const InviteFriendsPageContent = () => {
     setInviteName('')
     setInviteMobile('')
     setSelectedTemplate(null)
+  }
+
+  const handleSendInvite = async () => {
+    if (!inviteMobile.trim() || !resolvedTemplateText.trim()) {
+      toast.error('لطفاً شماره موبایل و متن دعوت را تکمیل کنید')
+      return
+    }
+
+    try {
+      setIsSendingInvite(true)
+
+      // TODO: Replace this mock implementation with a real API call
+      // Example:
+      // await axios.post('/api/network/invite', {
+      //   mobile: inviteMobile,
+      //   message: resolvedTemplateText,
+      //   referralLink
+      // })
+      await new Promise(resolve => setTimeout(resolve, 800))
+
+      toast.success('دعوت‌نامه با موفقیت ارسال شد')
+      setInviteStep('success')
+    } catch (error) {
+      toast.error('ارسال دعوت‌نامه با خطا مواجه شد، لطفاً دوباره تلاش کنید')
+    } finally {
+      setIsSendingInvite(false)
+    }
   }
 
   return (
@@ -322,9 +353,10 @@ const InviteFriendsPageContent = () => {
                       <Button
                         variant='contained'
                         fullWidth
-                        onClick={() => setInviteStep('success')}
+                        onClick={handleSendInvite}
+                        disabled={isSendingInvite}
                       >
-                        ارسال دعوت‌نامه
+                        {isSendingInvite ? 'در حال ارسال...' : 'ارسال دعوت‌نامه'}
                       </Button>
                       <Button
                         variant='outlined'
@@ -350,7 +382,7 @@ const InviteFriendsPageContent = () => {
                       p: 3,
                       borderRadius: 2,
                       border: `1px solid ${theme.palette.success.light}`,
-                      backgroundColor: theme.palette.success.lighter
+                      backgroundColor: theme.palette.success.light
                     })}
                   >
                     <Icon icon='mdi:check-circle-outline' fontSize={40} />
