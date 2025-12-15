@@ -21,6 +21,7 @@ import CardContent from '@mui/material/CardContent'
 import InputLabel from '@mui/material/InputLabel'
 import OutlinedInput from '@mui/material/OutlinedInput'
 import InputAdornment from '@mui/material/InputAdornment'
+import TextField from '@mui/material/TextField'
 import { styled } from '@mui/material/styles'
 import { IconButtonProps } from '@mui/material/IconButton'
 
@@ -43,6 +44,8 @@ const invitedUsers = [
 ]
 
 const referralCode = 'INVITE2024'
+
+type InviteStep = 'form' | 'template' | 'preview' | 'success'
 
 // ** Styled Components
 const FacebookBtn = styled(IconButton)<IconButtonProps>(({ theme }) => ({
@@ -77,6 +80,28 @@ const InviteFriendsPageContent = () => {
   // ** States
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [referralLink, setReferralLink] = useState('')
+  const [inviteStep, setInviteStep] = useState<InviteStep>('form')
+  const [inviteName, setInviteName] = useState('')
+  const [inviteMobile, setInviteMobile] = useState('')
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
+
+  const normalizeToEnglishDigits = (value: string) => {
+    const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹']
+    const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩']
+
+    return value
+      .split('')
+      .map(char => {
+        const persianIndex = persianDigits.indexOf(char)
+        if (persianIndex > -1) return String(persianIndex)
+
+        const arabicIndex = arabicDigits.indexOf(char)
+        if (arabicIndex > -1) return String(arabicIndex)
+
+        return char
+      })
+      .join('')
+  }
 
   // ** Hooks
   const { settings } = useSettings()
@@ -149,11 +174,204 @@ const InviteFriendsPageContent = () => {
 
   const open = Boolean(anchorEl)
 
+  const inviteTemplates: string[] = [
+    'سلام .......... . گفتم بهت بگم؛ با صندوق درآمد ثابت می‌تونی بدون دردسر نوسان بازار، سود ثابت بگیری. به نظرم گزینه خوبیه. از لینک زیر میتونی عضو بشی',
+    'سلام .......... . اگه پولت یه گوشه خوابه، صندوق‌های درآمد ثابت انتخاب امنیه. سودش منظمه و خیالت راحته، ارزش بررسی داره. از لینک زیر میتونی عضو بشی',
+    'سلام .......... . یه مدته صندوق گرفتم، سودش بد نیست و ریسکش کمه. از لینک زیر میتونی عضو بشی'
+  ]
+
+  const isFormValid = inviteName.trim().length > 0 && /^09\d{9}$/.test(inviteMobile.trim())
+  const resolvedTemplateText =
+    selectedTemplate?.replace('..........', inviteName.trim() || 'دوست عزیز') || ''
+
+  const handleResetInviteFlow = () => {
+    setInviteStep('form')
+    setInviteName('')
+    setInviteMobile('')
+    setSelectedTemplate(null)
+  }
+
   return (
     <Box>
       <Grid container spacing={6}>
-        {/* Referral Code & Link */}
-        <Grid item xs={12} md={6}>
+        {/* Invite Message Flow + Referral Code & Link */}
+        <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {/* Invite message card (moved above referral code) */}
+          <Card>
+            <CardContent sx={{ p: 6 }}>
+              <Box>
+                <Typography variant='h6' sx={{ mb: 3, fontWeight: 600 }}>
+                  ارسال پیام دعوت
+                </Typography>
+
+                {/* Step 1: Basic info form */}
+                {inviteStep === 'form' && (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <TextField
+                      fullWidth
+                      label='نام و نام خانوادگی'
+                      value={inviteName}
+                      onChange={e => setInviteName(e.target.value)}
+                    />
+                    <TextField
+                      fullWidth
+                      label='شماره موبایل'
+                      value={inviteMobile}
+                      onChange={e => {
+                        const normalized = normalizeToEnglishDigits(e.target.value || '').replace(
+                          /[^0-9]/g,
+                          ''
+                        )
+                        setInviteMobile(normalized)
+                      }}
+                      placeholder='مثال: 09123456789'
+                      inputProps={{ maxLength: 11 }}
+                      helperText='شماره موبایل باید با 09 شروع شده و ۱۱ رقم باشد'
+                    />
+                    <Button
+                      variant='contained'
+                      fullWidth
+                      disabled={!isFormValid}
+                      onClick={() => setInviteStep('template')}
+                    >
+                      ادامه
+                    </Button>
+                  </Box>
+                )}
+
+                {/* Step 2: Choose template */}
+                {inviteStep === 'template' && (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                      یکی از قالب‌های پیشنهادی پیام را انتخاب کنید:
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {inviteTemplates.map(template => (
+                        <Box
+                          key={template}
+                          onClick={() => setSelectedTemplate(template)}
+                          sx={theme => ({
+                            p: 2.5,
+                            borderRadius: 2,
+                            border:
+                              selectedTemplate === template
+                                ? `2px solid ${theme.palette.primary.main}`
+                                : `1px solid ${theme.palette.divider}`,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            backgroundColor:
+                              selectedTemplate === template
+                                ? theme.palette.action.hover
+                                : theme.palette.background.paper
+                          })}
+                        >
+                          <Typography variant='body2'>{template}</Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                      <Button
+                        variant='contained'
+                        fullWidth
+                        disabled={!selectedTemplate}
+                        onClick={() => setInviteStep('preview')}
+                      >
+                        ادامه
+                      </Button>
+                      <Button
+                        variant='outlined'
+                        fullWidth
+                        onClick={() => setInviteStep('form')}
+                      >
+                        بازگشت
+                      </Button>
+                    </Box>
+                  </Box>
+                )}
+
+                {/* Step 3: Preview */}
+                {inviteStep === 'preview' && (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                      پیش‌نمایش پیام دعوت:
+                    </Typography>
+                    <Box
+                      sx={theme => ({
+                        p: 3,
+                        borderRadius: 2,
+                        border: `1px dashed ${theme.palette.divider}`,
+                        backgroundColor: theme.palette.action.hover
+                      })}
+                    >
+                      <Typography variant='body2' sx={{ mb: 1 }}>
+                        <strong>شماره گیرنده:</strong> {inviteMobile}
+                      </Typography>
+                      <Typography variant='body2' sx={{ whiteSpace: 'pre-line' }}>
+                        {resolvedTemplateText}
+                      </Typography>
+                      {referralLink && (
+                        <Typography
+                          variant='caption'
+                          sx={{ display: 'block', mt: 2, color: 'text.secondary' }}
+                        >
+                          لینک دعوت: {referralLink}
+                        </Typography>
+                      )}
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <Button
+                        variant='contained'
+                        fullWidth
+                        onClick={() => setInviteStep('success')}
+                      >
+                        ارسال دعوت‌نامه
+                      </Button>
+                      <Button
+                        variant='outlined'
+                        fullWidth
+                        color='secondary'
+                        onClick={() => setInviteStep('template')}
+                      >
+                        بازگشت
+                      </Button>
+                    </Box>
+                  </Box>
+                )}
+
+                {/* Step 4: Success */}
+                {inviteStep === 'success' && (
+                  <Box
+                    sx={theme => ({
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      textAlign: 'center',
+                      gap: 2.5,
+                      p: 3,
+                      borderRadius: 2,
+                      border: `1px solid ${theme.palette.success.light}`,
+                      backgroundColor: theme.palette.success.lighter
+                    })}
+                  >
+                    <Icon icon='mdi:check-circle-outline' fontSize={40} />
+                    <Box>
+                      <Typography variant='subtitle1' sx={{ fontWeight: 600, mb: 1 }}>
+                        پیام با موفقیت ارسال شد
+                      </Typography>
+                      <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                        می‌توانید یک دعوت جدید برای مخاطب دیگری ثبت کنید.
+                      </Typography>
+                    </Box>
+                    <Button variant='contained' onClick={handleResetInviteFlow}>
+                      دعوت جدید
+                    </Button>
+                  </Box>
+                )}
+              </Box>
+            </CardContent>
+          </Card>
+
+          {/* Referral code + link card (below invite card) */}
           <Card>
             <CardContent sx={{ p: 6 }}>
               <Typography variant='h6' sx={{ mb: 4, fontWeight: 600 }}>

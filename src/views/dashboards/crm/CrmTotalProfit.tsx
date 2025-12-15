@@ -57,7 +57,7 @@ const CrmTotalProfit = () => {
 
   return (
     <Card
-      sx={{
+      sx={theme => ({
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -65,28 +65,28 @@ const CrmTotalProfit = () => {
         position: 'relative',
         overflow: 'hidden',
         borderRadius: 4,
-        background: 'linear-gradient(135deg, #5D4037 0%, #4E342E 40%, #3E2723 100%)',
-        color: '#FFF',
-        boxShadow: '0 18px 40px rgba(33, 30, 25, 0.6)'
-      }}
+        background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 40%, ${theme.palette.info.main} 100%)`,
+        color: theme.palette.common.white,
+        boxShadow: '0 18px 40px rgba(15, 23, 42, 0.55)'
+      })}
     >
       {/* Wallet strap + title */}
       <Box
-        sx={{
+        sx={theme => ({
           position: 'absolute',
           top: 18,
           left: 24,
           right: 24,
           height: 32,
           borderRadius: 999,
-          background: 'linear-gradient(90deg, #4E342E 0%, #6D4C41 100%)',
-          boxShadow: '0 6px 14px rgba(0,0,0,0.35)',
+          background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.info.main} 100%)`,
+          boxShadow: '0 6px 16px rgba(15, 23, 42, 0.5)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           px: 2,
           gap: 1
-        }}
+        })}
       >
         <Box
           sx={{
@@ -95,7 +95,7 @@ const CrmTotalProfit = () => {
             borderRadius: '50%',
             border: '2px solid rgba(255,255,255,0.35)',
             backgroundColor: 'rgba(255,255,255,0.12)',
-            boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.35)',
+            boxShadow: 'inset 0 0 0 1px rgba(15,23,42,0.55)'
           }}
         />
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mr: 1,
@@ -129,7 +129,7 @@ const CrmTotalProfit = () => {
             inset: { xs: 16, sm: 20 },
             top: { xs: 64, sm: 72 },
             borderRadius: 3,
-            border: '1px solid rgba(255,255,255,0.18)',
+            border: '1px solid rgba(255,255,255,0.6)',
             boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.28)',
             pointerEvents: 'none',
             opacity: 0.35
@@ -189,7 +189,10 @@ const CrmTotalProfit = () => {
               توکن فریز:
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant='body2' sx={{ fontWeight: 600, fontSize: '0.95rem' }}>
+              <Typography
+                variant='body2'
+                sx={{ fontWeight: 600, fontSize: '0.95rem', color: 'rgba(255,255,255,0.6)' }}
+              >
                 30.000
               </Typography>
               <TwinBadge>TWIN</TwinBadge>
