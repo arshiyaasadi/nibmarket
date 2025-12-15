@@ -63,45 +63,81 @@ const NetworkTree = ({ root }: { root: NetworkNode }) => {
 
   // Compute SVG connector positions after layout
   useLayoutEffect(() => {
-    if (!containerRef.current) return
+    const containerEl = containerRef.current
+    if (!containerEl) return
 
-    const containerRect = containerRef.current.getBoundingClientRect()
-    const newLines: {
-      parentId: string
-      childId: string
-      fromX: number
-      fromY: number
-      toX: number
-      toY: number
-    }[] = []
+    const recomputeLines = () => {
+      if (!containerRef.current) return
 
-    edges.forEach(edge => {
-      const parentEl = nodeRefs.current[edge.parentId]
-      const childEl = nodeRefs.current[edge.childId]
+      const containerRect = containerRef.current.getBoundingClientRect()
+      const newLines: {
+        parentId: string
+        childId: string
+        fromX: number
+        fromY: number
+        toX: number
+        toY: number
+      }[] = []
 
-      if (!parentEl || !childEl) {
-        return
-      }
+      edges.forEach(edge => {
+        const parentEl = nodeRefs.current[edge.parentId]
+        const childEl = nodeRefs.current[edge.childId]
 
-      const parentRect = parentEl.getBoundingClientRect()
-      const childRect = childEl.getBoundingClientRect()
+        if (!parentEl || !childEl) {
+          return
+        }
 
-      const fromX = parentRect.left + parentRect.width / 2 - containerRect.left
-      const fromY = parentRect.bottom - containerRect.top
-      const toX = childRect.left + childRect.width / 2 - containerRect.left
-      const toY = childRect.top - containerRect.top
+        const parentRect = parentEl.getBoundingClientRect()
+        const childRect = childEl.getBoundingClientRect()
 
-      newLines.push({
-        parentId: edge.parentId,
-        childId: edge.childId,
-        fromX,
-        fromY,
-        toX,
-        toY
+        const fromX = parentRect.left + parentRect.width / 2 - containerRect.left
+        const fromY = parentRect.bottom - containerRect.top
+        const toX = childRect.left + childRect.width / 2 - containerRect.left
+        const toY = childRect.top - containerRect.top
+
+        newLines.push({
+          parentId: edge.parentId,
+          childId: edge.childId,
+          fromX,
+          fromY,
+          toX,
+          toY
+        })
       })
-    })
 
-    setLines(newLines)
+      setLines(newLines)
+    }
+
+    // Initial computation
+    recomputeLines()
+
+    // Recompute on window resize
+    const handleResize = () => {
+      recomputeLines()
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize)
+    }
+
+    // Recompute when the container itself resizes (layout shifts)
+    let resizeObserver: ResizeObserver | undefined
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => {
+        recomputeLines()
+      })
+      resizeObserver.observe(containerEl)
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('resize', handleResize)
+      }
+      if (resizeObserver && containerEl) {
+        resizeObserver.unobserve(containerEl)
+        resizeObserver.disconnect()
+      }
+    }
   }, [edges])
 
   const renderCard = (node: NetworkNode, isRoot: boolean) => {
@@ -220,13 +256,13 @@ const NetworkTree = ({ root }: { root: NetworkNode }) => {
         }}
       >
         <svg width='100%' height='100%'>
-          {lines.map((line, index) => {
+          {lines.map(line => {
             const midY = (line.fromY + line.toY) / 2
             const path = `M ${line.fromX},${line.fromY} C ${line.fromX},${midY} ${line.toX},${midY} ${line.toX},${line.toY}`
 
             return (
               <path
-                key={`${line.parentId}-${line.childId}-${index}`}
+                key={`${line.parentId}-${line.childId}`}
                 d={path}
                 stroke='#D1D5DB'
                 strokeWidth={2}
