@@ -1,5 +1,5 @@
 // ** React Imports
-import React from 'react'
+import React, { useState } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -16,6 +16,9 @@ import { styled } from '@mui/material/styles'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
+
+// ** Component Imports
+import WithdrawalModal from '../WithdrawalModal'
 
 // ** Styled Component for TWIN Badge
 const TwinBadge = styled(Box)(() => ({
@@ -35,6 +38,9 @@ const TwinBadge = styled(Box)(() => ({
 }))
 
 const CrmTotalProfit = () => {
+  // ** States
+  const [withdrawalModalOpen, setWithdrawalModalOpen] = useState<boolean>(false)
+  const availableBalance = 38000 // موجودی قابل برداشت
 
   return (
     <Card
@@ -216,6 +222,7 @@ const CrmTotalProfit = () => {
         <Button
           variant='contained'
           fullWidth
+          onClick={() => setWithdrawalModalOpen(true)}
           sx={theme => ({
             mb: 4,
             py: 1.75,
@@ -264,6 +271,13 @@ const CrmTotalProfit = () => {
           </Typography>
         </Box>
       </CardContent>
+
+      {/* Withdrawal Modal */}
+      <WithdrawalModal
+        open={withdrawalModalOpen}
+        onClose={() => setWithdrawalModalOpen(false)}
+        availableBalance={availableBalance}
+      />
     </Card>
   )
 }

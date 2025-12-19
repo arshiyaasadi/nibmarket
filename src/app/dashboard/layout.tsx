@@ -49,6 +49,11 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         router.replace(`/?returnUrl=${encodeURIComponent(pathname)}`)
       }
     }
+
+    // Redirect managers to their dashboard immediately
+    if (!auth.loading && auth.user && auth.user.role === 'manager') {
+      router.replace('/manager/dashboard')
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mounted, auth.loading, auth.user, pathname])
 
@@ -59,6 +64,11 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   // If user is not authenticated, show spinner (redirect is happening)
   if (auth.user === null) {
+    return <Spinner />
+  }
+
+  // Redirect managers to their dashboard (show spinner while redirecting)
+  if (auth.user && auth.user.role === 'manager') {
     return <Spinner />
   }
 
