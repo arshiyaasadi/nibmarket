@@ -48,13 +48,20 @@ const WithdrawalModal = ({ open, onClose, availableBalance }: WithdrawalModalPro
   useEffect(() => {
     if (!open) {
       // Reset after a short delay to allow closing animation
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
+        // Double-check that modal is still closed before resetting
+        // This prevents reset if modal was reopened during the delay
         setCurrentStep(1)
         setWalletAddress('')
         setAmount(0)
         setLoading(false)
         setError('')
       }, 300)
+
+      // Cleanup function to cancel timeout if modal opens before it fires
+      return () => {
+        clearTimeout(timeoutId)
+      }
     }
   }, [open])
 
