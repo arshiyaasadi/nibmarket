@@ -7,8 +7,11 @@ import dynamic from 'next/dynamic'
 // ** MUI Imports
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+import CardHeader from '@mui/material/CardHeader'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
+import TextField from '@mui/material/TextField'
+import Autocomplete from '@mui/material/Autocomplete'
 import { useTheme } from '@mui/material/styles'
 
 // ** Types
@@ -17,6 +20,36 @@ import type { UserLocation, ObfuscatedLocation } from 'src/types/location'
 // ** Utils
 import { obfuscateLocations } from 'src/utils/location-privacy'
 import { getUserLocations } from 'src/data/user-locations'
+
+// ** Iranian cities data
+interface CityOption {
+  name: string
+  lat: number
+  lng: number
+}
+
+const iranianCities: CityOption[] = [
+  { name: 'تهران', lat: 35.6892, lng: 51.3890 },
+  { name: 'مشهد', lat: 36.2605, lng: 59.6168 },
+  { name: 'اصفهان', lat: 32.6546, lng: 51.6680 },
+  { name: 'کرج', lat: 35.8327, lng: 50.9345 },
+  { name: 'شیراز', lat: 29.5918, lng: 52.5837 },
+  { name: 'تبریز', lat: 38.0962, lng: 46.2738 },
+  { name: 'قم', lat: 34.6416, lng: 50.8746 },
+  { name: 'اهواز', lat: 31.3183, lng: 48.6706 },
+  { name: 'کرمانشاه', lat: 34.3142, lng: 47.0650 },
+  { name: 'ارومیه', lat: 37.5527, lng: 45.0760 },
+  { name: 'رشت', lat: 37.2808, lng: 49.5832 },
+  { name: 'زاهدان', lat: 29.4960, lng: 60.8629 },
+  { name: 'همدان', lat: 34.7992, lng: 48.5146 },
+  { name: 'کرمان', lat: 30.2839, lng: 57.0834 },
+  { name: 'یزد', lat: 31.8974, lng: 54.3569 },
+  { name: 'اردبیل', lat: 38.2498, lng: 48.2933 },
+  { name: 'بندرعباس', lat: 27.1865, lng: 56.2808 },
+  { name: 'اراک', lat: 34.0956, lng: 49.7019 },
+  { name: 'اسلامشهر', lat: 35.5446, lng: 51.2302 },
+  { name: 'زنجان', lat: 36.6769, lng: 48.4963 }
+]
 
 // ** Dynamic imports for Leaflet (SSR-safe)
 const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), {
@@ -38,6 +71,8 @@ const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), {
 const Popup = dynamic(() => import('react-leaflet').then(mod => mod.Popup), {
   ssr: false
 })
+
+// useMap will be imported inside MapController component
 
 // ** Leaflet will be imported dynamically in the component
 
@@ -98,12 +133,48 @@ const createClusterIcon = (count: number, theme: any) => {
   })
 }
 
+// ** Component to handle map zoom/pan when city changes
+// This component must be used inside MapContainer
+const MapController = dynamic(
+  () =>
+    import('react-leaflet').then((mod) => {
+      const { useMap } = mod
+      return ({ selectedCity, defaultCenter, defaultZoom }: { 
+        selectedCity: CityOption | null
+        defaultCenter: [number, number]
+        defaultZoom: number
+      }) => {
+        const map = useMap()
+
+        useEffect(() => {
+          if (selectedCity) {
+            // Zoom to selected city
+            map.setView([selectedCity.lat, selectedCity.lng], 11, {
+              animate: true,
+              duration: 0.5
+            })
+          } else {
+            // Reset to default view
+            map.setView(defaultCenter, defaultZoom, {
+              animate: true,
+              duration: 0.5
+            })
+          }
+        }, [selectedCity, map, defaultCenter, defaultZoom])
+
+        return null
+      }
+    }),
+  { ssr: false }
+)
+
 const UserLocationMap = () => {
   const theme = useTheme()
   const [userLocations, setUserLocations] = useState<UserLocation[]>([])
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
   const [leafletLoaded, setLeafletLoaded] = useState(false)
+  const [selectedCity, setSelectedCity] = useState<CityOption | null>(null)
 
   // ** Mount check for client-side only rendering and load CSS/Leaflet
   useEffect(() => {
@@ -158,21 +229,17 @@ const UserLocationMap = () => {
   // ** Don't render until mounted and Leaflet is loaded (client-side only)
   if (!mounted || !leafletLoaded || loading) {
     return (
-      <Card sx={{ height: '100%', minHeight: '600px' }}>
-        <CardContent>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '600px',
-              flexDirection: 'column'
-            }}
-          >
-            <Typography variant='body1' color='text.secondary'>
-              در حال بارگذاری نقشه...
-            </Typography>
-          </Box>
+      <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <CardHeader
+          title='نقشه توزیع کاربران'
+          subheader='نمایش توزیع جغرافیایی کاربران در ایران'
+          titleTypographyProps={{ variant: 'h6' }}
+          subheaderTypographyProps={{ variant: 'body2' }}
+        />
+        <CardContent sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Typography variant='body1' color='text.secondary'>
+            در حال بارگذاری نقشه...
+          </Typography>
         </CardContent>
       </Card>
     )
@@ -195,21 +262,48 @@ const UserLocationMap = () => {
       sx={{
         height: '100%',
         display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden'
+        flexDirection: 'column'
       }}
     >
-      <CardContent sx={{ p: 0, height: '100%', position: 'relative' }}>
+      <CardHeader
+        title='نقشه توزیع کاربران'
+        titleTypographyProps={{ variant: 'h6' }}
+        action={
+          <Autocomplete
+            sx={{ width: 300 }}
+            options={iranianCities}
+            getOptionLabel={(option) => option.name}
+            value={selectedCity}
+            onChange={(event, newValue) => {
+              setSelectedCity(newValue)
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label='جستجوی شهر'
+                placeholder='شهر را انتخاب کنید'
+                size='small'
+              />
+            )}
+            noOptionsText='شهری یافت نشد'
+            clearOnEscape
+            clearText='پاک کردن'
+          />
+        }
+      />
+      <CardContent sx={{ flex: 1, p: '20px', position: 'relative', display: 'flex', flexDirection: 'column' }}>
         <Box
           sx={{
-            height: 'calc(100vh - 200px)',
-            minHeight: '600px',
+            flex: 1,
+            height: '600px',
+            minHeight: '500px',
             width: '100%',
             position: 'relative',
             '& .leaflet-container': {
               height: '100%',
               width: '100%',
-              zIndex: 0
+              zIndex: 0,
+              borderRadius: '0 0 4px 4px'
             },
             '& .custom-cluster-icon': {
               background: 'transparent',
@@ -231,6 +325,11 @@ const UserLocationMap = () => {
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            />
+            <MapController 
+              selectedCity={selectedCity}
+              defaultCenter={iranCenter}
+              defaultZoom={defaultZoom}
             />
             {leafletLoaded && obfuscatedLocations.length > 0 && (() => {
               const L = (window as any).L
