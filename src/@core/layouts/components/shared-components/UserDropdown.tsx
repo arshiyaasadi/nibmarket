@@ -50,8 +50,27 @@ const UserDropdown = (props: Props) => {
 
   // ** Hooks
   const router = useRouter()
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
   const { t } = useTranslation()
+
+  // ** Get role display text
+  const getRoleLabel = (role: string | undefined) => {
+    if (!role) return 'کاربر'
+    switch (role) {
+      case 'manager':
+        return 'مدیر'
+      case 'admin':
+        return 'مدیر سیستم'
+      case 'client':
+        return 'کاربر عادی'
+      default:
+        return role
+    }
+  }
+
+  // ** Get user display name
+  const displayName = user?.fullName || 'کاربر'
+  const displayRole = getRoleLabel(user?.role)
 
   // ** Vars
   const { direction } = settings
@@ -100,7 +119,7 @@ const UserDropdown = (props: Props) => {
         }}
       >
         <Avatar
-          alt='علی احمدی'
+          alt={displayName}
           onClick={handleDropdownOpen}
           sx={{ width: 40, height: 40 }}
           src='/images/avatars/1.png'
@@ -124,12 +143,12 @@ const UserDropdown = (props: Props) => {
                 horizontal: 'right'
               }}
             >
-              <Avatar alt='علی احمدی' src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
+              <Avatar alt={displayName} src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
             </Badge>
             <Box sx={{ display: 'flex', ml: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
-              <Typography sx={{ fontWeight: 600 }}>علی احمدی</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{displayName}</Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-                کاربر عادی
+                {displayRole}
               </Typography>
             </Box>
           </Box>

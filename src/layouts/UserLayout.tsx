@@ -1,5 +1,5 @@
 // ** React Imports
-import { ReactNode } from 'react'
+import { ReactNode, useMemo } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -27,9 +27,15 @@ import VerticalAppBarContent from './components/vertical/AppBarContent'
 
 // ** Hook Import
 import { useSettings } from 'src/@core/hooks/useSettings'
+import { useAuth } from 'src/hooks/useAuth'
 
 // ** Icon Import
 import Icon from 'src/@core/components/icon'
+
+// ** ACL Imports
+import { buildAbilityFor, defaultACLObj } from 'src/configs/acl'
+import { AbilityContext } from './components/acl/Can'
+import type { AppAbility } from 'src/configs/acl'
 
 interface Props {
   children: ReactNode
@@ -39,6 +45,15 @@ interface Props {
 const UserLayout = ({ children, contentHeightFixed }: Props) => {
   // ** Hooks
   const { settings, saveSettings } = useSettings()
+  const auth = useAuth()
+
+  // ** Build ability for logged in user
+  const ability = useMemo(() => {
+    if (auth.user) {
+      return buildAbilityFor(auth.user.role, defaultACLObj.subject)
+    }
+    return undefined
+  }, [auth.user])
 
   // ** Vars for server side navigation
   // const { menuItems: verticalMenuItems } = ServerSideVerticalNavItems()
@@ -206,7 +221,8 @@ const UserLayout = ({ children, contentHeightFixed }: Props) => {
     )
   }
 
-  return (
+  // ** Wrap children with AbilityContext if user is logged in
+  const layoutContent = (
     <Layout
       hidden={hidden}
       settings={settings}
@@ -237,6 +253,13 @@ const UserLayout = ({ children, contentHeightFixed }: Props) => {
       
     </Layout>
   )
+
+  // ** Provide ability context if user is logged in
+  if (auth.user && ability) {
+    return <AbilityContext.Provider value={ability}>{layoutContent}</AbilityContext.Provider>
+  }
+
+  return layoutContent
 }
 
 export default UserLayout

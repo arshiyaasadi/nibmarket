@@ -173,9 +173,52 @@ export default function LoginPage() {
                   {t('Forgot Password?')}
                 </Typography>
               </Box>
-              <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 7 }}>
+              <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 4 }}>
                 {t('Login')}
               </Button>
+              <Box
+                sx={{
+                  mb: 4,
+                  display: 'flex',
+                  gap: 2,
+                  flexDirection: 'column',
+                  alignItems: 'stretch'
+                }}
+              >
+                <Typography variant='body2' sx={{ textAlign: 'center', color: 'text.secondary', mb: 1 }}>
+                  ورود سریع:
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button
+                    fullWidth
+                    variant='outlined'
+                    size='medium'
+                    onClick={() => {
+                      setValues({
+                        ...values,
+                        email: 'client@materialize.com',
+                        password: 'client'
+                      })
+                    }}
+                  >
+                    کاربر معمولی
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant='outlined'
+                    size='medium'
+                    onClick={() => {
+                      setValues({
+                        ...values,
+                        email: 'manager@materialize.com',
+                        password: 'manager'
+                      })
+                    }}
+                  >
+                    مدیر
+                  </Button>
+                </Box>
+              </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
                 <Typography sx={{ mr: 2, color: 'text.secondary' }}>{t('New on our platform?')}</Typography>
                 <Typography

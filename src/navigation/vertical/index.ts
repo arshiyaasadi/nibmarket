@@ -7,95 +7,119 @@ const navigation = (): VerticalNavItemsType => {
       title: 'داشبورد',
       icon: 'mdi:home-outline',
       path: '/dashboard',
-      auth: false
+      action: 'read',
+      subject: 'client-pages'
     },
     {
       title: 'شبکه من',
       icon: 'mdi:account-network-outline',
-      auth: false,
+      action: 'read',
+      subject: 'client-pages',
       children: [
         {
           title: 'زیر مجموعه های من',
           path: '/network/my-subsets',
-          auth: false
+          action: 'read',
+          subject: 'client-pages'
         },
         {
           title: 'درخت زیر مجموعه',
           path: '/network/subset-tree',
-          auth: false
+          action: 'read',
+          subject: 'client-pages'
         },
         {
           title: 'دعوت از دوستان',
           path: '/network/invite-friends',
-          auth: false
+          action: 'read',
+          subject: 'client-pages'
         },
         {
           title: 'معرف من',
           path: '/network/my-referrer',
-          auth: false
+          action: 'read',
+          subject: 'client-pages'
         }
       ]
     },
     {
       title: 'گزارش',
       icon: 'mdi:chart-box-outline',
-      auth: false,
+      action: 'read',
+      subject: 'client-pages',
       children: [
         {
           title: 'گزارش درامد ها',
           path: '/reports/income',
-          auth: false
+          action: 'read',
+          subject: 'client-pages'
         },
         {
           title: 'گزارش زیر مجموعه ها',
           path: '/reports/subsets',
-          auth: false
+          action: 'read',
+          subject: 'client-pages'
         },
         {
           title: 'گزارش کیف پول',
           path: '/reports/wallet',
-          auth: false
+          action: 'read',
+          subject: 'client-pages'
         }
       ]
     },
     {
       title: 'لیدر بورد',
       icon: 'mdi:trophy-outline',
-      auth: false,
+      action: 'read',
+      subject: 'client-pages',
       children: [
         {
           title: 'استخر و بورد',
           path: '/leaderboard/pool-board',
-          auth: false
+          action: 'read',
+          subject: 'client-pages'
         },
         {
           title: 'ماموریت ها',
           path: '/leaderboard/missions',
-          auth: false
+          action: 'read',
+          subject: 'client-pages'
         }
       ]
     },
     {
       title: 'مسابقه',
       icon: 'mdi:trophy-variant-outline',
-      auth: false,
+      action: 'read',
+      subject: 'client-pages',
       children: [
         {
           title: 'شرکت در مسابقه',
           path: '/competition/participate',
-          auth: false
+          action: 'read',
+          subject: 'client-pages'
         },
         {
           title: 'سوابق و افتخارات من',
           path: '/competition/records',
-          auth: false
+          action: 'read',
+          subject: 'client-pages'
         },
         {
           title: 'جوایز و هدابا',
           path: '/competition/prizes',
-          auth: false
+          action: 'read',
+          subject: 'client-pages'
         }
       ]
+    },
+    {
+      title: 'داشبورد مدیر',
+      icon: 'mdi:view-dashboard-outline',
+      path: '/manager/dashboard',
+      action: 'read',
+      subject: 'manager-dashboard'
     }
   ]
 }

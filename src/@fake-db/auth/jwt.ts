@@ -26,6 +26,14 @@ const users: UserDataType[] = [
     fullName: 'Jane Doe',
     username: 'janedoe',
     email: 'client@materialize.com'
+  },
+  {
+    id: 3,
+    role: 'manager',
+    password: 'manager',
+    fullName: 'Manager User',
+    username: 'manager',
+    email: 'manager@materialize.com'
   }
 ]
 
