@@ -28,13 +28,7 @@ const MissionCard = styled(Card)(({ theme }) => ({
   position: 'relative',
   height: '100%',
   cursor: 'pointer',
-  transition: 'all 0.3s ease-in-out',
-  border: `1px solid ${theme.palette.divider}`,
-  '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: theme.shadows[8],
-    borderColor: theme.palette.primary.main
-  }
+  border: `1px solid ${theme.palette.divider}`
 }))
 
 // Mission icons mapping

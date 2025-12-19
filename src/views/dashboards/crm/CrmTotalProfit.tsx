@@ -1,5 +1,8 @@
 // ** React Imports
-import { useState } from 'react'
+import React from 'react'
+
+// ** Next Imports
+import Link from 'next/link'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -9,9 +12,6 @@ import CardContent from '@mui/material/CardContent'
 import Button from '@mui/material/Button'
 import Stack from '@mui/material/Stack'
 import Divider from '@mui/material/Divider'
-import Accordion from '@mui/material/Accordion'
-import AccordionSummary from '@mui/material/AccordionSummary'
-import AccordionDetails from '@mui/material/AccordionDetails'
 import { styled } from '@mui/material/styles'
 
 // ** Icon Imports
@@ -34,26 +34,7 @@ const TwinBadge = styled(Box)(() => ({
   lineHeight: 1
 }))
 
-// Sample transaction data
-const transactions = [
-  {
-    id: 1,
-    type: 'deposit',
-    amount: 5000,
-    date: '۱۴۰۳/۰۹/۱۵',
-    description: 'واریز توکن'
-  },
-  {
-    id: 2,
-    type: 'withdraw',
-    amount: 2000,
-    date: '۱۴۰۳/۰۹/۱۴',
-    description: 'برداشت توکن'
-  }
-]
-
 const CrmTotalProfit = () => {
-  const [transactionsOpen, setTransactionsOpen] = useState<boolean>(false)
 
   return (
     <Card
@@ -65,9 +46,10 @@ const CrmTotalProfit = () => {
         position: 'relative',
         overflow: 'hidden',
         borderRadius: 4,
-        background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 40%, ${theme.palette.info.main} 100%)`,
-        color: theme.palette.common.white,
-        boxShadow: '0 18px 40px rgba(15, 23, 42, 0.55)'
+        backgroundColor: theme.palette.background.default,
+        color: theme.palette.text.primary,
+        boxShadow: theme.shadows[4],
+        border: `1px solid ${theme.palette.divider}`
       })}
     >
       {/* Wallet strap + title */}
@@ -77,37 +59,38 @@ const CrmTotalProfit = () => {
           top: 18,
           left: 24,
           right: 24,
-          height: 32,
-          borderRadius: 999,
-          background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.info.main} 100%)`,
-          boxShadow: '0 6px 16px rgba(15, 23, 42, 0.5)',
+          height: 40,
+          borderRadius: 2,
+          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+          boxShadow: theme.shadows[4],
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          px: 2,
-          gap: 1
+          justifyContent: 'flex-start',
+          px: 3,
+          gap: 2
         })}
       >
         <Box
-          sx={{
-            width: 22,
-            height: 22,
+          sx={theme => ({
+            width: 28,
+            height: 28,
             borderRadius: '50%',
-            border: '2px solid rgba(255,255,255,0.35)',
-            backgroundColor: 'rgba(255,255,255,0.12)',
-            boxShadow: 'inset 0 0 0 1px rgba(15,23,42,0.55)'
-          }}
-        />
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mr: 1,
-            marginRight:'auto' }}>
-          <Icon icon='mdi:wallet' fontSize={22} />
-          <Typography
-            variant='subtitle1'
-            sx={{ fontWeight: 700, letterSpacing: '0.15px', color: 'rgba(255,255,255,0.95)' }}
-          >
-            کیف پول
-          </Typography>
+            border: `2px solid ${theme.palette.common.white}`,
+            backgroundColor: 'rgba(255,255,255,0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: theme.shadows[2]
+          })}
+        >
+          <Icon icon='mdi:wallet' fontSize={16} style={{ color: 'white' }} />
         </Box>
+        <Typography
+          variant='subtitle1'
+          sx={{ fontWeight: 700, letterSpacing: '0.15px', color: theme => theme.palette.common.white }}
+        >
+          کیف پول
+        </Typography>
       </Box>
 
       {/* Inner pocket */}
@@ -124,16 +107,16 @@ const CrmTotalProfit = () => {
         }}
       >
         <Box
-          sx={{
+          sx={theme => ({
             position: 'absolute',
             inset: { xs: 16, sm: 20 },
-            top: { xs: 64, sm: 72 },
+            top: { xs: 70, sm: 78 },
             borderRadius: 3,
-            border: '1px solid rgba(255,255,255,0.6)',
-            boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.28)',
+            border: `1px solid ${theme.palette.divider}`,
+            backgroundColor: theme.palette.action.hover,
             pointerEvents: 'none',
-            opacity: 0.35
-          }}
+            opacity: 0.5
+          })}
         />
 
         <Stack
@@ -145,17 +128,27 @@ const CrmTotalProfit = () => {
             background: 'unset'
           }}
         >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box 
+            sx={theme => ({ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              p: 2.5,
+              borderRadius: 2,
+              backgroundColor: theme.palette.action.hover,
+              border: `1px solid ${theme.palette.divider}`
+            })}
+          >
             <Typography
               variant='body2'
-              sx={{ fontWeight: 500, fontSize: '0.875rem', color: 'rgba(255,255,255,0.85)' }}
+              sx={{ fontWeight: 500, fontSize: '0.875rem', color: 'text.secondary' }}
             >
               کل موجودی توکن:
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography
-                variant='body2'
-                sx={{ fontWeight: 700, fontSize: '1rem', color: 'rgba(255,255,255,0.6)' }}
+                variant='h6'
+                sx={{ fontWeight: 700, fontSize: '1.125rem', color: 'primary.main' }}
               >
                 68.000
               </Typography>
@@ -163,17 +156,27 @@ const CrmTotalProfit = () => {
             </Box>
           </Box>
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box 
+            sx={theme => ({ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              p: 2.5,
+              borderRadius: 2,
+              backgroundColor: theme.palette.action.hover,
+              border: `1px solid ${theme.palette.divider}`
+            })}
+          >
             <Typography
               variant='body2'
-              sx={{ fontWeight: 500, fontSize: '0.875rem', color: 'rgba(255,255,255,0.85)' }}
+              sx={{ fontWeight: 500, fontSize: '0.875rem', color: 'text.secondary' }}
             >
               توکن قابل برداشت:
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography
-                variant='body2'
-                sx={{ fontWeight: 600, fontSize: '0.95rem', color: 'rgba(255,255,255,0.6)' }}
+                variant='body1'
+                sx={{ fontWeight: 600, fontSize: '1rem', color: 'success.main' }}
               >
                 38.000
               </Typography>
@@ -181,17 +184,27 @@ const CrmTotalProfit = () => {
             </Box>
           </Box>
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box 
+            sx={theme => ({ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              p: 2.5,
+              borderRadius: 2,
+              backgroundColor: theme.palette.action.hover,
+              border: `1px solid ${theme.palette.divider}`
+            })}
+          >
             <Typography
               variant='body2'
-              sx={{ fontWeight: 500, fontSize: '0.875rem', color: 'rgba(255,255,255,0.85)' }}
+              sx={{ fontWeight: 500, fontSize: '0.875rem', color: 'text.secondary' }}
             >
               توکن فریز:
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography
-                variant='body2'
-                sx={{ fontWeight: 600, fontSize: '0.95rem', color: 'rgba(255,255,255,0.6)' }}
+                variant='body1'
+                sx={{ fontWeight: 600, fontSize: '1rem', color: 'warning.main' }}
               >
                 30.000
               </Typography>
@@ -203,123 +216,52 @@ const CrmTotalProfit = () => {
         <Button
           variant='contained'
           fullWidth
-          sx={{
+          sx={theme => ({
             mb: 4,
-            py: 2,
-            fontSize: '0.9rem',
-            borderRadius: 999,
+            py: 1.75,
+            fontSize: '0.95rem',
+            borderRadius: 2,
             textTransform: 'none',
-            background: 'linear-gradient(135deg, #FFD54F 0%, #FFB300 45%, #FF8F00 100%)',
-            color: '#3E2723',
-            boxShadow: '0 10px 22px rgba(0,0,0,0.45)',
+            fontWeight: 600,
+            background: `linear-gradient(135deg, ${theme.palette.warning.main} 0%, ${theme.palette.warning.dark} 100%)`,
+            color: theme.palette.common.white,
+            boxShadow: theme.shadows[4],
+            transition: 'all 0.3s ease',
             '&:hover': {
-              background: 'linear-gradient(135deg, #FFE082 0%, #FFC107 45%, #FF9800 100%)',
-              boxShadow: '0 12px 26px rgba(0,0,0,0.55)'
+              background: `linear-gradient(135deg, ${theme.palette.warning.light} 0%, ${theme.palette.warning.main} 100%)`,
+              boxShadow: theme.shadows[8],
+              transform: 'translateY(-2px)'
             }
-          }}
+          })}
         >
           انتقال توکن
         </Button>
 
         <Divider sx={{ mb: 4 }} />
 
-        <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          <Accordion
-            expanded={transactionsOpen}
-            onChange={(_, expanded) => setTransactionsOpen(expanded)}
-            sx={{
-              bgcolor: 'transparent',
-              boxShadow: 'none',
-              color: 'inherit',
-              '&::before': { display: 'none' },
-              borderRadius: 3
-            }}
-          >
-            <AccordionSummary
-              aria-controls='wallet-transactions-content'
-              id='wallet-transactions-header'
-              expandIcon={
-                <Icon
-                  icon={transactionsOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}
-                  fontSize={20}
-                  style={{ color: 'rgba(255,255,255,0.7)' }}
-                />
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 'auto', pb: 2.25, pt: 2 }}>
+          <Typography
+            component={Link}
+            href='/reports/wallet'
+            variant='caption'
+            sx={theme => ({
+              fontSize: '0.75rem',
+              color: 'text.secondary',
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+              px: 2,
+              py: 1,
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                color: 'primary.main',
+                textDecoration: 'underline'
               }
-              sx={{
-                px: 0,
-                py: 0,
-                minHeight: 0,
-                '& .MuiAccordionSummary-content': {
-                  margin: 0
-                }
-              }}
-            >
-              <Typography
-                variant='body2'
-                sx={{ mb: 3, fontWeight: 600, fontSize: '0.875rem', color: 'rgba(255,255,255,0.9)' }}
-              >
-                آخرین تراکنش‌ها
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails sx={{ px: 0, pt: 3, pb: 0 }}>
-              <Box sx={{ maxHeight: 200, overflow: 'auto' }}>
-                <Stack spacing={2}>
-                  {transactions.map((transaction, index) => (
-                    <Box key={transaction.id}>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: 2
-                        }}
-                      >
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-                          <Icon
-                            icon={transaction.type === 'deposit' ? 'mdi:arrow-down' : 'mdi:arrow-up'}
-                            fontSize={20}
-                            style={{
-                              color: transaction.type === 'deposit' ? '#2e7d32' : '#d32f2f'
-                            }}
-                          />
-                          <Box sx={{ flex: 1, minWidth: 0 }}>
-                            <Typography
-                              variant='body2'
-                              sx={{ fontWeight: 600, fontSize: '0.875rem', color: 'rgba(255,255,255,0.9)' }}
-                            >
-                              {transaction.description}
-                            </Typography>
-                          </Box>
-                        </Box>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <Typography
-                              variant='body2'
-                              sx={{
-                                fontWeight: 600,
-                                fontSize: '0.875rem',
-                                color: transaction.type === 'deposit' ? 'success.main' : 'error.main'
-                              }}
-                            >
-                              {transaction.amount.toLocaleString('fa-IR')}
-                            </Typography>
-                            <TwinBadge>TWIN</TwinBadge>
-                          </Box>
-                          <Typography
-                            variant='caption'
-                            sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.75rem' }}
-                          >
-                            {transaction.date}
-                          </Typography>
-                        </Box>
-                      </Box>
-                      {index < transactions.length - 1 && <Divider sx={{ mt: 2 }} />}
-                    </Box>
-                  ))}
-                </Stack>
-              </Box>
-            </AccordionDetails>
-          </Accordion>
+            })}
+          >
+            مشاهده تراکنش‌ها
+          </Typography>
         </Box>
       </CardContent>
     </Card>

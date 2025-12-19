@@ -62,15 +62,9 @@ const MissionCard = styled(Card)(({ theme }) => ({
   position: 'relative',
   height: '100%',
   cursor: 'pointer',
-  transition: 'all 0.3s ease-in-out',
   border: `1px solid ${theme.palette.divider}`,
   flexShrink: 0,
-  minWidth: 280,
-  '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: theme.shadows[8],
-    borderColor: theme.palette.primary.main
-  }
+  minWidth: 280
 }))
 
 const MissionsScrollContainer = styled(Box)(({ theme }) => ({
