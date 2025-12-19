@@ -348,9 +348,9 @@ const UserLocationMap = () => {
                   zoomToBoundsOnClick={true}
                   removeOutsideVisibleBounds={true}
                 >
-                  {obfuscatedLocations.map((location: ObfuscatedLocation, index: number) => (
+                  {obfuscatedLocations.map((location: ObfuscatedLocation) => (
                     <Marker
-                      key={`marker-${index}`}
+                      key={location.id}
                       position={[location.lat, location.lng]}
                       icon={L.icon({
                         iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',

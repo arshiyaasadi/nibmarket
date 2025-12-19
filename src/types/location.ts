@@ -5,6 +5,7 @@ export interface UserLocation {
 }
 
 export interface ObfuscatedLocation {
+  id: string
   lat: number
   lng: number
 }

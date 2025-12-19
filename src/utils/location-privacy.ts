@@ -14,6 +14,7 @@ export const obfuscateLocation = (location: UserLocation): ObfuscatedLocation =>
   const precision = 0.005
   
   return {
+    id: location.id, // Preserve id for stable React keys
     lat: Math.round(location.lat / precision) * precision,
     lng: Math.round(location.lng / precision) * precision
   }

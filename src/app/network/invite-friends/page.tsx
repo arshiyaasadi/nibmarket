@@ -16,6 +16,7 @@ import Button from '@mui/material/Button'
 import Divider from '@mui/material/Divider'
 import MenuItem from '@mui/material/MenuItem'
 import Typography from '@mui/material/Typography'
+import Tooltip from '@mui/material/Tooltip'
 import IconButton from '@mui/material/IconButton'
 import CardContent from '@mui/material/CardContent'
 import InputLabel from '@mui/material/InputLabel'
@@ -47,8 +48,35 @@ const invitedUsers = [
 ]
 
 const referralCode = 'INVITE2024'
+const MAX_INVITES_PER_MONTH = 15
 
 type InviteStep = 'form' | 'template' | 'preview' | 'success'
+
+// Helper functions for monthly invite limit tracking
+const getCurrentMonthKey = () => {
+  const now = new Date()
+  return `invite_limit_${now.getFullYear()}_${now.getMonth()}`
+}
+
+const getRemainingInvites = (): number => {
+  if (typeof window === 'undefined') return MAX_INVITES_PER_MONTH
+  const monthKey = getCurrentMonthKey()
+  const saved = localStorage.getItem(monthKey)
+  if (saved) {
+    const parsed = parseInt(saved, 10)
+    return Math.max(0, parsed)
+  }
+  return MAX_INVITES_PER_MONTH
+}
+
+const decrementRemainingInvites = (): number => {
+  if (typeof window === 'undefined') return MAX_INVITES_PER_MONTH - 1
+  const monthKey = getCurrentMonthKey()
+  const current = getRemainingInvites()
+  const newCount = Math.max(0, current - 1)
+  localStorage.setItem(monthKey, newCount.toString())
+  return newCount
+}
 
 // ** Styled Components
 const FacebookBtn = styled(IconButton)<IconButtonProps>(({ theme }) => ({
@@ -88,6 +116,12 @@ const InviteFriendsPageContent = () => {
   const [inviteMobile, setInviteMobile] = useState('')
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
   const [isSendingInvite, setIsSendingInvite] = useState(false)
+  const [remainingInvites, setRemainingInvites] = useState<number>(MAX_INVITES_PER_MONTH)
+
+  // Initialize remaining invites from localStorage
+  useEffect(() => {
+    setRemainingInvites(getRemainingInvites())
+  }, [])
 
   const normalizeToEnglishDigits = (value: string) => {
     const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹']
@@ -122,10 +156,26 @@ const InviteFriendsPageContent = () => {
     }
   })
 
+  // ** Helper function to get base URL
+  const getBaseUrl = (): string => {
+    if (typeof window === 'undefined') return ''
+    
+    // First check environment variable
+    const envUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_HOST_URL
+    if (envUrl) {
+      // Remove trailing slash if exists
+      return envUrl.replace(/\/$/, '')
+    }
+    
+    // Fallback to window.location.origin (auto-detect)
+    return window.location.origin
+  }
+
   // ** Set referral link on client side
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setReferralLink(`${window.location.origin}?ref=${referralCode}`)
+      const baseUrl = getBaseUrl()
+      setReferralLink(`${baseUrl}/invite?code=${referralCode}`)
     }
   }, [])
 
@@ -150,7 +200,7 @@ const InviteFriendsPageContent = () => {
 
   const handleShare = (platform: string) => {
     const shareText = `کد معرف من: ${referralCode}\nبا استفاده از این کد معرف، به ${themeConfig.templateName} بپیوندید!`
-    const shareUrl = referralLink || `${typeof window !== 'undefined' ? window.location.origin : ''}?ref=${referralCode}`
+    const shareUrl = referralLink || `${getBaseUrl()}/invite?code=${referralCode}`
 
     let url = ''
     switch (platform) {
@@ -201,6 +251,12 @@ const InviteFriendsPageContent = () => {
       return
     }
 
+    // Check if user has remaining invites
+    if (remainingInvites <= 0) {
+      toast.error(`شما حداکثر ${MAX_INVITES_PER_MONTH} پیام در ماه می‌توانید ارسال کنید. لطفاً ماه آینده دوباره تلاش کنید.`)
+      return
+    }
+
     try {
       setIsSendingInvite(true)
 
@@ -212,6 +268,10 @@ const InviteFriendsPageContent = () => {
       //   referralLink
       // })
       await new Promise(resolve => setTimeout(resolve, 800))
+
+      // Decrement remaining invites on success
+      const newCount = decrementRemainingInvites()
+      setRemainingInvites(newCount)
 
       toast.success('دعوت‌نامه با موفقیت ارسال شد')
       setInviteStep('success')
@@ -231,9 +291,42 @@ const InviteFriendsPageContent = () => {
           <Card>
             <CardContent sx={{ p: 6 }}>
               <Box>
-                <Typography variant='h6' sx={{ mb: 3, fontWeight: 600 }}>
-                  ارسال پیام دعوت
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                  <Typography variant='h6' sx={{ fontWeight: 600 }}>
+                    ارسال پیام دعوت
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: remainingInvites > 0 ? 'text.secondary' : 'error.main',
+                        fontWeight: 500,
+                        fontSize: '0.8125rem',
+                        letterSpacing: '0.01em'
+                      }}
+                    >
+                      {remainingInvites.toLocaleString('fa-IR')}/{MAX_INVITES_PER_MONTH.toLocaleString('fa-IR')}
+                    </Typography>
+                    <Tooltip
+                      title='در هر ماه ۱۵ پیام قابل ارسال است و با شروع ماه جدید، تعداد پیام‌های باقیمانده به ۱۵ بازمی‌گردد'
+                      arrow
+                      placement='top'
+                    >
+                      <IconButton
+                        size='small'
+                        sx={{
+                          p: 0,
+                          color: 'text.secondary',
+                          '&:hover': {
+                            color: 'primary.main'
+                          }
+                        }}
+                      >
+                        <Icon icon='mdi:alert-circle-outline' fontSize='0.875rem' />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                </Box>
 
                 {/* Step 1: Basic info form */}
                 {inviteStep === 'form' && (
@@ -354,9 +447,9 @@ const InviteFriendsPageContent = () => {
                         variant='contained'
                         fullWidth
                         onClick={handleSendInvite}
-                        disabled={isSendingInvite}
+                        disabled={isSendingInvite || remainingInvites <= 0}
                       >
-                        {isSendingInvite ? 'در حال ارسال...' : 'ارسال دعوت‌نامه'}
+                        {isSendingInvite ? 'در حال ارسال...' : remainingInvites <= 0 ? 'محدودیت ماهانه تمام شده' : 'ارسال دعوت‌نامه'}
                       </Button>
                       <Button
                         variant='outlined'
@@ -454,8 +547,23 @@ const InviteFriendsPageContent = () => {
               <Divider sx={{ my: 4 }} />
 
               <Box>
-                <Typography variant='h6' sx={{ mb: 2, fontWeight: 600 }}>
-                  لینک دعوت
+                <Typography
+                  component={Link}
+                  href={`/invite?code=${referralCode}`}
+                  variant='h6'
+                  sx={{
+                    mb: 2,
+                    fontWeight: 600,
+                    color: 'primary.main',
+                    textDecoration: 'none',
+                    cursor: 'pointer',
+                    display: 'inline-block',
+                    '&:hover': {
+                      textDecoration: 'underline'
+                    }
+                  }}
+                >
+                  مشاهده لینک دعوت
                 </Typography>
                 <InputLabel
                   htmlFor='referral-link'

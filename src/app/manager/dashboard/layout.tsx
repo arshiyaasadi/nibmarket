@@ -44,6 +44,15 @@ const ManagerDashboardLayout = ({ children }: ManagerDashboardLayoutProps) => {
         router.replace(`/?returnUrl=${encodeURIComponent(pathname)}`)
       }
     }
+
+    // Redirect non-manager users to their appropriate dashboard
+    if (!auth.loading && auth.user && auth.user.role !== 'manager') {
+      if (auth.user.role === 'client') {
+        router.replace('/dashboard')
+      } else {
+        router.replace('/')
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mounted, auth.loading, auth.user, pathname])
 
@@ -54,6 +63,11 @@ const ManagerDashboardLayout = ({ children }: ManagerDashboardLayoutProps) => {
 
   // If user is not authenticated, show spinner (redirect is happening)
   if (auth.user === null) {
+    return <Spinner />
+  }
+
+  // If user is authenticated but not a manager, show spinner (redirect is happening)
+  if (auth.user.role !== 'manager') {
     return <Spinner />
   }
 
