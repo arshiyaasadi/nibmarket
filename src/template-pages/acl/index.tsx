@@ -43,7 +43,7 @@ const ACLPage = () => {
 
 ACLPage.acl = {
   action: 'read',
-  subject: 'acl-page'
+  subject: 'client-pages'
 }
 
 export default ACLPage

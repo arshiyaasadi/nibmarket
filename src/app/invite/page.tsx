@@ -232,7 +232,6 @@ const InvitePageContent = () => {
                 size='large'
                 variant='contained'
                 onClick={handleNavigateToRegister}
-                disabled
               >
                 ثبت‌نام
               </Button>

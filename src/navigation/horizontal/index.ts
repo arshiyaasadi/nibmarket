@@ -593,13 +593,13 @@ const navigation = (): HorizontalNavItemsType => {
       title: 'Others',
       icon: 'mdi:dots-horizontal',
       children: [
-        {
-          path: '/acl',
-          action: 'read',
-          subject: 'acl-page',
-          icon: 'mdi:shield-outline',
-          title: 'Access Control'
-        },
+  {
+    path: '/acl',
+    action: 'read',
+    subject: 'client-pages',
+    icon: 'mdi:shield-outline',
+    title: 'Access Control'
+  },
         {
           title: 'Menu Levels',
           icon: 'mdi:menu',

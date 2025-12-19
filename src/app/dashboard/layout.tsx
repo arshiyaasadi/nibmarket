@@ -10,8 +10,13 @@ import dynamic from 'next/dynamic'
 // ** Hooks
 import { useAuth } from 'src/hooks/useAuth'
 
+// ** Config Import
+import { buildAbilityFor } from 'src/configs/acl'
+
 // ** Component Import
 import Spinner from 'src/@core/components/spinner'
+import NotAuthorized from 'src/template-pages/401'
+import BlankLayout from 'src/@core/layouts/BlankLayout'
 
 interface DashboardLayoutProps {
   children: ReactNode
@@ -55,6 +60,19 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   // If user is not authenticated, show spinner (redirect is happening)
   if (auth.user === null) {
     return <Spinner />
+  }
+
+  // Check ACL permission for dashboard access
+  // Dashboard requires 'read' permission on 'client-pages'
+  if (auth.user) {
+    const ability = buildAbilityFor(auth.user.role, 'client-pages')
+    if (!ability || !ability.can('read', 'client-pages')) {
+      return (
+        <BlankLayout>
+          <NotAuthorized />
+        </BlankLayout>
+      )
+    }
   }
 
   // Return UserLayout with menu and header
