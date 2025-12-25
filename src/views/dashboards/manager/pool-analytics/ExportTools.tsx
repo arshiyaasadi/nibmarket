@@ -41,7 +41,7 @@ const ExportTools = ({ data }: ExportToolsProps) => {
     
     try {
       // Prepare CSV data
-      let csvContent = 'data:text/csv;charset=utf-8,'
+      let csvContent = ''
       
       // Header
       csvContent += 'نوع داده,دوره,موجودی استخر,تعداد شرکت‌کنندگان,تغییرات,میانگین امتیاز\n'
@@ -56,14 +56,16 @@ const ExportTools = ({ data }: ExportToolsProps) => {
         csvContent += `مقایسه ماهانه,${item.period},${item.poolBalance},${item.participants},${item.change}%,${item.avgScore}\n`
       })
       
-      // Create download link
-      const encodedUri = encodeURI(csvContent)
+      // Create Blob with UTF-8 encoding
+      const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
-      link.setAttribute('href', encodedUri)
-      link.setAttribute('download', `pool_analytics_${new Date().toISOString().split('T')[0]}.csv`)
+      link.href = url
+      link.download = `pool_analytics_${new Date().toISOString().split('T')[0]}.csv`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
+      URL.revokeObjectURL(url)
       
       handleClose()
     } catch (error) {
