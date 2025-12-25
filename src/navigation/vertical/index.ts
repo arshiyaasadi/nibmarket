@@ -117,9 +117,22 @@ const navigation = (): VerticalNavItemsType => {
     {
       title: 'داشبورد مدیر',
       icon: 'mdi:view-dashboard-outline',
-      path: '/manager/dashboard',
       action: 'read',
-      subject: 'manager-dashboard'
+      subject: 'manager-dashboard',
+      children: [
+        {
+          title: 'داشبورد کلی',
+          path: '/manager/dashboard',
+          action: 'read',
+          subject: 'manager-dashboard'
+        },
+        {
+          title: 'استخر و بورد',
+          path: '/manager/pool-analytics',
+          action: 'read',
+          subject: 'manager-dashboard'
+        }
+      ]
     }
   ]
 }

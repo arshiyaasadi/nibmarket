@@ -13,7 +13,7 @@ import { useAuth } from 'src/hooks/useAuth'
 // ** Component Import
 import Spinner from 'src/@core/components/spinner'
 
-interface ManagerDashboardLayoutProps {
+interface ManagerLayoutProps {
   children: ReactNode
 }
 
@@ -24,7 +24,7 @@ const UserLayout = dynamic(() => import('src/layouts/UserLayout'), {
   loading: () => <Spinner />
 })
 
-const ManagerDashboardLayout = ({ children }: ManagerDashboardLayoutProps) => {
+const ManagerLayout = ({ children }: ManagerLayoutProps) => {
   // ** Hooks
   const auth = useAuth()
   const router = useRouter()
@@ -45,8 +45,8 @@ const ManagerDashboardLayout = ({ children }: ManagerDashboardLayoutProps) => {
       }
     }
 
-    // Redirect non-manager users to their appropriate dashboard
-    if (!auth.loading && auth.user && auth.user.role !== 'manager') {
+    // Redirect non-manager/admin users to their appropriate dashboard
+    if (!auth.loading && auth.user && auth.user.role !== 'manager' && auth.user.role !== 'admin') {
       if (auth.user.role === 'client') {
         router.replace('/dashboard')
       } else {
@@ -66,8 +66,8 @@ const ManagerDashboardLayout = ({ children }: ManagerDashboardLayoutProps) => {
     return <Spinner />
   }
 
-  // If user is authenticated but not a manager, show spinner (redirect is happening)
-  if (auth.user.role !== 'manager') {
+  // If user is authenticated but not a manager or admin, show spinner (redirect is happening)
+  if (auth.user.role !== 'manager' && auth.user.role !== 'admin') {
     return <Spinner />
   }
 
@@ -78,5 +78,5 @@ const ManagerDashboardLayout = ({ children }: ManagerDashboardLayoutProps) => {
   return <LayoutComponent>{children}</LayoutComponent>
 }
 
-export default ManagerDashboardLayout
+export default ManagerLayout
 
