@@ -16,7 +16,11 @@ export const obfuscateLocation = (location: UserLocation): ObfuscatedLocation =>
   return {
     id: location.id, // Preserve id for stable React keys
     lat: Math.round(location.lat / precision) * precision,
-    lng: Math.round(location.lng / precision) * precision
+    lng: Math.round(location.lng / precision) * precision,
+    fullName: location.fullName,
+    joinDate: location.joinDate,
+    subordinates: location.subordinates,
+    capital: location.capital
   }
 }
 

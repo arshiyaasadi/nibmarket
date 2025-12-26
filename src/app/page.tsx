@@ -115,10 +115,16 @@ export default function LoginPage() {
               
             </Box>
             <Box sx={{ mb: 6 }}>
-              <Typography variant='h5' sx={{ mb: 1.5, fontWeight: 600, letterSpacing: '0.18px' }}>
+              <Typography 
+                variant='h5' 
+                sx={{ mb: 1.5, fontWeight: 600, letterSpacing: '0.18px' }}
+                suppressHydrationWarning
+              >
                 {`${t('Welcome to')} ${themeConfig.templateName}! 👋🏻`}
               </Typography>
-              <Typography variant='body2'>{t('Please sign-in to your account and start the adventure')}</Typography>
+              <Typography variant='body2' suppressHydrationWarning>
+                {t('Please sign-in to your account and start the adventure')}
+              </Typography>
             </Box>
             <form noValidate autoComplete='off' onSubmit={handleSubmit}>
               <TextField
@@ -131,15 +137,19 @@ export default function LoginPage() {
                 onChange={handleChange('email')}
                 placeholder='admin@materialize.com'
                 sx={{ mb: 4 }}
+                InputLabelProps={{ suppressHydrationWarning: true }}
               />
               <FormControl fullWidth>
-                <InputLabel htmlFor='auth-login-password'>{t('Password')}</InputLabel>
+                <InputLabel htmlFor='auth-login-password' suppressHydrationWarning>
+                  {t('Password')}
+                </InputLabel>
                 <OutlinedInput
                   label={t('Password')}
                   value={values.password}
                   id='auth-login-password'
                   onChange={handleChange('password')}
                   type={values.showPassword ? 'text' : 'password'}
+                  inputProps={{ suppressHydrationWarning: true }}
                   endAdornment={
                     <InputAdornment position='end'>
                       <IconButton
@@ -163,18 +173,20 @@ export default function LoginPage() {
                     <Checkbox checked={values.rememberMe} onChange={handleChange('rememberMe')} />
                   }
                   sx={{ '& .MuiFormControlLabel-label': { color: 'text.primary' } }}
+                  componentsProps={{ typography: { suppressHydrationWarning: true } }}
                 />
                 <Typography
                   variant='body2'
                   component={Link}
                   href='/pages/auth/forgot-password-v1'
                   sx={{ color: 'primary.main', textDecoration: 'none' }}
+                  suppressHydrationWarning
                 >
                   {t('Forgot Password?')}
                 </Typography>
               </Box>
               <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 4 }}>
-                {t('Login')}
+                <span suppressHydrationWarning>{t('Login')}</span>
               </Button>
               <Box
                 sx={{
@@ -220,11 +232,14 @@ export default function LoginPage() {
                 </Box>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
-                <Typography sx={{ mr: 2, color: 'text.secondary' }}>{t('New on our platform?')}</Typography>
+                <Typography sx={{ mr: 2, color: 'text.secondary' }} suppressHydrationWarning>
+                  {t('New on our platform?')}
+                </Typography>
                 <Typography
                   component={Link}
                   href='/pages/auth/register-v1'
                   sx={{ color: 'primary.main', textDecoration: 'none' }}
+                  suppressHydrationWarning
                 >
                   {t('Create an account')}
                 </Typography>

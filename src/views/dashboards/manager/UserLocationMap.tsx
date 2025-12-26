@@ -1,7 +1,7 @@
 'use client'
 
 // ** React Imports
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 
 // ** MUI Imports
@@ -71,6 +71,9 @@ const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), {
 const Popup = dynamic(() => import('react-leaflet').then(mod => mod.Popup), {
   ssr: false
 })
+
+// ** Component Imports
+import ViewportUsersTable from './ViewportUsersTable'
 
 // useMap will be imported inside MapController component
 
@@ -147,20 +150,50 @@ const MapController = dynamic(
         const map = useMap()
 
         useEffect(() => {
+          // Only move the map if a city is selected
           if (selectedCity) {
             // Zoom to selected city
             map.setView([selectedCity.lat, selectedCity.lng], 11, {
               animate: true,
               duration: 0.5
             })
-          } else {
-            // Reset to default view
-            map.setView(defaultCenter, defaultZoom, {
-              animate: true,
-              duration: 0.5
-            })
           }
-        }, [selectedCity, map, defaultCenter, defaultZoom])
+          // When selectedCity is cleared, reset to default view
+          // But only if it's explicitly set to null (not on initial load)
+        }, [selectedCity, map])
+
+        return null
+      }
+    }),
+  { ssr: false }
+)
+
+// ** Component to track map bounds and notify parent
+const BoundsTracker = dynamic(
+  () =>
+    import('react-leaflet').then((mod) => {
+      const { useMapEvents } = mod
+      return ({ onBoundsChange }: { onBoundsChange: (bounds: any) => void }) => {
+        const map = useMapEvents({
+          moveend: () => {
+            const bounds = map.getBounds()
+            onBoundsChange(bounds)
+          },
+          zoomend: () => {
+            const bounds = map.getBounds()
+            onBoundsChange(bounds)
+          }
+        })
+
+        // Set initial bounds after a short delay to allow map to initialize
+        useEffect(() => {
+          const timer = setTimeout(() => {
+            const bounds = map.getBounds()
+            onBoundsChange(bounds)
+          }, 500)
+          
+          return () => clearTimeout(timer)
+        }, [map, onBoundsChange])
 
         return null
       }
@@ -175,6 +208,17 @@ const UserLocationMap = () => {
   const [mounted, setMounted] = useState(false)
   const [leafletLoaded, setLeafletLoaded] = useState(false)
   const [selectedCity, setSelectedCity] = useState<CityOption | null>(null)
+  const [mapBounds, setMapBounds] = useState<any>(null)
+
+  // ** Iran center coordinates (must be before any conditional returns)
+  const iranCenter: [number, number] = useMemo(() => [32.4279, 53.6880], [])
+  const defaultZoom = useMemo(() => 5, [])
+  
+  // ** Iran boundaries (approximate bounding box)
+  const iranBounds: [[number, number], [number, number]] = useMemo(() => [
+    [25.0, 44.0], // Southwest (lat, lng)
+    [40.0, 63.5]  // Northeast (lat, lng)
+  ], [])
 
   // ** Mount check for client-side only rendering and load CSS/Leaflet
   useEffect(() => {
@@ -226,6 +270,20 @@ const UserLocationMap = () => {
     return obfuscateLocations(userLocations)
   }, [userLocations])
 
+  // ** Handle bounds change (memoized to prevent infinite re-renders)
+  const handleBoundsChange = useCallback((bounds: any) => {
+    setMapBounds(bounds)
+  }, [])
+
+  // ** Filter locations by map bounds
+  const visibleLocations = useMemo(() => {
+    if (!mapBounds || !obfuscatedLocations.length) return []
+    
+    return obfuscatedLocations.filter((location) => {
+      return mapBounds.contains([location.lat, location.lng])
+    })
+  }, [mapBounds, obfuscatedLocations])
+
   // ** Don't render until mounted and Leaflet is loaded (client-side only)
   if (!mounted || !leafletLoaded || loading) {
     return (
@@ -245,138 +303,137 @@ const UserLocationMap = () => {
     )
   }
 
-  // ** Iran center coordinates
-  const iranCenter: [number, number] = [32.4279, 53.6880]
-  const defaultZoom = 5
   const maxZoom = 12 // Maximum zoom level to prevent zooming in too much
-  
-  // ** Iran boundaries (approximate bounding box)
-  // Southwest corner and Northeast corner of Iran
-  const iranBounds: [[number, number], [number, number]] = [
-    [25.0, 44.0], // Southwest (lat, lng)
-    [40.0, 63.5]  // Northeast (lat, lng)
-  ]
 
   return (
-    <Card
-      sx={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column'
-      }}
-    >
-      <CardHeader
-        title='نقشه توزیع کاربران'
-        titleTypographyProps={{ variant: 'h6' }}
-        action={
-          <Autocomplete
-            sx={{ width: 300 }}
-            options={iranianCities}
-            getOptionLabel={(option) => option.name}
-            value={selectedCity}
-            onChange={(event, newValue) => {
-              setSelectedCity(newValue)
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label='جستجوی شهر'
-                placeholder='شهر را انتخاب کنید'
-                size='small'
-              />
-            )}
-            noOptionsText='شهری یافت نشد'
-            clearOnEscape
-            clearText='پاک کردن'
-          />
-        }
-      />
-      <CardContent sx={{ flex: 1, p: '20px', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-        <Box
-          sx={{
-            flex: 1,
-            height: '600px',
-            minHeight: '500px',
-            width: '100%',
-            position: 'relative',
-            '& .leaflet-container': {
-              height: '100%',
+    <>
+      <Card>
+        <CardHeader
+          title='نقشه توزیع کاربران'
+          titleTypographyProps={{ variant: 'h6' }}
+          action={
+            <Autocomplete
+              sx={{ width: 300 }}
+              options={iranianCities}
+              getOptionLabel={(option) => option.name}
+              value={selectedCity}
+              onChange={(event, newValue) => {
+                setSelectedCity(newValue)
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label='جستجوی شهر'
+                  placeholder='شهر را انتخاب کنید'
+                  size='small'
+                />
+              )}
+              noOptionsText='شهری یافت نشد'
+              clearOnEscape
+              clearText='پاک کردن'
+            />
+          }
+        />
+        <CardContent sx={{ p: 2 }}>
+          <Box
+            sx={{
+              height: '600px',
               width: '100%',
-              zIndex: 0,
-              borderRadius: '0 0 4px 4px'
-            },
-            '& .custom-cluster-icon': {
-              background: 'transparent',
-              border: 'none'
-            }
-          }}
-        >
-          <MapContainer
-            center={iranCenter}
-            zoom={defaultZoom}
-            minZoom={5}
-            maxZoom={maxZoom}
-            maxBounds={iranBounds}
-            maxBoundsViscosity={1.0}
-            style={{ height: '100%', width: '100%' }}
-            zoomControl={true}
-            scrollWheelZoom={true}
+              position: 'relative',
+              '& .leaflet-container': {
+                height: '100%',
+                width: '100%',
+                zIndex: 0,
+                borderRadius: '0 0 4px 4px'
+              },
+              '& .custom-cluster-icon': {
+                background: 'transparent',
+                border: 'none'
+              }
+            }}
           >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-            />
-            <MapController 
-              selectedCity={selectedCity}
-              defaultCenter={iranCenter}
-              defaultZoom={defaultZoom}
-            />
-            {leafletLoaded && obfuscatedLocations.length > 0 && (() => {
-              const L = (window as any).L
-              if (!L) return null
-              
-              return (
-                <MarkerClusterGroup
-                  chunkedLoading
-                  iconCreateFunction={(cluster: any) => {
-                    const count = cluster.getChildCount()
-                    return createClusterIcon(count, theme) || cluster.getClusterIcon()
-                  }}
-                  maxClusterRadius={80}
-                  spiderfyOnMaxZoom={false}
-                  showCoverageOnHover={false}
-                  zoomToBoundsOnClick={true}
-                  removeOutsideVisibleBounds={true}
-                >
-                  {obfuscatedLocations.map((location: ObfuscatedLocation) => (
-                    <Marker
-                      key={location.id}
-                      position={[location.lat, location.lng]}
-                      icon={L.icon({
-                        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-                        iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-                        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-                        iconSize: [25, 41],
-                        iconAnchor: [12, 41],
-                        popupAnchor: [1, -34],
-                        tooltipAnchor: [16, -28],
-                        shadowSize: [41, 41]
-                      })}
-                    >
-                      <Popup>
-                        <Typography variant='body2'>
-                          تعداد کاربران در این منطقه
-                        </Typography>
-                      </Popup>
-                    </Marker>
-                  ))}
-                </MarkerClusterGroup>
-              )
-            })()}
-          </MapContainer>
-        </Box>
-      </CardContent>
-    </Card>
+            <MapContainer
+              center={iranCenter}
+              zoom={defaultZoom}
+              minZoom={5}
+              maxZoom={maxZoom}
+              maxBounds={iranBounds}
+              maxBoundsViscosity={1.0}
+              style={{ height: '100%', width: '100%' }}
+              zoomControl={true}
+              scrollWheelZoom={true}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+              />
+              <MapController 
+                selectedCity={selectedCity}
+                defaultCenter={iranCenter}
+                defaultZoom={defaultZoom}
+              />
+              <BoundsTracker onBoundsChange={handleBoundsChange} />
+              {leafletLoaded && obfuscatedLocations.length > 0 && (() => {
+                const L = (window as any).L
+                if (!L) return null
+                
+                return (
+                  <MarkerClusterGroup
+                    chunkedLoading
+                    iconCreateFunction={(cluster: any) => {
+                      const count = cluster.getChildCount()
+                      return createClusterIcon(count, theme) || cluster.getClusterIcon()
+                    }}
+                    maxClusterRadius={80}
+                    spiderfyOnMaxZoom={false}
+                    showCoverageOnHover={false}
+                    zoomToBoundsOnClick={true}
+                    removeOutsideVisibleBounds={true}
+                  >
+                    {obfuscatedLocations.map((location: ObfuscatedLocation) => (
+                      <Marker
+                        key={location.id}
+                        position={[location.lat, location.lng]}
+                        icon={L.icon({
+                          iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+                          iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+                          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+                          iconSize: [25, 41],
+                          iconAnchor: [12, 41],
+                          popupAnchor: [1, -34],
+                          tooltipAnchor: [16, -28],
+                          shadowSize: [41, 41]
+                        })}
+                      >
+                        <Popup>
+                          <Typography variant='body2' sx={{ fontWeight: 600, mb: 1 }}>
+                            {location.fullName}
+                          </Typography>
+                          <Typography variant='caption' display='block'>
+                            زیرمجموعه: {location.subordinates}
+                          </Typography>
+                          <Typography variant='caption' display='block'>
+                            سرمایه: {location.capital.toLocaleString('fa-IR')} TWIN
+                          </Typography>
+                        </Popup>
+                      </Marker>
+                    ))}
+                  </MarkerClusterGroup>
+                )
+              })()}
+            </MapContainer>
+          </Box>
+        </CardContent>
+      </Card>
+      
+      {/* Table showing visible users */}
+      <Box sx={{ mt: 6 }}>
+        <ViewportUsersTable 
+          visibleUsers={visibleLocations} 
+          totalUsers={obfuscatedLocations.length}
+        />
+      </Box>
+    </>
   )
 }
 
