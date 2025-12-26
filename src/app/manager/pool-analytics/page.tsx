@@ -50,9 +50,6 @@ const PoolAnalyticsPageContent = () => {
           <Typography variant='h4' sx={{ mb: 1, fontWeight: 600 }}>
             تحلیل استخر و لیدربورد
           </Typography>
-          <Typography variant='body2' color='text.secondary'>
-            داشبورد تحلیلی و گزارش‌گیری پیشرفته برای مدیریت استخر و لیدربورد
-          </Typography>
         </Box>
         <ExportTools data={poolData} />
       </Box>

@@ -9,8 +9,8 @@ import Box from '@mui/material/Box'
 
 // ** Component Imports
 import UserLocationMap from 'src/views/dashboards/manager/UserLocationMap'
-import UserCountStats from 'src/views/dashboards/manager/UserCountStats'
-import UserGrowthChart from 'src/views/dashboards/manager/UserGrowthChart'
+import UserStatsCard from 'src/views/dashboards/manager/UserStatsCard'
+import PoolStatsCard from 'src/views/dashboards/manager/PoolStatsCard'
 import Spinner from 'src/@core/components/spinner'
 
 // ** Utils
@@ -39,11 +39,11 @@ const ManagerDashboardPageContent = () => {
     fetchLocations()
   }, [])
 
-  // Calculate stats
-  const stats = useMemo(() => {
+  // Calculate user stats
+  const userStats = useMemo(() => {
     const currentCount = userLocations.length
     // Simulate previous month count (could be from API)
-    // For now, we'll use 90% of current count as previous (10% growth)
+    // For now, we'll use 90% of current count as previous (11.1% growth)
     const previousCount = Math.round(currentCount * 0.9)
     const growthPercentage = currentCount > 0 
       ? ((currentCount - previousCount) / previousCount) * 100 
@@ -56,6 +56,20 @@ const ManagerDashboardPageContent = () => {
     }
   }, [userLocations])
 
+  // Calculate pool stats from user data
+  const poolStats = useMemo(() => {
+    const totalCapital = userLocations.reduce((sum, user) => sum + user.capital, 0)
+    const participantCount = userLocations.length
+    // Simulate 12.5% monthly growth
+    const monthlyChange = 12.5
+
+    return {
+      poolBalance: totalCapital,
+      participants: participantCount,
+      monthlyChange
+    }
+  }, [userLocations])
+
   if (loading) {
     return <Spinner />
   }
@@ -65,15 +79,18 @@ const ManagerDashboardPageContent = () => {
       <Grid container spacing={6}>
         {/* Stats Cards */}
         <Grid item xs={12} md={6}>
-          <UserCountStats 
-            totalUsers={stats.currentCount} 
-            growthPercentage={stats.growthPercentage} 
+          <UserStatsCard 
+            totalUsers={userStats.currentCount} 
+            growthPercentage={userStats.growthPercentage}
+            currentCount={userStats.currentCount}
+            previousCount={userStats.previousCount}
           />
         </Grid>
         <Grid item xs={12} md={6}>
-          <UserGrowthChart 
-            currentCount={stats.currentCount}
-            previousCount={stats.previousCount}
+          <PoolStatsCard 
+            poolBalance={poolStats.poolBalance}
+            participants={poolStats.participants}
+            monthlyChange={poolStats.monthlyChange}
           />
         </Grid>
         

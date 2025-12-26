@@ -157,10 +157,14 @@ const MapController = dynamic(
               animate: true,
               duration: 0.5
             })
+          } else {
+            // When selectedCity is cleared, reset to default view
+            map.setView(defaultCenter, defaultZoom, {
+              animate: true,
+              duration: 0.5
+            })
           }
-          // When selectedCity is cleared, reset to default view
-          // But only if it's explicitly set to null (not on initial load)
-        }, [selectedCity, map])
+        }, [selectedCity, map, defaultCenter, defaultZoom])
 
         return null
       }

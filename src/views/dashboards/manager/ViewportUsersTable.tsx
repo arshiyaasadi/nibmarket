@@ -1,7 +1,7 @@
 'use client'
 
 // ** React Imports
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -31,6 +31,11 @@ interface ViewportUsersTableProps {
 const ViewportUsersTable = ({ visibleUsers, totalUsers }: ViewportUsersTableProps) => {
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
+
+  // ** Reset pagination when visible users change
+  useEffect(() => {
+    setPage(0)
+  }, [visibleUsers])
 
   // ** Handle pagination
   const handleChangePage = (event: unknown, newPage: number) => {
