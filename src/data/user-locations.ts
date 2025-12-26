@@ -87,30 +87,29 @@ const getRandomSubordinates = (): number => {
 /**
  * Generates a random capital amount (100-100000 TWIN)
  * Uses log-normal distribution: log(X) ~ N(μ, σ²)
+ * Approximation: Generate normal via Box-Muller transform using uniform randoms
  */
 const getRandomCapital = (): number => {
   const min = 100
   const max = 100000
   const logMin = Math.log(min)
   const logMax = Math.log(max)
-  const logRange = logMax - logMin
   
-  // Generate normal distribution using Box-Muller transform approximation
-  // For simplicity, use sum of 12 uniform randoms (Central Limit Theorem)
-  // This approximates N(0, 1), then scale and shift
-  let normal = 0
+  // Generate approximate standard normal using Central Limit Theorem
+  // Sum of 12 uniform [0,1] gives approximate N(6, 1)
+  let sum = 0
   for (let i = 0; i < 12; i++) {
-    normal += Math.random()
+    sum += Math.random()
   }
-  normal = (normal - 6) / 2 // Approximate N(0, 1)
+  const standardNormal = sum - 6 // Normalize to N(0, 1): mean=6, std=1, so (sum-6) ~ N(0,1)
   
-  // Convert to log-normal: X = exp(μ + σ * Z)
-  // Use μ = (logMin + logMax) / 2 and σ = logRange / 4 for reasonable spread
+  // Log-normal: X = exp(μ + σ * Z) where Z ~ N(0,1)
+  // Use μ at log-space midpoint and σ for reasonable spread
   const mu = (logMin + logMax) / 2
-  const sigma = logRange / 4
-  const logValue = mu + sigma * normal
+  const sigma = (logMax - logMin) / 6 // ~99.7% of values within range
+  const logValue = mu + sigma * standardNormal
   
-  // Ensure within bounds and convert back
+  // Clamp to bounds and convert back from log space
   const clampedLogValue = Math.max(logMin, Math.min(logMax, logValue))
   return Math.floor(Math.exp(clampedLogValue))
 }
