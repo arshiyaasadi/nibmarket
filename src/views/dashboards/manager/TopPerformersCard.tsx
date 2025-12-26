@@ -46,7 +46,7 @@ const TopPerformersCard = ({ performers }: TopPerformersCardProps) => {
             label='Top 10' 
             size='small' 
             color='primary' 
-            variant='tonal'
+            variant='outlined'
           />
         }
       />
@@ -98,7 +98,7 @@ const TopPerformersCard = ({ performers }: TopPerformersCardProps) => {
                       label={performer.score.toLocaleString('fa-IR')}
                       size='small'
                       color={performer.rank <= 3 ? 'success' : 'primary'}
-                      variant='tonal'
+                      variant='outlined'
                       sx={{ fontWeight: 600 }}
                     />
                   </TableCell>

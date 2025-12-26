@@ -306,7 +306,7 @@ const PerformanceMetricsDashboard = ({ data }: PerformanceMetricsDashboardProps)
                           label={performer.score.toLocaleString('fa-IR')}
                           size='small'
                           color='primary'
-                          variant='tonal'
+                          variant='outlined'
                         />
                       </TableCell>
                       <TableCell align='center'>

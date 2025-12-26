@@ -73,20 +73,46 @@ const getRandomJoinDate = (): string => {
 
 /**
  * Generates a random number of subordinates (0-50 with more weight on lower numbers)
+ * Uses exponential distribution: P(X > x) = e^(-λx)
  */
 const getRandomSubordinates = (): number => {
-  // Exponential distribution: more users have fewer subordinates
-  return Math.floor(Math.random() * Math.random() * 50)
+  // Exponential distribution with λ = 1/15 (mean = 15)
+  // Inverse CDF: x = -ln(1-U)/λ, capped at 50
+  const lambda = 1 / 15
+  const maxValue = 50
+  const exponentialValue = -Math.log(1 - Math.random()) / lambda
+  return Math.min(maxValue, Math.floor(exponentialValue))
 }
 
 /**
  * Generates a random capital amount (100-100000 TWIN)
+ * Uses log-normal distribution: log(X) ~ N(μ, σ²)
  */
 const getRandomCapital = (): number => {
-  // Log-normal distribution for capital
   const min = 100
   const max = 100000
-  return Math.floor(min + Math.random() * Math.random() * (max - min))
+  const logMin = Math.log(min)
+  const logMax = Math.log(max)
+  const logRange = logMax - logMin
+  
+  // Generate normal distribution using Box-Muller transform approximation
+  // For simplicity, use sum of 12 uniform randoms (Central Limit Theorem)
+  // This approximates N(0, 1), then scale and shift
+  let normal = 0
+  for (let i = 0; i < 12; i++) {
+    normal += Math.random()
+  }
+  normal = (normal - 6) / 2 // Approximate N(0, 1)
+  
+  // Convert to log-normal: X = exp(μ + σ * Z)
+  // Use μ = (logMin + logMax) / 2 and σ = logRange / 4 for reasonable spread
+  const mu = (logMin + logMax) / 2
+  const sigma = logRange / 4
+  const logValue = mu + sigma * normal
+  
+  // Ensure within bounds and convert back
+  const clampedLogValue = Math.max(logMin, Math.min(logMax, logValue))
+  return Math.floor(Math.exp(clampedLogValue))
 }
 
 /**
