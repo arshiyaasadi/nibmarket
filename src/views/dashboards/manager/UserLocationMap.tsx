@@ -307,7 +307,7 @@ const UserLocationMap = () => {
     )
   }
 
-  const maxZoom = 12 // Maximum zoom level to prevent zooming in too much
+  const maxZoom = 18 // Maximum zoom level - allows street-level zooming
 
   return (
     <>
