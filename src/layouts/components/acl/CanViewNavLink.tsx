@@ -19,11 +19,25 @@ const CanViewNavLink = (props: Props) => {
   // ** Hook
   const ability = useContext(AbilityContext)
 
+  // If auth is explicitly false, show the link
   if (navLink && navLink.auth === false) {
     return <>{children}</>
-  } else {
-    return ability && ability.can(navLink?.action, navLink?.subject) ? <>{children}</> : null
   }
+
+  // If no ability context, don't show the link
+  if (!ability) {
+    return null
+  }
+
+  // If navLink doesn't have action or subject, don't show it (unless auth is false)
+  if (!navLink || !navLink.action || !navLink.subject) {
+    return null
+  }
+
+  // Check if user has permission to view this link
+  const canView = ability.can(navLink.action, navLink.subject)
+  
+  return canView ? <>{children}</> : null
 }
 
 export default CanViewNavLink

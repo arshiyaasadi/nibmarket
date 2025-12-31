@@ -22,8 +22,10 @@ const defineRulesFor = (role: string) => {
   if (role === 'admin') {
     can('manage', 'all')
   } else if (role === 'client') {
+    // Regular users can only access client-pages, not manager-dashboard
     can(['read'], 'client-pages')
   } else if (role === 'manager') {
+    // Managers can only access manager-dashboard, not client-pages
     can(['read', 'manage'], 'manager-dashboard')
   } else {
     // For unknown roles, allow read access to all
