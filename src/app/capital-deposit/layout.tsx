@@ -37,11 +37,9 @@ const CapitalDepositLayout = ({ children }: CapitalDepositLayoutProps) => {
   useEffect(() => {
     if (!mounted || typeof window === 'undefined') return
 
+    // Always redirect if user is null after loading completes
     if (!auth.loading && auth.user === null) {
-      const hasUserData = window.localStorage.getItem('userData')
-      if (!hasUserData) {
-        router.replace(`/?returnUrl=${encodeURIComponent(pathname)}`)
-      }
+      router.replace(`/?returnUrl=${encodeURIComponent(pathname)}`)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mounted, auth.loading, auth.user, pathname])
