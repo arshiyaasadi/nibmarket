@@ -65,6 +65,12 @@ const navigation = (): VerticalNavItemsType => {
           path: '/reports/wallet',
           action: 'read',
           subject: 'client-pages'
+        },
+        {
+          title: 'رسوب سرمایه',
+          path: '/capital-deposit',
+          action: 'read',
+          subject: 'client-pages'
         }
       ]
     },
@@ -115,26 +121,54 @@ const navigation = (): VerticalNavItemsType => {
       ]
     },
     {
-      title: 'داشبورد مدیر',
+      title: 'داشبورد',
       icon: 'mdi:view-dashboard-outline',
+      path: '/manager/dashboard',
+      action: 'read',
+      subject: 'manager-dashboard'
+    },
+    {
+      title: 'تحلیل استخر و بورد',
+      icon: 'mdi:chart-pie',
+      path: '/manager/pool-analytics',
+      action: 'read',
+      subject: 'manager-dashboard'
+    },
+    {
+      title: 'رسوب سرمایه',
+      icon: 'mdi:bank-outline',
+      path: '/manager/capital-deposit',
+      action: 'read',
+      subject: 'manager-dashboard'
+    },
+    {
+      title: 'توکن TWIN',
+      icon: 'mdi:coin-outline',
+      path: '/manager/twin-token',
+      action: 'read',
+      subject: 'manager-dashboard'
+    },
+    {
+      title: 'کاربران',
+      icon: 'mdi:account-group-outline',
       action: 'read',
       subject: 'manager-dashboard',
       children: [
         {
-          title: 'داشبورد کلی',
-          path: '/manager/dashboard',
+          title: 'تمام کاربران',
+          path: '/manager/users/all',
           action: 'read',
           subject: 'manager-dashboard'
         },
         {
-          title: 'تحلیل استخر و بورد',
-          path: '/manager/pool-analytics',
+          title: 'کاربران فعال',
+          path: '/manager/users/active',
           action: 'read',
           subject: 'manager-dashboard'
         },
         {
-          title: 'استخر و بورد',
-          path: '/manager/pool-board',
+          title: 'جمعیت‌شناختی',
+          path: '/manager/users/demographics',
           action: 'read',
           subject: 'manager-dashboard'
         }
