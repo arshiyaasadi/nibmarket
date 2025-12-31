@@ -39,9 +39,16 @@ const generateMockPriceData = () => {
     // Simulate price movement
     const change = (Math.random() - 0.5) * 2 // -1 to 1
     const open = currentPrice
-    const high = open + Math.abs(change) * 0.5 + Math.random() * 0.3
-    const low = open - Math.abs(change) * 0.5 - Math.random() * 0.3
+    
+    // Calculate close price first
     const close = open + change * 0.8
+    
+    // Ensure high >= max(open, close) and low <= min(open, close)
+    const maxPrice = Math.max(open, close)
+    const minPrice = Math.min(open, close)
+    const volatility = Math.random() * 0.3 + 0.1 // 0.1 to 0.4
+    const high = maxPrice + volatility
+    const low = minPrice - volatility
     
     currentPrice = close
     

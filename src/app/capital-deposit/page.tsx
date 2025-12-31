@@ -118,7 +118,8 @@ const generateMockFundData = (): FundData[] => {
   const totalGeneratedInvestors = funds.reduce((sum, f) => sum + f.investors, 0)
   const totalGeneratedCapital = funds.reduce((sum, f) => sum + f.capital, 0)
 
-  return funds.map(fund => {
+  // Calculate normalized values
+  const normalizedFunds = funds.map(fund => {
     const investors = Math.floor((fund.investors / totalGeneratedInvestors) * totalInvestors)
     const capital = Math.floor((fund.capital / totalGeneratedCapital) * totalCapital)
     const percentage = (investors / totalInvestors) * 100
@@ -130,6 +131,22 @@ const generateMockFundData = (): FundData[] => {
       percentage
     }
   })
+
+  // Fix rounding errors: distribute remaining investors to ensure exact total
+  const totalNormalizedInvestors = normalizedFunds.reduce((sum, f) => sum + f.investors, 0)
+  const remainingInvestors = totalInvestors - totalNormalizedInvestors
+  
+  if (remainingInvestors > 0) {
+    // Distribute remaining investors proportionally
+    const sortedFunds = [...normalizedFunds].sort((a, b) => b.investors - a.investors)
+    for (let i = 0; i < remainingInvestors && i < sortedFunds.length; i++) {
+      const fundIndex = normalizedFunds.findIndex(f => f.id === sortedFunds[i].id)
+      normalizedFunds[fundIndex].investors++
+      normalizedFunds[fundIndex].percentage = (normalizedFunds[fundIndex].investors / totalInvestors) * 100
+    }
+  }
+
+  return normalizedFunds
 }
 
 const CapitalDepositPageContent = () => {

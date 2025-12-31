@@ -101,9 +101,9 @@ const TwinTokenStatistics = ({
                 variant='h5' 
                 sx={{ 
                   fontWeight: 600,
-                  color: stat.color === 'error' && priceChange24h < 0 ? theme.palette.error.main : 
-                         stat.color === 'success' && priceChange24h >= 0 ? theme.palette.success.main : 
-                         'inherit'
+                  color: stat.title === 'تغییر 24 ساعته' 
+                    ? (priceChange24h >= 0 ? theme.palette.success.main : theme.palette.error.main)
+                    : 'inherit'
                 }}
               >
                 {stat.value}
