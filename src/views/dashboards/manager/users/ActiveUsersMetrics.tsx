@@ -33,35 +33,35 @@ const ActiveUsersMetrics = ({
     color: 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success'
     format: (val: number) => string
   }> = [
-    {
-      title: 'تعداد زیرمجموعه',
-      value: totalSubordinates,
-      icon: 'mdi:account-network-outline',
-      color: 'primary',
-      format: (val: number) => val.toLocaleString('fa-IR')
-    },
-    {
-      title: 'مجموعه سرمایه',
-      value: totalCapital,
-      icon: 'mdi:wallet-outline',
-      color: 'success',
-      format: (val: number) => `${val.toLocaleString('fa-IR')} ریال`
-    },
-    {
-      title: 'سرمایه‌های زیرمجموعه',
-      value: totalSubordinatesCapital,
-      icon: 'mdi:account-group-outline',
-      color: 'info',
-      format: (val: number) => `${val.toLocaleString('fa-IR')} ریال`
-    },
-    {
-      title: 'مجموع سرمایه',
-      value: totalCombinedCapital,
-      icon: 'mdi:chart-line',
-      color: 'warning',
-      format: (val: number) => `${val.toLocaleString('fa-IR')} ریال`
-    }
-  ]
+      {
+        title: 'تعداد زیرمجموعه',
+        value: totalSubordinates,
+        icon: 'mdi:account-network-outline',
+        color: 'primary',
+        format: (val: number) => val.toLocaleString('fa-IR')
+      },
+      {
+        title: 'مجموعه سرمایه',
+        value: totalCapital,
+        icon: 'mdi:wallet-outline',
+        color: 'success',
+        format: (val: number) => `${val.toLocaleString('fa-IR')} ریال`
+      },
+      {
+        title: 'سرمایه‌های زیرمجموعه',
+        value: totalSubordinatesCapital,
+        icon: 'mdi:account-group-outline',
+        color: 'info',
+        format: (val: number) => `${val.toLocaleString('fa-IR')} ریال`
+      },
+      {
+        title: 'مجموع سرمایه',
+        value: totalCombinedCapital,
+        icon: 'mdi:chart-line',
+        color: 'warning',
+        format: (val: number) => `${val.toLocaleString('fa-IR')} ریال`
+      }
+    ]
 
   return (
     <Grid container spacing={4}>

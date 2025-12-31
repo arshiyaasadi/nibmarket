@@ -122,8 +122,9 @@ const FundCapitalChart = ({ funds }: FundCapitalChartProps) => {
       enabled: true,
       style: {
         fontSize: '13px',
-        fontFamily: theme.typography.fontFamily
-      },
+        fontFamily: theme.typography.fontFamily,
+        color: theme.palette.mode === 'dark' ? theme.palette.common.white : theme.palette.text.primary
+      } as any,
       y: {
         formatter: (val: number) => {
           const formatted = val.toLocaleString('fa-IR')
