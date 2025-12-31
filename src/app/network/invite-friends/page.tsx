@@ -10,11 +10,14 @@ import Link from 'next/link'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
+import Step from '@mui/material/Step'
 import Menu from '@mui/material/Menu'
 import Avatar from '@mui/material/Avatar'
 import Button from '@mui/material/Button'
 import Divider from '@mui/material/Divider'
+import Stepper from '@mui/material/Stepper'
 import MenuItem from '@mui/material/MenuItem'
+import StepLabel from '@mui/material/StepLabel'
 import Typography from '@mui/material/Typography'
 import Tooltip from '@mui/material/Tooltip'
 import IconButton from '@mui/material/IconButton'
@@ -36,8 +39,107 @@ import Icon from 'src/@core/components/icon'
 import useClipboard from 'src/@core/hooks/useClipboard'
 import { useSettings } from 'src/@core/hooks/useSettings'
 
+// ** Styled Components
+import StepperWrapper from 'src/@core/styles/mui/stepper'
+
 // ** Config Import
 import themeConfig from 'src/configs/themeConfig'
+
+// ** Type Definitions
+export interface FundData {
+  id: string
+  name: string
+  symbol: string
+  category: string
+  investors: number
+  capital: number
+  percentage: number
+}
+
+// ** Fund List Data
+const FUNDS: FundData[] = [
+  {
+    id: '1',
+    name: 'نهال سرمایه ایرانیان',
+    symbol: 'صنهال',
+    category: 'درآمد ثابت | ETF',
+    investors: 0,
+    capital: 0,
+    percentage: 0
+  },
+  {
+    id: '2',
+    name: 'فراز اندیش نوین',
+    symbol: '',
+    category: 'درآمد ثابت',
+    investors: 0,
+    capital: 0,
+    percentage: 0
+  },
+  {
+    id: '3',
+    name: 'ثابت یکم ایرانیان',
+    symbol: '',
+    category: 'درآمد ثابت',
+    investors: 0,
+    capital: 0,
+    percentage: 0
+  },
+  {
+    id: '4',
+    name: 'طلای گلدیس',
+    symbol: '',
+    category: 'طلا | ETF',
+    investors: 0,
+    capital: 0,
+    percentage: 0
+  },
+  {
+    id: '5',
+    name: 'میعاد ایرانیان',
+    symbol: '',
+    category: 'سهامی',
+    investors: 0,
+    capital: 0,
+    percentage: 0
+  },
+  {
+    id: '6',
+    name: 'سپهر اندیشه نوین',
+    symbol: 'صنوین',
+    category: 'مختلط | ETF',
+    investors: 0,
+    capital: 0,
+    percentage: 0
+  },
+  {
+    id: '7',
+    name: 'ارمغان ایرانیان',
+    symbol: 'ارمغان',
+    category: 'درآمد ثابت | ETF',
+    investors: 0,
+    capital: 0,
+    percentage: 0
+  },
+  {
+    id: '8',
+    name: 'نوین پیشرو',
+    symbol: '',
+    category: 'بازار گردانی اختصاصی',
+    investors: 0,
+    capital: 0,
+    percentage: 0
+  },
+  {
+    id: '9',
+    name: 'پالایشی یکم',
+    symbol: 'پالایش',
+    category: 'سهامی | ETF',
+    investors: 0,
+    capital: 0,
+    percentage: 0
+  }
+]
 
 // ** Mock data
 const invitedUsers = [
@@ -50,7 +152,21 @@ const invitedUsers = [
 const referralCode = 'INVITE2024'
 const MAX_INVITES_PER_MONTH = 15
 
-type InviteStep = 'form' | 'template' | 'preview' | 'success'
+// Wizard steps
+const steps = [
+  {
+    title: 'انتخاب صندوق',
+    subtitle: 'صندوق مورد نظر را انتخاب کنید'
+  },
+  {
+    title: 'اطلاعات دعوت',
+    subtitle: 'اطلاعات فرد را وارد کنید'
+  },
+  {
+    title: 'پیش‌نمایش و ارسال',
+    subtitle: 'بررسی و ارسال دعوت‌نامه'
+  }
+]
 
 // Helper functions for monthly invite limit tracking
 const getCurrentMonthKey = () => {
@@ -109,14 +225,15 @@ const WhatsAppBtn = styled(IconButton)<IconButtonProps>(({ theme }) => ({
 
 const InviteFriendsPageContent = () => {
   // ** States
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const [referralLink, setReferralLink] = useState('')
-  const [inviteStep, setInviteStep] = useState<InviteStep>('form')
+  const [activeStep, setActiveStep] = useState(0)
+  const [selectedFund, setSelectedFund] = useState<FundData | null>(null)
   const [inviteName, setInviteName] = useState('')
   const [inviteMobile, setInviteMobile] = useState('')
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
   const [isSendingInvite, setIsSendingInvite] = useState(false)
   const [remainingInvites, setRemainingInvites] = useState<number>(MAX_INVITES_PER_MONTH)
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [referralLink, setReferralLink] = useState('')
 
   // Initialize remaining invites from localStorage
   useEffect(() => {
@@ -145,14 +262,13 @@ const InviteFriendsPageContent = () => {
   const { settings } = useSettings()
   const clipboard = useClipboard({
     onSuccess: () => {
-      // You can replace this with a toast notification
-      alert('کد معرف با موفقیت کپی شد!')
+      toast.success('کد معرف با موفقیت کپی شد!')
     }
   })
 
   const linkClipboard = useClipboard({
     onSuccess: () => {
-      alert('لینک دعوت با موفقیت کپی شد!')
+      toast.success('لینک دعوت با موفقیت کپی شد!')
     }
   })
 
@@ -171,13 +287,16 @@ const InviteFriendsPageContent = () => {
     return window.location.origin
   }
 
-  // ** Set referral link on client side
+  // ** Set referral link on client side with fund ID
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && selectedFund) {
+      const baseUrl = getBaseUrl()
+      setReferralLink(`${baseUrl}/invite?code=${referralCode}&fund=${selectedFund.id}`)
+    } else if (typeof window !== 'undefined') {
       const baseUrl = getBaseUrl()
       setReferralLink(`${baseUrl}/invite?code=${referralCode}`)
     }
-  }, [])
+  }, [selectedFund])
 
   // ** Handlers
   const handleShareClick = (event: MouseEvent<HTMLButtonElement>) => {
@@ -199,7 +318,8 @@ const InviteFriendsPageContent = () => {
   }
 
   const handleShare = (platform: string) => {
-    const shareText = `کد معرف من: ${referralCode}\nبا استفاده از این کد معرف، به ${themeConfig.templateName} بپیوندید!`
+    const fundText = selectedFund ? ` برای صندوق ${selectedFund.name}` : ''
+    const shareText = `کد معرف من: ${referralCode}\nبا استفاده از این کد معرف${fundText}، به ${themeConfig.templateName} بپیوندید!`
     const shareUrl = referralLink || `${getBaseUrl()}/invite?code=${referralCode}`
 
     let url = ''
@@ -228,18 +348,44 @@ const InviteFriendsPageContent = () => {
 
   const open = Boolean(anchorEl)
 
-  const inviteTemplates: string[] = [
-    'سلام .......... . گفتم بهت بگم؛ با صندوق درآمد ثابت می‌تونی بدون دردسر نوسان بازار، سود ثابت بگیری. به نظرم گزینه خوبیه. از لینک زیر میتونی عضو بشی',
-    'سلام .......... . اگه پولت یه گوشه خوابه، صندوق‌های درآمد ثابت انتخاب امنیه. سودش منظمه و خیالت راحته، ارزش بررسی داره. از لینک زیر میتونی عضو بشی',
-    'سلام .......... . یه مدته صندوق گرفتم، سودش بد نیست و ریسکش کمه. از لینک زیر میتونی عضو بشی'
-  ]
+  // Generate invite templates with fund name
+  const getInviteTemplates = (): string[] => {
+    const fundName = selectedFund?.name || 'صندوق'
+    return [
+      `سلام .......... . گفتم بهت بگم؛ با صندوق ${fundName} می‌تونی بدون دردسر نوسان بازار، سود ثابت بگیری. به نظرم گزینه خوبیه. از لینک زیر میتونی عضو بشی`,
+      `سلام .......... . اگه پولت یه گوشه خوابه، صندوق ${fundName} انتخاب امنیه. سودش منظمه و خیالت راحته، ارزش بررسی داره. از لینک زیر میتونی عضو بشی`,
+      `سلام .......... . یه مدته صندوق ${fundName} گرفتم، سودش بد نیست و ریسکش کمه. از لینک زیر میتونی عضو بشی`
+    ]
+  }
 
-  const isFormValid = inviteName.trim().length > 0 && /^09\d{9}$/.test(inviteMobile.trim())
+  const inviteTemplates = getInviteTemplates()
+
+  const isStep1Valid = selectedFund !== null
+  const isStep2Valid = inviteName.trim().length > 0 || inviteMobile.trim().length === 11
+  const isStep3Valid = selectedTemplate !== null
+  
   const resolvedTemplateText =
     selectedTemplate?.replace('..........', inviteName.trim() || 'دوست عزیز') || ''
 
-  const handleResetInviteFlow = () => {
-    setInviteStep('form')
+  const handleNext = () => {
+    if (activeStep === 0 && !isStep1Valid) {
+      toast.error('لطفاً یک صندوق انتخاب کنید')
+      return
+    }
+    if (activeStep === 1 && !isStep2Valid) {
+      toast.error('لطفاً نام یا شماره موبایل را وارد کنید')
+      return
+    }
+    setActiveStep(prevActiveStep => prevActiveStep + 1)
+  }
+
+  const handleBack = () => {
+    setActiveStep(prevActiveStep => prevActiveStep - 1)
+  }
+
+  const handleReset = () => {
+    setActiveStep(0)
+    setSelectedFund(null)
     setInviteName('')
     setInviteMobile('')
     setSelectedTemplate(null)
@@ -265,7 +411,8 @@ const InviteFriendsPageContent = () => {
       // await axios.post('/api/network/invite', {
       //   mobile: inviteMobile,
       //   message: resolvedTemplateText,
-      //   referralLink
+      //   referralLink,
+      //   fundId: selectedFund?.id
       // })
       await new Promise(resolve => setTimeout(resolve, 800))
 
@@ -274,7 +421,7 @@ const InviteFriendsPageContent = () => {
       setRemainingInvites(newCount)
 
       toast.success('دعوت‌نامه با موفقیت ارسال شد')
-      setInviteStep('success')
+      setActiveStep(3) // Move to success step
     } catch (error) {
       toast.error('ارسال دعوت‌نامه با خطا مواجه شد، لطفاً دوباره تلاش کنید')
     } finally {
@@ -282,386 +429,425 @@ const InviteFriendsPageContent = () => {
     }
   }
 
+  // Render step content
+  const renderStepContent = (step: number) => {
+    switch (step) {
+      case 0:
+        // Step 1: Fund Selection
+        return (
+          <Box>
+            <Typography variant='body2' sx={{ mb: 3, color: 'text.secondary' }}>
+              صندوق مورد نظر خود را برای معرفی به دوستانتان انتخاب کنید:
+            </Typography>
+            <Box sx={{ maxHeight: '600px', overflowY: 'auto', pr: 1 }}>
+              <Grid container spacing={3}>
+              {FUNDS.map(fund => (
+                <Grid item xs={6} lg={4} key={fund.id}>
+                  <Card
+                    onClick={() => setSelectedFund(fund)}
+                    elevation={0}
+                    sx={theme => ({
+                      cursor: 'pointer',
+                      height: '110px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      transition: 'all 0.2s ease',
+                      border: selectedFund?.id === fund.id 
+                        ? `2px solid ${theme.palette.primary.main}` 
+                        : `1px solid ${theme.palette.divider}`,
+                      backgroundColor: selectedFund?.id === fund.id
+                        ? theme.palette.action.selected
+                        : theme.palette.background.paper,
+                      '&:hover': {
+                        borderColor: theme.palette.primary.light,
+                        backgroundColor: theme.palette.action.hover
+                      }
+                    })}
+                  >
+                    <CardContent sx={{ p: 2, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                        <Typography variant='subtitle2' sx={{ fontWeight: 600, fontSize: '0.8125rem', lineHeight: 1.3 }}>
+                          {fund.name}
+                        </Typography>
+                        {selectedFund?.id === fund.id && (
+                          <Icon icon='mdi:check-circle' fontSize={18} color='primary' />
+                        )}
+                      </Box>
+                      <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                        {fund.symbol && (
+                          <Typography variant='caption' sx={{ 
+                            color: 'primary.main', 
+                            fontWeight: 600,
+                            fontSize: '0.7rem'
+                          }}>
+                            {fund.symbol}
+                          </Typography>
+                        )}
+                        <Typography variant='caption' sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+                          {fund.category}
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
+              <Button
+                variant='contained'
+                onClick={handleNext}
+                disabled={!isStep1Valid}
+                endIcon={<Icon icon='mdi:arrow-left' />}
+              >
+                ادامه
+              </Button>
+            </Box>
+          </Box>
+        )
+
+      case 1:
+        // Step 2: Invitation Details
+        return (
+          <Box>
+            <Typography variant='body2' sx={{ mb: 3, color: 'text.secondary' }}>
+              اطلاعات فرد مورد نظر برای دعوت را وارد کنید:
+            </Typography>
+            <Grid container spacing={4}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label='نام و نام خانوادگی'
+                  value={inviteName}
+                  onChange={e => setInviteName(e.target.value)}
+                  placeholder='مثال: علی احمدی'
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label='شماره موبایل'
+                  value={inviteMobile}
+                  onChange={e => {
+                    const normalized = normalizeToEnglishDigits(e.target.value || '').replace(
+                      /[^0-9]/g,
+                      ''
+                    )
+                    setInviteMobile(normalized)
+                  }}
+                  placeholder='مثال: 09123456789'
+                  inputProps={{ maxLength: 11 }}
+                  helperText='شماره موبایل باید با 09 شروع شده و ۱۱ رقم باشد'
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Divider sx={{ 
+                  my: 3, 
+                  borderWidth: '2px',
+                  borderColor: theme => theme.palette.mode === 'light' ? 'rgba(0, 0, 0, 0.35)' : 'rgba(255, 255, 255, 0.35)'
+                }} />
+                <Typography variant='body2' sx={{ mb: 3, color: 'text.secondary', fontWeight: 500 }}>
+                  یا می‌توانید کد معرف و لینک دعوت خود را کپی کنید:
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Box>
+                    <InputLabel sx={{ mb: 1.5, fontSize: '0.875rem', color: 'text.secondary' }}>
+                      کد معرف
+                    </InputLabel>
+                    <OutlinedInput
+                      fullWidth
+                      readOnly
+                      value={referralCode}
+                      size='medium'
+                      sx={{
+                        '& .MuiOutlinedInput-input': {
+                          textAlign: 'center',
+                          fontWeight: 600,
+                          letterSpacing: '0.2em'
+                        }
+                      }}
+                      endAdornment={
+                        <InputAdornment position='end'>
+                          <Button size='small' onClick={handleCopyCode}>
+                            کپی کد
+                          </Button>
+                        </InputAdornment>
+                      }
+                    />
+                  </Box>
+                  <Box>
+                    <InputLabel sx={{ mb: 1.5, fontSize: '0.875rem', color: 'text.secondary' }}>
+                      لینک دعوت {selectedFund && `(برای صندوق ${selectedFund.name})`}
+                    </InputLabel>
+                    <OutlinedInput
+                      fullWidth
+                      readOnly
+                      value={referralLink}
+                      size='medium'
+                      sx={{
+                        '& .MuiOutlinedInput-input': {
+                          fontSize: '0.875rem'
+                        }
+                      }}
+                      endAdornment={
+                        <InputAdornment position='end'>
+                          <Button size='small' onClick={handleCopyLink}>
+                            کپی لینک
+                          </Button>
+                        </InputAdornment>
+                      }
+                    />
+                  </Box>
+                </Box>
+              </Grid>
+            </Grid>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+              <Button
+                variant='outlined'
+                onClick={handleBack}
+                startIcon={<Icon icon='mdi:arrow-right' />}
+              >
+                بازگشت
+              </Button>
+              <Button
+                variant='contained'
+                onClick={handleNext}
+                disabled={!isStep2Valid}
+                endIcon={<Icon icon='mdi:arrow-left' />}
+              >
+                ادامه
+              </Button>
+            </Box>
+          </Box>
+        )
+
+      case 2:
+        // Step 3: Template Selection & Preview
+        return (
+          <Box>
+            <Typography variant='body2' sx={{ mb: 3, color: 'text.secondary' }}>
+              یکی از قالب‌های پیشنهادی پیام را انتخاب کنید:
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 4 }}>
+              {inviteTemplates.map((template, index) => {
+                const displayTemplate = template.replace('..........', inviteName.trim() || '..........')
+                return (
+                  <Box
+                    key={index}
+                    onClick={() => setSelectedTemplate(template)}
+                    sx={theme => ({
+                      p: 2.5,
+                      borderRadius: 2,
+                      border:
+                        selectedTemplate === template
+                          ? `2px solid ${theme.palette.primary.main}`
+                          : `1px solid ${theme.palette.divider}`,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      backgroundColor:
+                        selectedTemplate === template
+                          ? theme.palette.action.hover
+                          : theme.palette.background.paper,
+                      '&:hover': {
+                        borderColor: theme.palette.primary.main
+                      }
+                    })}
+                  >
+                    <Typography variant='body2'>{displayTemplate}</Typography>
+                  </Box>
+                )
+              })}
+            </Box>
+
+            {selectedTemplate && (
+              <>
+                <Divider sx={{ my: 3 }} />
+                <Typography variant='body2' sx={{ mb: 2, color: 'text.secondary', fontWeight: 600 }}>
+                  پیش‌نمایش پیام دعوت:
+                </Typography>
+                <Box
+                  sx={theme => ({
+                    p: 3,
+                    borderRadius: 2,
+                    border: `1px dashed ${theme.palette.divider}`,
+                    backgroundColor: theme.palette.action.hover
+                  })}
+                >
+                  <Typography variant='body2' sx={{ mb: 1 }}>
+                    <strong>شماره گیرنده:</strong> {inviteMobile || 'وارد نشده'}
+                  </Typography>
+                  <Typography variant='body2' sx={{ mb: 1 }}>
+                    <strong>صندوق:</strong> {selectedFund?.name}
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant='body2' sx={{ whiteSpace: 'pre-line', mb: 2 }}>
+                    {resolvedTemplateText}
+                  </Typography>
+                  {referralLink && (
+                    <Typography
+                      variant='caption'
+                      sx={{ display: 'block', color: 'primary.main', wordBreak: 'break-all' }}
+                    >
+                      {referralLink}
+                    </Typography>
+                  )}
+                </Box>
+              </>
+            )}
+
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+              <Button
+                variant='outlined'
+                onClick={handleBack}
+                startIcon={<Icon icon='mdi:arrow-right' />}
+              >
+                بازگشت
+              </Button>
+              <Button
+                variant='contained'
+                onClick={handleSendInvite}
+                disabled={!isStep3Valid || isSendingInvite || remainingInvites <= 0 || !inviteMobile.trim()}
+                endIcon={<Icon icon='mdi:send' />}
+              >
+                {isSendingInvite ? 'در حال ارسال...' : remainingInvites <= 0 ? 'محدودیت ماهانه تمام شده' : 'ارسال دعوت‌نامه'}
+              </Button>
+            </Box>
+          </Box>
+        )
+
+      case 3:
+        // Step 4: Success
+        return (
+          <Box
+            sx={theme => ({
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              gap: 2.5,
+              p: 4,
+              borderRadius: 2,
+              border: `1px solid ${theme.palette.success.light}`,
+              backgroundColor: theme.palette.mode === 'light' 
+                ? 'rgba(114, 225, 40, 0.08)' 
+                : 'rgba(114, 225, 40, 0.16)'
+            })}
+          >
+            <Box
+              sx={theme => ({
+                width: 60,
+                height: 60,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: theme.palette.success.main,
+                color: theme.palette.common.white
+              })}
+            >
+              <Icon icon='mdi:check' fontSize={40} />
+            </Box>
+            <Box>
+              <Typography variant='h6' sx={{ fontWeight: 600, mb: 1 }}>
+                پیام با موفقیت ارسال شد
+              </Typography>
+              <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                دعوت‌نامه شما برای صندوق {selectedFund?.name} ارسال شد.
+              </Typography>
+              <Typography variant='body2' sx={{ color: 'text.secondary', mt: 1 }}>
+                می‌توانید یک دعوت جدید برای مخاطب دیگری ثبت کنید.
+              </Typography>
+            </Box>
+            <Button variant='contained' onClick={handleReset} startIcon={<Icon icon='mdi:plus' />}>
+              دعوت جدید
+            </Button>
+          </Box>
+        )
+
+      default:
+        return null
+    }
+  }
+
   return (
     <Box>
       <Grid container spacing={6}>
-        {/* Invite Message Flow + Referral Code & Link */}
-        <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {/* Invite message card (moved above referral code) */}
+        {/* Wizard Card */}
+        <Grid item xs={12}>
           <Card>
             <CardContent sx={{ p: 6 }}>
-              <Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-                  <Typography variant='h6' sx={{ fontWeight: 600 }}>
-                    ارسال پیام دعوت
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <Typography
-                      variant='body2'
-                      sx={{
-                        color: remainingInvites > 0 ? 'text.secondary' : 'error.main',
-                        fontWeight: 500,
-                        fontSize: '0.8125rem',
-                        letterSpacing: '0.01em'
-                      }}
-                    >
-                      {remainingInvites.toLocaleString('fa-IR')}/{MAX_INVITES_PER_MONTH.toLocaleString('fa-IR')}
-                    </Typography>
-                    <Tooltip
-                      title='در هر ماه ۱۵ پیام قابل ارسال است و با شروع ماه جدید، تعداد پیام‌های باقیمانده به ۱۵ بازمی‌گردد'
-                      arrow
-                      placement='top'
-                    >
-                      <IconButton
-                        size='small'
-                        sx={{
-                          p: 0,
-                          color: 'text.secondary',
-                          '&:hover': {
-                            color: 'primary.main'
-                          }
-                        }}
-                      >
-                        <Icon icon='mdi:alert-circle-outline' fontSize='0.875rem' />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                </Box>
-
-                {/* Step 1: Basic info form */}
-                {inviteStep === 'form' && (
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <TextField
-                      fullWidth
-                      label='نام و نام خانوادگی'
-                      value={inviteName}
-                      onChange={e => setInviteName(e.target.value)}
-                    />
-                    <TextField
-                      fullWidth
-                      label='شماره موبایل'
-                      value={inviteMobile}
-                      onChange={e => {
-                        const normalized = normalizeToEnglishDigits(e.target.value || '').replace(
-                          /[^0-9]/g,
-                          ''
-                        )
-                        setInviteMobile(normalized)
-                      }}
-                      placeholder='مثال: 09123456789'
-                      inputProps={{ maxLength: 11 }}
-                      helperText='شماره موبایل باید با 09 شروع شده و ۱۱ رقم باشد'
-                    />
-                    <Button
-                      variant='contained'
-                      fullWidth
-                      disabled={!isFormValid}
-                      onClick={() => setInviteStep('template')}
-                    >
-                      ادامه
-                    </Button>
-                  </Box>
-                )}
-
-                {/* Step 2: Choose template */}
-                {inviteStep === 'template' && (
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                      یکی از قالب‌های پیشنهادی پیام را انتخاب کنید:
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      {inviteTemplates.map(template => (
-                        <Box
-                          key={template}
-                          onClick={() => setSelectedTemplate(template)}
-                          sx={theme => ({
-                            p: 2.5,
-                            borderRadius: 2,
-                            border:
-                              selectedTemplate === template
-                                ? `2px solid ${theme.palette.primary.main}`
-                                : `1px solid ${theme.palette.divider}`,
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            backgroundColor:
-                              selectedTemplate === template
-                                ? theme.palette.action.hover
-                                : theme.palette.background.paper
-                          })}
-                        >
-                          <Typography variant='body2'>{template}</Typography>
-                        </Box>
-                      ))}
-                    </Box>
-                    <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-                      <Button
-                        variant='contained'
-                        fullWidth
-                        disabled={!selectedTemplate}
-                        onClick={() => setInviteStep('preview')}
-                      >
-                        ادامه
-                      </Button>
-                      <Button
-                        variant='outlined'
-                        fullWidth
-                        onClick={() => setInviteStep('form')}
-                      >
-                        بازگشت
-                      </Button>
-                    </Box>
-                  </Box>
-                )}
-
-                {/* Step 3: Preview */}
-                {inviteStep === 'preview' && (
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                      پیش‌نمایش پیام دعوت:
-                    </Typography>
-                    <Box
-                      sx={theme => ({
-                        p: 3,
-                        borderRadius: 2,
-                        border: `1px dashed ${theme.palette.divider}`,
-                        backgroundColor: theme.palette.action.hover
-                      })}
-                    >
-                      <Typography variant='body2' sx={{ mb: 1 }}>
-                        <strong>شماره گیرنده:</strong> {inviteMobile}
-                      </Typography>
-                      <Typography variant='body2' sx={{ whiteSpace: 'pre-line' }}>
-                        {resolvedTemplateText}
-                      </Typography>
-                      {referralLink && (
-                        <Typography
-                          variant='caption'
-                          sx={{ display: 'block', mt: 2, color: 'text.secondary' }}
-                        >
-                          لینک دعوت: {referralLink}
-                        </Typography>
-                      )}
-                    </Box>
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                      <Button
-                        variant='contained'
-                        fullWidth
-                        onClick={handleSendInvite}
-                        disabled={isSendingInvite || remainingInvites <= 0}
-                      >
-                        {isSendingInvite ? 'در حال ارسال...' : remainingInvites <= 0 ? 'محدودیت ماهانه تمام شده' : 'ارسال دعوت‌نامه'}
-                      </Button>
-                      <Button
-                        variant='outlined'
-                        fullWidth
-                        color='secondary'
-                        onClick={() => setInviteStep('template')}
-                      >
-                        بازگشت
-                      </Button>
-                    </Box>
-                  </Box>
-                )}
-
-                {/* Step 4: Success */}
-                {inviteStep === 'success' && (
-                  <Box
-                    sx={theme => ({
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      textAlign: 'center',
-                      gap: 2.5,
-                      p: 3,
-                      borderRadius: 2,
-                      border: `1px solid ${theme.palette.success.light}`,
-                      backgroundColor: theme.palette.success.light
-                    })}
-                  >
-                    <Icon icon='mdi:check-circle-outline' fontSize={40} />
-                    <Box>
-                      <Typography variant='subtitle1' sx={{ fontWeight: 600, mb: 1 }}>
-                        پیام با موفقیت ارسال شد
-                      </Typography>
-                      <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                        می‌توانید یک دعوت جدید برای مخاطب دیگری ثبت کنید.
-                      </Typography>
-                    </Box>
-                    <Button variant='contained' onClick={handleResetInviteFlow}>
-                      دعوت جدید
-                    </Button>
-                  </Box>
-                )}
-              </Box>
-            </CardContent>
-          </Card>
-
-          {/* Referral code + link card (below invite card) */}
-          <Card>
-            <CardContent sx={{ p: 6 }}>
-              <Typography variant='h6' sx={{ mb: 4, fontWeight: 600 }}>
-                کد معرف شما
-              </Typography>
-              <Box sx={{ mb: 4 }}>
-                <InputLabel
-                  htmlFor='referral-code'
-                  sx={{
-                    mb: 2,
-                    fontSize: '0.875rem',
-                    color: 'text.secondary'
-                  }}
-                >
-                  کد معرف خود را کپی کنید و برای دوستانتان ارسال کنید
-                </InputLabel>
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                  <OutlinedInput
-                    fullWidth
-                    readOnly
-                    id='referral-code'
-                    value={referralCode}
-                    size='medium'
-                    sx={{
-                      '& .MuiOutlinedInput-input': {
-                        textAlign: 'center',
-                        fontWeight: 600,
-                        letterSpacing: '0.2em',
-                        fontSize: '1.125rem'
-                      }
-                    }}
-                    endAdornment={
-                      <InputAdornment position='end'>
-                        <IconButton
-                          edge='end'
-                          onClick={handleCopyCode}
-                          aria-label='کپی کد معرف'
-                          sx={{ mr: -1 }}
-                        >
-                          <Icon icon='mdi:content-copy' fontSize={20} />
-                        </IconButton>
-                      </InputAdornment>
-                    }
-                  />
-                </Box>
-              </Box>
-
-              <Divider sx={{ my: 4 }} />
-
-              <Box>
-                <Typography
-                  component={Link}
-                  href={`/invite?code=${referralCode}`}
-                  variant='h6'
-                  sx={{
-                    mb: 2,
-                    fontWeight: 600,
-                    color: 'primary.main',
-                    textDecoration: 'none',
-                    cursor: 'pointer',
-                    display: 'inline-block',
-                    '&:hover': {
-                      textDecoration: 'underline'
-                    }
-                  }}
-                >
-                  مشاهده لینک دعوت
+              {/* Header with remaining invites */}
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
+                <Typography variant='h6' sx={{ fontWeight: 600 }}>
+                  دعوت از دوستان
                 </Typography>
-                <InputLabel
-                  htmlFor='referral-link'
-                  sx={{
-                    mb: 2,
-                    fontSize: '0.875rem',
-                    color: 'text.secondary'
-                  }}
-                >
-                  لینک دعوت خود را به اشتراک بگذارید
-                </InputLabel>
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: { xs: 'wrap', sm: 'nowrap' } }}>
-                  <OutlinedInput
-                    fullWidth
-                    readOnly
-                    id='referral-link'
-                    value={referralLink}
-                    size='medium'
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography
+                    variant='body2'
                     sx={{
-                      '& .MuiOutlinedInput-input': {
-                        fontSize: '0.875rem'
-                      }
+                      color: remainingInvites > 0 ? 'text.secondary' : 'error.main',
+                      fontWeight: 500,
+                      fontSize: '0.8125rem',
+                      letterSpacing: '0.01em'
                     }}
-                    endAdornment={
-                      <InputAdornment position='end'>
-                        <Button size='small' onClick={handleCopyLink} sx={{ mr: -1 }}>
-                          کپی لینک
-                        </Button>
-                      </InputAdornment>
-                    }
-                  />
+                  >
+                    {remainingInvites.toLocaleString('fa-IR')}/{MAX_INVITES_PER_MONTH.toLocaleString('fa-IR')}
+                  </Typography>
+                  <Tooltip
+                    title='در هر ماه ۱۵ پیام قابل ارسال است و با شروع ماه جدید، تعداد پیام‌های باقیمانده به ۱۵ بازمی‌گردد'
+                    arrow
+                    placement='top'
+                  >
+                    <IconButton
+                      size='small'
+                      sx={{
+                        p: 0,
+                        color: 'text.secondary',
+                        '&:hover': {
+                          color: 'primary.main'
+                        }
+                      }}
+                    >
+                      <Icon icon='mdi:alert-circle-outline' fontSize='0.875rem' />
+                    </IconButton>
+                  </Tooltip>
                 </Box>
               </Box>
 
-              <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 1 }}>
-                <WhatsAppBtn onClick={() => handleShare('whatsapp')} aria-label='اشتراک در واتساپ'>
-                  <Icon icon='mdi:whatsapp' fontSize={20} />
-                </WhatsAppBtn>
-                <TelegramBtn onClick={() => handleShare('telegram')} aria-label='اشتراک در تلگرام'>
-                  <Icon icon='mdi:telegram' fontSize={20} />
-                </TelegramBtn>
-                <TwitterBtn onClick={() => handleShare('twitter')} aria-label='اشتراک در توییتر'>
-                  <Icon icon='mdi:twitter' fontSize={20} />
-                </TwitterBtn>
-                <FacebookBtn onClick={() => handleShare('facebook')} aria-label='اشتراک در فیسبوک'>
-                  <Icon icon='mdi:facebook' fontSize={20} />
-                </FacebookBtn>
-                <IconButton
-                  onClick={handleShareClick}
-                  sx={{
-                    border: theme => `1px solid ${theme.palette.divider}`,
-                    '&:hover': {
-                      backgroundColor: theme => `rgba(${theme.palette.customColors.main}, 0.04)`
-                    }
-                  }}
-                  aria-label='اشتراک بیشتر'
-                >
-                  <Icon icon='mdi:share-variant' fontSize={20} />
-                </IconButton>
-              </Box>
+              {/* Stepper */}
+              <StepperWrapper>
+                <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+                  {steps.map((step, index) => {
+                    return (
+                      <Step key={index}>
+                        <StepLabel>
+                          <div>
+                            <Typography variant='subtitle2' sx={{ fontWeight: 600 }}>
+                              {step.title}
+                            </Typography>
+                            <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                              {step.subtitle}
+                            </Typography>
+                          </div>
+                        </StepLabel>
+                      </Step>
+                    )
+                  })}
+                </Stepper>
+              </StepperWrapper>
 
-              <Menu
-                anchorEl={anchorEl}
-                open={open}
-                onClose={handleShareClose}
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: settings.direction === 'rtl' ? 'left' : 'right'
-                }}
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: settings.direction === 'rtl' ? 'left' : 'right'
-                }}
-              >
-                <MenuItem onClick={() => handleShare('whatsapp')} sx={{ '& svg': { mr: 2 } }}>
-                  <Icon icon='mdi:whatsapp' fontSize={20} />
-                  واتساپ
-                </MenuItem>
-                <MenuItem onClick={() => handleShare('telegram')} sx={{ '& svg': { mr: 2 } }}>
-                  <Icon icon='mdi:telegram' fontSize={20} />
-                  تلگرام
-                </MenuItem>
-                <MenuItem onClick={() => handleShare('twitter')} sx={{ '& svg': { mr: 2 } }}>
-                  <Icon icon='mdi:twitter' fontSize={20} />
-                  توییتر
-                </MenuItem>
-                <MenuItem onClick={() => handleShare('facebook')} sx={{ '& svg': { mr: 2 } }}>
-                  <Icon icon='mdi:facebook' fontSize={20} />
-                  فیسبوک
-                </MenuItem>
-              </Menu>
+              {/* Step Content */}
+              <Box sx={{ mt: 4 }}>
+                {renderStepContent(activeStep)}
+              </Box>
             </CardContent>
           </Card>
         </Grid>
 
         {/* Recent Invited Friends */}
-        <Grid item xs={12} md={6}>
-      <Card>
+        <Grid item xs={12}>
+          <Card>
             <CardContent sx={{ p: 6 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
                 <Typography variant='h6' sx={{ fontWeight: 600 }}>
@@ -685,45 +871,64 @@ const InviteFriendsPageContent = () => {
                 </Typography>
               </Box>
 
-              <Grid container spacing={3}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 {invitedUsers.map(user => (
-                  <Grid item xs={12} sm={6} key={user.id}>
-                    <Box
+                  <Box
+                    key={user.id}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      p: 3,
+                      border: theme => `1px solid ${theme.palette.divider}`,
+                      borderRadius: 2
+                    }}
+                  >
+                    <Avatar
                       sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        p: 3,
-                        border: theme => `1px solid ${theme.palette.divider}`,
-                        borderRadius: 1
+                        width: 48,
+                        height: 48,
+                        mr: 2,
+                        backgroundColor: 'primary.main',
+                        color: 'primary.contrastText',
+                        fontSize: '1.5rem'
                       }}
                     >
-                      <Avatar
-                        sx={{
-                          width: 48,
-                          height: 48,
-                          mr: 2,
-                          backgroundColor: 'primary.main',
-                          color: 'primary.contrastText',
-                          fontSize: '1.5rem'
-                        }}
-                      >
-                        <Icon icon='mdi:account' fontSize='1.5rem' />
-                      </Avatar>
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography variant='body2' sx={{ fontWeight: 600, mb: 0.5 }}>
-                          {user.name}
-                        </Typography>
-                        <Typography variant='caption' sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center' }}>
-                          <Icon icon='mdi:clock-outline' fontSize={14} style={{ marginRight: 4 }} />
-                          {user.date}
-                        </Typography>
-                      </Box>
+                      <Icon icon='mdi:account' fontSize='1.5rem' />
+                    </Avatar>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography variant='body2' sx={{ fontWeight: 600, mb: 0.5 }}>
+                        {user.name}
+                      </Typography>
+                      <Typography variant='caption' sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center' }}>
+                        <Icon icon='mdi:clock-outline' fontSize={14} style={{ marginLeft: 4 }} />
+                        {user.date}
+                      </Typography>
                     </Box>
-                  </Grid>
+                  </Box>
                 ))}
-              </Grid>
-        </CardContent>
-      </Card>
+              </Box>
+
+              {/* Share buttons */}
+              <Divider sx={{ my: 4 }} />
+              <Typography variant='body2' sx={{ mb: 3, color: 'text.secondary', textAlign: 'center' }}>
+                اشتراک‌گذاری در شبکه‌های اجتماعی
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 1 }}>
+                <WhatsAppBtn onClick={() => handleShare('whatsapp')} aria-label='اشتراک در واتساپ'>
+                  <Icon icon='mdi:whatsapp' fontSize={20} />
+                </WhatsAppBtn>
+                <TelegramBtn onClick={() => handleShare('telegram')} aria-label='اشتراک در تلگرام'>
+                  <Icon icon='mdi:telegram' fontSize={20} />
+                </TelegramBtn>
+                <TwitterBtn onClick={() => handleShare('twitter')} aria-label='اشتراک در توییتر'>
+                  <Icon icon='mdi:twitter' fontSize={20} />
+                </TwitterBtn>
+                <FacebookBtn onClick={() => handleShare('facebook')} aria-label='اشتراک در فیسبوک'>
+                  <Icon icon='mdi:facebook' fontSize={20} />
+                </FacebookBtn>
+              </Box>
+            </CardContent>
+          </Card>
         </Grid>
       </Grid>
     </Box>
@@ -739,4 +944,3 @@ const InviteFriendsPage = () => {
 }
 
 export default InviteFriendsPage
-
