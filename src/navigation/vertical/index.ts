@@ -127,8 +127,14 @@ const navigation = (): VerticalNavItemsType => {
           subject: 'manager-dashboard'
         },
         {
-          title: 'استخر و بورد',
+          title: 'تحلیل استخر و بورد',
           path: '/manager/pool-analytics',
+          action: 'read',
+          subject: 'manager-dashboard'
+        },
+        {
+          title: 'استخر و بورد',
+          path: '/manager/pool-board',
           action: 'read',
           subject: 'manager-dashboard'
         }
