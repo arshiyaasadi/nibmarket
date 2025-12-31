@@ -5,6 +5,7 @@ import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
+import { useTheme } from '@mui/material/styles'
 
 // ** Custom Components Imports
 import CustomAvatar from 'src/@core/components/mui/avatar'
@@ -17,9 +18,11 @@ interface DailyChangeWidgetProps {
 }
 
 const DailyChangeWidget = ({ changePercentage }: DailyChangeWidgetProps) => {
+  const theme = useTheme()
   const isPositive = changePercentage >= 0
   const color = isPositive ? 'success' : 'error'
   const icon = isPositive ? 'mdi:trending-up' : 'mdi:trending-down'
+  const colorValue = isPositive ? theme.palette.success.main : theme.palette.error.main
 
   return (
     <Card>
@@ -34,12 +37,12 @@ const DailyChangeWidget = ({ changePercentage }: DailyChangeWidgetProps) => {
                 variant='h4' 
                 sx={{ 
                   fontWeight: 600,
-                  color: `${color}.main`
+                  color: colorValue
                 }}
               >
                 {isPositive ? '+' : ''}{changePercentage.toFixed(1)}%
               </Typography>
-              <Icon icon={icon} fontSize={24} sx={{ color: `${color}.main` }} />
+              <Icon icon={icon} fontSize={24} style={{ color: colorValue }} />
             </Box>
           </Box>
           <CustomAvatar skin='light' variant='rounded' color={color} sx={{ width: 56, height: 56 }}>

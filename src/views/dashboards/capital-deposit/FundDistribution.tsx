@@ -83,8 +83,7 @@ const FundDistribution = ({ funds, totalInvestors }: FundDistributionProps) => {
       enabled: true,
       style: {
         fontSize: '13px',
-        fontFamily: theme.typography.fontFamily,
-        color: theme.palette.mode === 'dark' ? theme.palette.common.white : theme.palette.text.primary
+        fontFamily: theme.typography.fontFamily
       },
       y: {
         formatter: (val: number) => {

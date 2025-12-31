@@ -138,7 +138,10 @@ const FundCapitalChart = ({ funds }: FundCapitalChartProps) => {
         show: true
       },
       x: {
-        formatter: (val: string) => val
+        formatter: (val: number) => {
+          const category = categories[val]
+          return category || String(val)
+        }
       },
       fixed: {
         enabled: false

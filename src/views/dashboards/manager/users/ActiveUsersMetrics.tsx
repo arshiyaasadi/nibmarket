@@ -26,7 +26,13 @@ const ActiveUsersMetrics = ({
 }: ActiveUsersMetricsProps) => {
   const totalCombinedCapital = totalCapital + totalSubordinatesCapital
 
-  const metrics = [
+  const metrics: Array<{
+    title: string
+    value: number
+    icon: string
+    color: 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success'
+    format: (val: number) => string
+  }> = [
     {
       title: 'تعداد زیرمجموعه',
       value: totalSubordinates,

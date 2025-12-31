@@ -44,7 +44,12 @@ const TwinTokenStatistics = ({
 
   const circulatingPercentage = totalTokens > 0 ? (circulatingTokens / totalTokens) * 100 : 0
 
-  const statistics = [
+  const statistics: Array<{
+    title: string
+    value: string
+    icon: string
+    color: 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success'
+  }> = [
     {
       title: 'موجودی استخر',
       value: formatCurrency(poolBalance),

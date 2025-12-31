@@ -33,7 +33,12 @@ const FundStatistics = ({
     return `${formattedNumber} ریال`
   }
 
-  const statistics = [
+  const statistics: Array<{
+    title: string
+    value: string
+    icon: string
+    color: 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success'
+  }> = [
     {
       title: 'تعداد سرمایه‌گذاران',
       value: totalInvestors.toLocaleString('fa-IR'),
