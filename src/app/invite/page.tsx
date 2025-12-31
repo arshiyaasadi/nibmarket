@@ -45,11 +45,13 @@ const InvitePageContent = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const code = searchParams.get('code')
+  const fundId = searchParams.get('fund')
 
   // ** States
   const [referrerInfo, setReferrerInfo] = useState<ReferrerInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [recommendedFund, setRecommendedFund] = useState<{name: string, category: string} | null>(null)
 
   // ** Fetch referrer info
   useEffect(() => {
@@ -69,6 +71,25 @@ const InvitePageContent = () => {
           // Store code in localStorage for registration/login
           storeReferralCode(code)
           setError(null)
+          
+          // Get fund info if fundId exists
+          if (fundId) {
+            const funds = [
+              { id: '1', name: 'نهال سرمایه ایرانیان', category: 'درآمد ثابت | ETF' },
+              { id: '2', name: 'فراز اندیش نوین', category: 'درآمد ثابت' },
+              { id: '3', name: 'ثابت یکم ایرانیان', category: 'درآمد ثابت' },
+              { id: '4', name: 'طلای گلدیس', category: 'طلا | ETF' },
+              { id: '5', name: 'میعاد ایرانیان', category: 'سهامی' },
+              { id: '6', name: 'سپهر اندیشه نوین', category: 'مختلط | ETF' },
+              { id: '7', name: 'ارمغان ایرانیان', category: 'درآمد ثابت | ETF' },
+              { id: '8', name: 'نوین پیشرو', category: 'بازار گردانی اختصاصی' },
+              { id: '9', name: 'پالایشی یکم', category: 'سهامی | ETF' }
+            ]
+            const fund = funds.find(f => f.id === fundId)
+            if (fund) {
+              setRecommendedFund({ name: fund.name, category: fund.category })
+            }
+          }
         } else {
           setError('کد دعوت نامعتبر است')
           setReferrerInfo(null)
@@ -82,7 +103,7 @@ const InvitePageContent = () => {
     }
 
     fetchReferrerInfo()
-  }, [code])
+  }, [code, fundId])
 
   // ** Get initials for avatar fallback
   const getInitials = (name: string): string => {
@@ -202,6 +223,37 @@ const InvitePageContent = () => {
                 </Typography>
               </Box>
             </Box>
+
+            {/* Recommended Fund */}
+            {recommendedFund && (
+              <Box
+                sx={{
+                  mb: 6,
+                  p: 3,
+                  borderRadius: 2,
+                  border: theme => `2px solid ${theme.palette.primary.main}`,
+                  backgroundColor: theme => theme.palette.mode === 'light' 
+                    ? 'rgba(102, 108, 255, 0.08)' 
+                    : 'rgba(102, 108, 255, 0.16)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1.5
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Icon icon='mdi:star' fontSize='1.5rem' style={{ color: 'var(--mui-palette-primary-main)' }} />
+                  <Typography variant='subtitle2' sx={{ fontWeight: 600, color: 'primary.main' }}>
+                    صندوق پیشنهادی
+                  </Typography>
+                </Box>
+                <Typography variant='h6' sx={{ fontWeight: 600 }}>
+                  {recommendedFund.name}
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                  {recommendedFund.category}
+                </Typography>
+              </Box>
+            )}
 
             {/* Benefits */}
             <Box sx={{ mb: 6 }}>
