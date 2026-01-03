@@ -155,12 +155,12 @@ const MAX_INVITES_PER_MONTH = 15
 // Wizard steps
 const steps = [
   {
-    title: 'انتخاب صندوق',
-    subtitle: 'صندوق مورد نظر را انتخاب کنید'
-  },
-  {
     title: 'اطلاعات دعوت',
     subtitle: 'اطلاعات فرد را وارد کنید'
+  },
+  {
+    title: 'انتخاب صندوق',
+    subtitle: 'صندوق مورد نظر را انتخاب کنید'
   },
   {
     title: 'پیش‌نمایش و ارسال',
@@ -360,22 +360,20 @@ const InviteFriendsPageContent = () => {
 
   const inviteTemplates = getInviteTemplates()
 
-  const isStep1Valid = selectedFund !== null
-  const isStep2Valid = inviteName.trim().length > 0 || inviteMobile.trim().length === 11
+  const isStep1Valid = inviteName.trim().length > 0 || inviteMobile.trim().length === 11
+  const isStep2Valid = selectedFund !== null
   const isStep3Valid = selectedTemplate !== null
   
   const resolvedTemplateText =
     selectedTemplate?.replace('..........', inviteName.trim() || 'دوست عزیز') || ''
 
   const handleNext = () => {
+    // Step 0: Information validation
     if (activeStep === 0 && !isStep1Valid) {
-      toast.error('لطفاً یک صندوق انتخاب کنید')
-      return
-    }
-    if (activeStep === 1 && !isStep2Valid) {
       toast.error('لطفاً نام یا شماره موبایل را وارد کنید')
       return
     }
+    // Step 1: Allow proceeding even without fund selection
     setActiveStep(prevActiveStep => prevActiveStep + 1)
   }
 
@@ -433,81 +431,7 @@ const InviteFriendsPageContent = () => {
   const renderStepContent = (step: number) => {
     switch (step) {
       case 0:
-        // Step 1: Fund Selection
-        return (
-          <Box>
-            <Typography variant='body2' sx={{ mb: 3, color: 'text.secondary' }}>
-              صندوق مورد نظر خود را برای معرفی به دوستانتان انتخاب کنید:
-            </Typography>
-            <Box sx={{ maxHeight: '600px', overflowY: 'auto', pr: 1 }}>
-              <Grid container spacing={3}>
-              {FUNDS.map(fund => (
-                <Grid item xs={6} lg={4} key={fund.id}>
-                  <Card
-                    onClick={() => setSelectedFund(fund)}
-                    elevation={0}
-                    sx={theme => ({
-                      cursor: 'pointer',
-                      height: '110px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      transition: 'all 0.2s ease',
-                      border: selectedFund?.id === fund.id 
-                        ? `2px solid ${theme.palette.primary.main}` 
-                        : `1px solid ${theme.palette.divider}`,
-                      backgroundColor: selectedFund?.id === fund.id
-                        ? theme.palette.action.selected
-                        : theme.palette.background.paper,
-                      '&:hover': {
-                        borderColor: theme.palette.primary.light,
-                        backgroundColor: theme.palette.action.hover
-                      }
-                    })}
-                  >
-                    <CardContent sx={{ p: 2, flex: 1, display: 'flex', flexDirection: 'column' }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                        <Typography variant='subtitle2' sx={{ fontWeight: 600, fontSize: '0.8125rem', lineHeight: 1.3 }}>
-                          {fund.name}
-                        </Typography>
-                        {selectedFund?.id === fund.id && (
-                          <Icon icon='mdi:check-circle' fontSize={18} color='primary' />
-                        )}
-                      </Box>
-                      <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                        {fund.symbol && (
-                          <Typography variant='caption' sx={{ 
-                            color: 'primary.main', 
-                            fontWeight: 600,
-                            fontSize: '0.7rem'
-                          }}>
-                            {fund.symbol}
-                          </Typography>
-                        )}
-                        <Typography variant='caption' sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
-                          {fund.category}
-                        </Typography>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
-              <Button
-                variant='contained'
-                onClick={handleNext}
-                disabled={!isStep1Valid}
-                endIcon={<Icon icon='mdi:arrow-left' />}
-              >
-                ادامه
-              </Button>
-            </Box>
-          </Box>
-        )
-
-      case 1:
-        // Step 2: Invitation Details
+        // Step 1: Invitation Details
         return (
           <Box>
             <Typography variant='body2' sx={{ mb: 3, color: 'text.secondary' }}>
@@ -613,7 +537,87 @@ const InviteFriendsPageContent = () => {
               <Button
                 variant='contained'
                 onClick={handleNext}
-                disabled={!isStep2Valid}
+                disabled={!isStep1Valid}
+                endIcon={<Icon icon='mdi:arrow-left' />}
+              >
+                ادامه
+              </Button>
+            </Box>
+          </Box>
+        )
+
+      case 1:
+        // Step 2: Fund Selection
+        return (
+          <Box>
+            <Typography variant='body2' sx={{ mb: 3, color: 'text.secondary' }}>
+              صندوق مورد نظر خود را برای معرفی به دوستانتان انتخاب کنید:
+            </Typography>
+            <Box sx={{ maxHeight: '600px', overflowY: 'auto', pr: 1 }}>
+              <Grid container spacing={3}>
+              {FUNDS.map(fund => (
+                <Grid item xs={6} lg={4} key={fund.id}>
+                  <Card
+                    onClick={() => setSelectedFund(fund)}
+                    elevation={0}
+                    sx={theme => ({
+                      cursor: 'pointer',
+                      height: '110px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      transition: 'all 0.2s ease',
+                      border: selectedFund?.id === fund.id 
+                        ? `2px solid ${theme.palette.primary.main}` 
+                        : `1px solid ${theme.palette.divider}`,
+                      backgroundColor: selectedFund?.id === fund.id
+                        ? theme.palette.action.selected
+                        : theme.palette.background.paper,
+                      '&:hover': {
+                        borderColor: theme.palette.primary.light,
+                        backgroundColor: theme.palette.action.hover
+                      }
+                    })}
+                  >
+                    <CardContent sx={{ p: 2, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                        <Typography variant='subtitle2' sx={{ fontWeight: 600, fontSize: '0.8125rem', lineHeight: 1.3 }}>
+                          {fund.name}
+                        </Typography>
+                        {selectedFund?.id === fund.id && (
+                          <Icon icon='mdi:check-circle' fontSize={18} color='primary' />
+                        )}
+                      </Box>
+                      <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                        {fund.symbol && (
+                          <Typography variant='caption' sx={{ 
+                            color: 'primary.main', 
+                            fontWeight: 600,
+                            fontSize: '0.7rem'
+                          }}>
+                            {fund.symbol}
+                          </Typography>
+                        )}
+                        <Typography variant='caption' sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+                          {fund.category}
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+              <Button
+                variant='outlined'
+                onClick={handleBack}
+                startIcon={<Icon icon='mdi:arrow-right' />}
+              >
+                بازگشت
+              </Button>
+              <Button
+                variant='contained'
+                onClick={handleNext}
                 endIcon={<Icon icon='mdi:arrow-left' />}
               >
                 ادامه
@@ -678,7 +682,7 @@ const InviteFriendsPageContent = () => {
                     <strong>شماره گیرنده:</strong> {inviteMobile || 'وارد نشده'}
                   </Typography>
                   <Typography variant='body2' sx={{ mb: 1 }}>
-                    <strong>صندوق:</strong> {selectedFund?.name}
+                    <strong>صندوق:</strong> {selectedFund?.name || 'انتخاب نشده'}
                   </Typography>
                   <Divider sx={{ my: 2 }} />
                   <Typography variant='body2' sx={{ whiteSpace: 'pre-line', mb: 2 }}>
@@ -753,7 +757,9 @@ const InviteFriendsPageContent = () => {
                 پیام با موفقیت ارسال شد
               </Typography>
               <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                دعوت‌نامه شما برای صندوق {selectedFund?.name} ارسال شد.
+                {selectedFund 
+                  ? `دعوت‌نامه شما برای صندوق ${selectedFund.name} ارسال شد.`
+                  : 'دعوت‌نامه شما با موفقیت ارسال شد.'}
               </Typography>
               <Typography variant='body2' sx={{ color: 'text.secondary', mt: 1 }}>
                 می‌توانید یک دعوت جدید برای مخاطب دیگری ثبت کنید.
