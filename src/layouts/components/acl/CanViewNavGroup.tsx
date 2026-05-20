@@ -4,6 +4,15 @@ import { ReactNode, useContext } from 'react'
 // ** Component Imports
 import { AbilityContext } from 'src/layouts/components/acl/Can'
 
+// ** Config
+import { normalizeUserRole } from 'src/configs/acl'
+
+// ** Hooks
+import { useAuth } from 'src/hooks/useAuth'
+
+// ** Utils
+import { isManagerNavPath } from 'src/navigation/vertical/navAccess'
+
 // ** Types
 import { NavGroup, NavLink } from 'src/@core/layouts/types'
 
@@ -16,8 +25,25 @@ const CanViewNavGroup = (props: Props) => {
   // ** Props
   const { children, navGroup } = props
 
-  // ** Hook
+  // ** Hooks
   const ability = useContext(AbilityContext)
+  const { user } = useAuth()
+  const appRole = normalizeUserRole(user?.role)
+
+  const groupHasManagerPath = (item: NavGroup | NavLink): boolean => {
+    if ('path' in item && isManagerNavPath(item.path)) {
+      return true
+    }
+    if ('children' in item && item.children) {
+      return item.children.some(child => groupHasManagerPath(child))
+    }
+
+    return false
+  }
+
+  if (appRole === 'client' && navGroup && groupHasManagerPath(navGroup)) {
+    return null
+  }
 
   // If auth is explicitly false, show the group
   if (navGroup && navGroup.auth === false) {

@@ -16,8 +16,9 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import Layout from 'src/@core/layouts/Layout'
 
 // ** Navigation Imports
+import { normalizeUserRole, buildAbilityFor } from 'src/configs/acl'
 import { getVerticalNavItems } from 'src/navigation/vertical'
-import { filterVerticalNavByAbility } from 'src/navigation/vertical/filterByAbility'
+import { filterNavItemsByAppRole } from 'src/navigation/vertical/navAccess'
 
 // ** Component Import
 // Uncomment the below line (according to the layout type) when using server-side menu
@@ -34,7 +35,6 @@ import { useAuth } from 'src/hooks/useAuth'
 import Icon from 'src/@core/components/icon'
 
 // ** ACL Imports
-import { buildAbilityFor } from 'src/configs/acl'
 import { AbilityContext } from './components/acl/Can'
 
 interface Props {
@@ -47,21 +47,23 @@ const UserLayout = ({ children, contentHeightFixed }: Props) => {
   const { settings, saveSettings } = useSettings()
   const auth = useAuth()
 
-  const userRole = auth.user?.role
+  const appRole = normalizeUserRole(auth.user?.role)
 
   const ability = useMemo(() => {
     if (auth.user) {
-      return buildAbilityFor(auth.user.role)
+      return buildAbilityFor(appRole)
     }
 
     return undefined
-  }, [userRole])
+  }, [appRole, auth.user])
 
   const verticalNavItems = useMemo(() => {
-    const items = getVerticalNavItems(auth.user?.role)
+    if (!auth.user) {
+      return []
+    }
 
-    return ability ? filterVerticalNavByAbility(items, ability) : items
-  }, [userRole, ability])
+    return filterNavItemsByAppRole(getVerticalNavItems(appRole), appRole)
+  }, [appRole, auth.user])
 
   // ** Vars for server side navigation
   // const { menuItems: verticalMenuItems } = ServerSideVerticalNavItems()

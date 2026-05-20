@@ -1,6 +1,6 @@
 // ** Type import
 import { VerticalNavItemsType } from 'src/@core/layouts/types'
-import { normalizeUserRole } from 'src/configs/acl'
+import { normalizeUserRole, type AppRole } from 'src/configs/acl'
 
 /** منوی کاربر عادی (کلاینت) */
 export const clientNavItems: VerticalNavItemsType = [
@@ -182,12 +182,14 @@ export const managerNavItems: VerticalNavItemsType = [
 ]
 
 export function getVerticalNavItems(role: string | number | undefined | null): VerticalNavItemsType {
-  const normalized = normalizeUserRole(role)
+  return getVerticalNavItemsForRole(normalizeUserRole(role))
+}
 
-  if (normalized === 'admin') {
+export function getVerticalNavItemsForRole(appRole: AppRole): VerticalNavItemsType {
+  if (appRole === 'admin') {
     return [...clientNavItems, ...managerNavItems]
   }
-  if (normalized === 'manager') {
+  if (appRole === 'manager') {
     return managerNavItems
   }
 
