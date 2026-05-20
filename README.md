@@ -59,7 +59,7 @@ Current behavior: the app shows a success toast and redirects to the normal logi
 
 UI page (calls the backend from the Next.js server):
 
-- **[`/health/`](http://localhost:3000/health/)** — probes `GET https://api.club.nibdev.com/health` and shows whether the response is HTTP **200** with `{ "status": "healthy" }`.
+- **[`/health/`](http://localhost:3000/health/)** — probes `GET https://api-club.nibdev.com/health` and shows whether the response is HTTP **200** with `{ "status": "healthy" }`.
 
 API (same probe, JSON only):
 
