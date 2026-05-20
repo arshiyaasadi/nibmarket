@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-const DEFAULT_HEALTH_URL = 'https://club.nibdev.com/health'
+const DEFAULT_HEALTH_URL = 'https://api.club.nibdev.com/health'
 
 export type BackendHealthBody = {
   status?: string

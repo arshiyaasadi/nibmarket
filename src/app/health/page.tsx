@@ -10,7 +10,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
 import BlankLayout from 'src/@core/layouts/BlankLayout'
 
-const BACKEND_HEALTH_URL = 'https://club.nibdev.com/health'
+const BACKEND_HEALTH_URL = 'https://api.club.nibdev.com/health'
 const PROBE_API = '/api/health/backend/'
 
 type HealthProbeResult = {
