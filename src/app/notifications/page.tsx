@@ -162,7 +162,7 @@ const NotificationsPageContent = () => {
         </Box>
       </Box>
 
-      {/* اخبار و اطلاعیه‌ها */}
+      {/* News and announcements */}
       <Card>
         <CardContent sx={{ p: theme => `${theme.spacing(5)} !important` }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap' }}>
@@ -311,7 +311,7 @@ const NotificationsPageContent = () => {
         </CardContent>
       </Card>
 
-      {/* ورود به سیستم */}
+      {/* Login activity */}
       <Card>
         <CardContent sx={{ p: theme => `${theme.spacing(5)} !important` }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, gap: 2 }}>

@@ -6,6 +6,7 @@ const path = require('path')
 // Remove this if you're not using Fullcalendar features
 
 module.exports = {
+  output: 'standalone',
   trailingSlash: true,
   reactStrictMode: false,
   // Both app/ and pages/ directories can coexist in Next.js 15

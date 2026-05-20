@@ -61,7 +61,7 @@ const AuthProvider = ({ children }: Props) => {
             setUser(null)
             setLoading(false)
             if (authConfig.onTokenExpiration === 'logout' && !pathname.includes('login')) {
-              router.replace('/login')
+              router.replace('/')
             }
           })
       } else {
@@ -99,7 +99,7 @@ const AuthProvider = ({ children }: Props) => {
     setUser(null)
     window.localStorage.removeItem('userData')
     window.localStorage.removeItem(authConfig.storageTokenKeyName)
-    router.push('/login')
+    router.push('/')
   }
 
   const values = {

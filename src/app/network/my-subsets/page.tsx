@@ -85,7 +85,7 @@ const CustomSearchToolbar = (props: CustomSearchToolbarProps) => {
   const isRtl = settings.direction === 'rtl'
 
   const handleSearchClick = () => {
-    // جستجو با کلیک روی دکمه انجام می‌شود از طریق onChange
+    // Search on button click by reusing the same onChange handler
     if (props.value && props.onChange) {
       const event = {
         target: { value: props.value }
@@ -178,7 +178,7 @@ const renderClient = (params: GridRenderCellParams) => {
   }
 }
 
-// ** Table Columns - ترتیب برعکس شده برای RTL
+// ** Table columns (order tuned for RTL layout)
 const columns: GridColDef[] = [
   {
     flex: 0.15,

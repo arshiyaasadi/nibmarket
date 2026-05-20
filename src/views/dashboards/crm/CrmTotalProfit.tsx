@@ -40,7 +40,7 @@ const TwinBadge = styled(Box)(() => ({
 const CrmTotalProfit = () => {
   // ** States
   const [withdrawalModalOpen, setWithdrawalModalOpen] = useState<boolean>(false)
-  const availableBalance = 38000 // موجودی قابل برداشت
+  const availableBalance = 38000 // Withdrawable balance (mock)
 
   return (
     <Card

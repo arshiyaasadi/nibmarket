@@ -56,16 +56,16 @@ const FillBackground = styled(Box)(({ theme }) => ({
   left: 0,
   right: 0,
   bottom: 0,
-  height: '55%', // تقریبا ۵۰٪ پر شدن استخر
+  height: '55%', // ~50% pool fill level
   background: 'unset',
   backdropFilter: 'blur(2px)',
   pointerEvents: 'none',
   zIndex: 0,
   overflow: 'hidden',
-  // انیمیشن پر شدن در لحظه لود
+  // Fill animation on load
   transform: 'translateY(100%)',
   animation: 'fillRise 1.8s ease-out forwards',
-  // استایل موج‌های SVG
+  // SVG wave styles
   '.pool-wave': {
     position: 'absolute',
     left: '-50%',
@@ -77,12 +77,12 @@ const FillBackground = styled(Box)(({ theme }) => ({
   '.pool-wave path': {
     fill: `${theme.palette.primary.main}55`
   },
-  // موج عقب
+  // Back wave
   '.pool-wave--back': {
     opacity: 0.45,
     animation: 'waveMoveBack 11s ease-in-out infinite'
   },
-  // موج جلو
+  // Front wave
   '.pool-wave--front': {
     opacity: 0.75,
     animation: 'waveMoveFront 7s ease-in-out infinite'
@@ -162,9 +162,9 @@ const DecorativeCircle = styled(Box)(({ theme }) => ({
 }))
 
 const PoolBalance = () => {
-  const poolBalance = 1500000 // موجودی کل استخر
-  const participantsCount = 1234 // تعداد شرکت‌کنندگان
-  const monthlyChangePercent = 12.5 // درصد تغییر این ماه
+  const poolBalance = 1500000 // Total pool balance (mock)
+  const participantsCount = 1234 // Participant count (mock)
+  const monthlyChangePercent = 12.5 // Month-over-month change % (mock)
 
   return (
     <StyledCard>

@@ -1,0 +1,17 @@
+# Production: Next.js standalone build, run node server.js
+# Run: docker compose -f docker-compose.prod.yml up --build -d
+# URL: http://localhost:3000
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+      args:
+        NODE_BASE_IMAGE: ${NODE_BASE_IMAGE:-node:22-bookworm-slim}
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    restart: unless-stopped

@@ -45,7 +45,7 @@ export interface PerformanceMetrics {
 }
 
 export interface ComparisonData {
-  period: string // e.g., "فروردین", "Q1", "1403"
+  period: string // e.g. "March", "Q1", "2024"
   poolBalance: number
   participants: number
   change: number // Percentage change from previous period

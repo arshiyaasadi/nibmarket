@@ -38,9 +38,9 @@ export interface ActiveUser {
   subordinates: number
   capital: number
   subordinatesCapital: number
-  lastInviteDate: string | null // تاریخ آخرین دعوت
-  lastCapitalIncreaseDate: string | null // تاریخ آخرین افزایش سرمایه
-  activeSubordinates: number // تعداد زیرمجموعه فعال
+  lastInviteDate: string | null // Last invite date
+  lastCapitalIncreaseDate: string | null // Last capital increase date
+  activeSubordinates: number // Active subordinate count
 }
 
 interface ActiveUsersTableProps {
@@ -105,7 +105,7 @@ const ActiveUsersTable = ({ users }: ActiveUsersTableProps) => {
     return num.toLocaleString('fa-IR')
   }
 
-  // ** Format relative time (e.g., "2 روز پیش")
+  // ** Format relative time (e.g. "2 days ago")
   const formatRelativeTime = (dateString: string | null): string => {
     if (!dateString) return 'ندارد'
     const date = new Date(dateString)
