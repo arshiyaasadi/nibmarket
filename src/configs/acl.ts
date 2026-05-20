@@ -65,4 +65,9 @@ export const defaultACLObj: ACLObj = {
   subject: 'all'
 }
 
+/** Pages Router: optional per-page requirement (separate from role-based rules in buildAbilityFor). */
+export function canAccessPage(ability: AppAbility, pageAcl: ACLObj): boolean {
+  return ability.can(pageAcl.action, pageAcl.subject)
+}
+
 export default buildAbilityFor

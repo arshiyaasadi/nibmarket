@@ -13,7 +13,7 @@ import type { ACLObj, AppAbility } from 'src/configs/acl'
 import { AbilityContext } from 'src/layouts/components/acl/Can'
 
 // ** Config Import
-import { buildAbilityFor } from 'src/configs/acl'
+import { buildAbilityFor, canAccessPage } from 'src/configs/acl'
 
 // ** Component Import
 import NotAuthorized from 'src/template-pages/401'
@@ -30,14 +30,17 @@ interface AclGuardProps {
   children: ReactNode
   authGuard?: boolean
   guestGuard?: boolean
-  aclAbilities: ACLObj
+  /**
+   * Optional per-page CASL rule (Pages Router `Component.acl`).
+   * Role rules come from buildAbilityFor(auth.user.role) only.
+   * When omitted, any authenticated user may view the page.
+   */
+  pageAcl?: ACLObj
 }
 
 const AclGuard = (props: AclGuardProps) => {
-  // ** Props
-  const { aclAbilities, children, guestGuard = false, authGuard = true } = props
+  const { pageAcl, children, guestGuard = false, authGuard = true } = props
 
-  // ** Hooks
   const auth = useAuth()
   const router = useRouter()
 
@@ -50,41 +53,39 @@ const AclGuard = (props: AclGuardProps) => {
     }
   }, [auth.user, guestGuard, router])
 
-  // If guest guard or no guard is true or any error page
+  const wrapWithAbility = (content: ReactNode) =>
+    ability ? <AbilityContext.Provider value={ability}>{content}</AbilityContext.Provider> : content
+
   if (guestGuard || router.route === '/404' || router.route === '/500' || !authGuard) {
-    // If user is logged in and his ability is built, provide ability context
     if (auth.user && ability) {
-      return <AbilityContext.Provider value={ability}>{children}</AbilityContext.Provider>
-    } else {
-      // If user is not logged in (render pages like login, register etc..)
-      return <>{children}</>
+      return wrapWithAbility(children)
     }
+
+    return <>{children}</>
   }
 
-  // For authenticated users, always provide ability context for navigation
   if (auth.user && ability) {
-    // Check page-level access
-    if (ability.can(aclAbilities.action, aclAbilities.subject)) {
-      if (router.route === '/') {
-        return <Spinner />
-      }
-      return <AbilityContext.Provider value={ability}>{children}</AbilityContext.Provider>
-    } else {
-      // Render Not Authorized component if the current user has limited access to this page
+    const allowed = pageAcl ? canAccessPage(ability, pageAcl) : true
+
+    if (!allowed) {
       return (
         <BlankLayout>
           <NotAuthorized />
         </BlankLayout>
       )
     }
+
+    if (router.route === '/') {
+      return <Spinner />
+    }
+
+    return wrapWithAbility(children)
   }
 
-  // If no user and not guest, show spinner
   if (auth.loading) {
     return <Spinner />
   }
 
-  // Render children without ability context (for unauthenticated pages)
   return <>{children}</>
 }
 

@@ -26,7 +26,7 @@ import type { EmotionCache } from '@emotion/cache'
 
 // ** Config Imports
 import 'src/configs/i18n'
-import { defaultACLObj } from 'src/configs/acl'
+import type { ACLObj } from 'src/configs/acl'
 import themeConfig from 'src/configs/themeConfig'
 
 // ** Fake-DB Import
@@ -69,9 +69,17 @@ import 'src/iconify-bundle/icons-bundle-react'
 // ** Global css styles
 import '../../styles/globals.css'
 
+type PageWithAcl = NextPage & {
+  acl?: ACLObj
+  contentHeightFixed?: boolean
+  authGuard?: boolean
+  guestGuard?: boolean
+  setConfig?: () => void
+}
+
 // ** Extend App Props with Emotion
 type ExtendedAppProps = AppProps & {
-  Component: NextPage
+  Component: PageWithAcl
   emotionCache: EmotionCache
 }
 
@@ -121,7 +129,7 @@ const App = (props: ExtendedAppProps) => {
 
   const guestGuard = Component.guestGuard ?? false
 
-  const aclAbilities = Component.acl ?? defaultACLObj
+  const pageAcl = Component.acl
 
   return (
     <Provider store={store}>
@@ -143,7 +151,7 @@ const App = (props: ExtendedAppProps) => {
                 return (
                   <ThemeComponent settings={settings}>
                     <Guard authGuard={authGuard} guestGuard={guestGuard}>
-                      <AclGuard aclAbilities={aclAbilities} guestGuard={guestGuard} authGuard={authGuard}>
+                      <AclGuard pageAcl={pageAcl} guestGuard={guestGuard} authGuard={authGuard}>
                         {getLayout(<Component {...pageProps} />)}
                       </AclGuard>
                     </Guard>
