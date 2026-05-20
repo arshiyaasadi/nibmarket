@@ -1,0 +1,123 @@
+// ** MUI Imports
+import Box from '@mui/material/Box'
+import IconButton from '@mui/material/IconButton'
+
+// ** Type Import
+import { Settings } from 'src/@core/context/settingsContext'
+
+// ** Components
+import UserDropdown from 'src/@core/layouts/components/shared-components/UserDropdown'
+import NotificationDropdown, {
+  NotificationsType
+} from 'src/@core/layouts/components/shared-components/NotificationDropdown'
+
+// ** Hook Import
+import { useAuth } from 'src/hooks/useAuth'
+
+// ** Icon Import
+import Icon from 'src/@core/components/icon'
+
+interface Props {
+  settings: Settings
+  hidden?: boolean
+  navVisible?: boolean
+  toggleNavVisibility?: () => void
+}
+
+const notifications: NotificationsType[] = [
+  {
+    meta: 'امروز',
+    avatarAlt: 'Flora',
+    title: 'تبریک فلورا! 🎉',
+    avatarImg: '/images/avatars/4.png',
+    subtitle: 'برنده نشان بهترین فروشنده ماه شد'
+  },
+  {
+    meta: 'دیروز',
+    avatarColor: 'primary',
+    subtitle: '۵ ساعت پیش',
+    avatarText: 'رابرت آستین',
+    title: 'کاربر جدید ثبت نام کرد.'
+  },
+  {
+    meta: '۱۱ مرداد',
+    avatarAlt: 'message',
+    title: 'پیام جدید دریافت شد 👋🏻',
+    avatarImg: '/images/avatars/5.png',
+    subtitle: 'شما ۱۰ پیام خوانده نشده دارید'
+  },
+  {
+    meta: '۲۵ اردیبهشت',
+    title: 'پی‌پال',
+    avatarAlt: 'paypal',
+    subtitle: 'پرداخت دریافت شد',
+    avatarImg: '/images/misc/paypal.png'
+  },
+  {
+    meta: '۱۹ اسفند',
+    avatarAlt: 'order',
+    title: 'سفارش دریافت شد 📦',
+    avatarImg: '/images/avatars/3.png',
+    subtitle: 'سفارش جدید از جان دریافت شد'
+  },
+  {
+    meta: '۲۷ آذر',
+    avatarAlt: 'chart',
+    subtitle: '۲۵ ساعت پیش',
+    avatarImg: '/images/misc/chart.png',
+    title: 'گزارش مالی تولید شد'
+  }
+]
+
+
+const AppBarContent = (props: Props) => {
+  // ** Props
+  const { settings, hidden, navVisible, toggleNavVisibility } = props
+
+  // ** Hook
+  const auth = useAuth()
+
+  return (
+    <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      {/* Hamburger Menu Button - Only visible on mobile */}
+      {hidden && toggleNavVisibility && (
+        <IconButton
+          onClick={toggleNavVisibility}
+          aria-label={navVisible ? 'close navigation menu' : 'open navigation menu'}
+          sx={{
+            mr: 2,
+            color: 'text.primary',
+            display: 'flex',
+            transition: 'transform 0.2s ease-in-out',
+            '&:hover': {
+              backgroundColor: 'action.hover'
+            }
+          }}
+        >
+          <Icon 
+            icon={navVisible ? 'mdi:close' : 'mdi:menu'} 
+            fontSize={24} 
+          />
+        </IconButton>
+      )}
+      
+      <Box 
+        className='actions-right' 
+        sx={{ 
+          display: 'flex', 
+          alignItems: 'center',
+          ml: 'auto'
+        }}
+      >
+        {auth.user && (
+          <>
+            <NotificationDropdown settings={settings} notifications={notifications} />
+            <UserDropdown settings={settings} />
+          </>
+        )}
+      </Box>
+    </Box>
+  )
+}
+
+export default AppBarContent
