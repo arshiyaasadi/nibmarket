@@ -1,7 +1,7 @@
 'use client'
 
 // ** React Imports
-import { Suspense, useMemo, useState } from 'react'
+import { Suspense, useState } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -17,6 +17,12 @@ import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
+
+// ** Components
+import DashboardWidgetState from 'src/components/dashboard/DashboardWidgetState'
+
+// ** Hooks
+import { useReportsSubsets } from 'src/hooks/reports/useReportsSubsets'
 
 // ** Types
 interface SubsetReport {
@@ -56,67 +62,11 @@ const SubsetsReportsPageContent = () => {
     { value: '12', label: 'اسفند' }
   ]
 
-  // ** Sample data - replace with your actual data source
-  const subsetReports: SubsetReport[] = useMemo(
-    () => [
-      {
-        id: '1',
-        rowNumber: 1,
-        fullName: 'علی احمدی',
-        joinDate: '۱۴۰۳/۰۱/۱۵',
-        level: 5,
-        lastMonthAvgInvestment: 5000000,
-        lastMonthReward: 250000,
-        currentMonthAvgInvestment: 6000000,
-        totalReward: 1200000
-      },
-      {
-        id: '2',
-        rowNumber: 2,
-        fullName: 'سارا محمدی',
-        joinDate: '۱۴۰۳/۰۲/۱۰',
-        level: 7,
-        lastMonthAvgInvestment: 8000000,
-        lastMonthReward: 400000,
-        currentMonthAvgInvestment: 9000000,
-        totalReward: 2000000
-      },
-      {
-        id: '3',
-        rowNumber: 3,
-        fullName: 'رضا کریمی',
-        joinDate: '۱۴۰۳/۰۳/۰۵',
-        level: 4,
-        lastMonthAvgInvestment: 3000000,
-        lastMonthReward: 150000,
-        currentMonthAvgInvestment: 3500000,
-        totalReward: 800000
-      },
-      {
-        id: '4',
-        rowNumber: 4,
-        fullName: 'زهرا رضایی',
-        joinDate: '۱۴۰۳/۰۴/۱۲',
-        level: 6,
-        lastMonthAvgInvestment: 7000000,
-        lastMonthReward: 350000,
-        currentMonthAvgInvestment: 7500000,
-        totalReward: 1500000
-      },
-      {
-        id: '5',
-        rowNumber: 5,
-        fullName: 'محمد حسینی',
-        joinDate: '۱۴۰۳/۰۵/۲۰',
-        level: 3,
-        lastMonthAvgInvestment: 2000000,
-        lastMonthReward: 100000,
-        currentMonthAvgInvestment: 2500000,
-        totalReward: 500000
-      }
-    ],
-    []
+  const { data, loading, retrying, error, hasData, usedFallback, refetch } = useReportsSubsets(
+    selectedYear,
+    selectedMonth
   )
+  const subsetReports = data.rows
 
   // ** Handle filter changes
   const handleYearChange = (event: SelectChangeEvent) => {
@@ -128,8 +78,7 @@ const SubsetsReportsPageContent = () => {
   }
 
   const handleSearch = () => {
-    // Filter logic here - replace with your actual filtering logic
-    console.log('Searching for:', { year: selectedYear, month: selectedMonth })
+    refetch()
   }
 
   // ** Format number with Persian locale
@@ -267,7 +216,16 @@ const SubsetsReportsPageContent = () => {
         گزارش زیر مجموعه ها
       </Typography>
       <Card>
-        <CardContent sx={{ p: theme => `${theme.spacing(5)} !important` }}>
+        <DashboardWidgetState
+          loading={loading}
+          retrying={retrying}
+          error={error}
+          usedFallback={usedFallback}
+          onRetry={refetch}
+          skeletonHeight={500}
+          widgetTitle='گزارش زیرمجموعه‌ها'
+        >
+          <CardContent sx={{ p: theme => `${theme.spacing(5)} !important` }}>
           {/* Filter Section */}
           <Box
             sx={{
@@ -331,7 +289,7 @@ const SubsetsReportsPageContent = () => {
           </Box>
 
           {/* Table Section */}
-          <Box sx={{ height: 500, width: '100%' }}>
+          <Box sx={{ height: 500, width: '100%', opacity: hasData ? 1 : 0.5 }}>
             <DataGrid
               rows={subsetReports}
               columns={columns}
@@ -355,7 +313,8 @@ const SubsetsReportsPageContent = () => {
               }}
             />
           </Box>
-        </CardContent>
+          </CardContent>
+        </DashboardWidgetState>
       </Card>
     </Box>
   )

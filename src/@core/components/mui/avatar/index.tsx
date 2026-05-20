@@ -12,29 +12,31 @@ import { ThemeColor } from 'src/@core/layouts/types'
 // ** Hooks Imports
 import useBgColor, { UseBgColorType } from 'src/@core/hooks/useBgColor'
 
-const Avatar = forwardRef((props: CustomAvatarProps, ref: Ref<any>) => {
-  // ** Props
-  const { sx, src, skin = 'filled', color = 'primary' } = props
+// ** Utils
+import { safeThemeColor } from 'src/@core/utils/safe-theme-color'
+import { sanitizeSxColors } from 'src/@core/utils/sanitize-sx'
 
-  // ** Hook
+const Avatar = forwardRef((props: CustomAvatarProps, ref: Ref<any>) => {
+  const { sx, src, skin = 'filled', color: colorProp = 'primary', variant, children, ...rest } = props
+
+  const color: ThemeColor = safeThemeColor(colorProp)
+  const safeSx = sanitizeSxColors(sx)
+
   const theme = useTheme()
   const bgColors: UseBgColorType = useBgColor()
 
-  const getAvatarStyles = (skin: 'filled' | 'light' | 'light-static' | undefined, skinColor: ThemeColor) => {
-    let avatarStyles
-
-    if (skin === 'light') {
-      avatarStyles = { ...bgColors[`${skinColor}Light`] }
-    } else if (skin === 'light-static') {
-      avatarStyles = {
+  const getAvatarStyles = (avatarSkin: 'filled' | 'light' | 'light-static' | undefined, skinColor: ThemeColor) => {
+    if (avatarSkin === 'light') {
+      return { ...bgColors[`${skinColor}Light`] }
+    }
+    if (avatarSkin === 'light-static') {
+      return {
         color: bgColors[`${skinColor}Light`].color,
         backgroundColor: lighten(theme.palette[skinColor].main, 0.88)
       }
-    } else {
-      avatarStyles = { ...bgColors[`${skinColor}Filled`] }
     }
 
-    return avatarStyles
+    return { ...bgColors[`${skinColor}Filled`] }
   }
 
   const colors: UseBgColorType = {
@@ -46,7 +48,14 @@ const Avatar = forwardRef((props: CustomAvatarProps, ref: Ref<any>) => {
     info: getAvatarStyles(skin, 'info')
   }
 
-  return <MuiAvatar ref={ref} {...props} sx={!src && skin && color ? Object.assign(colors[color], sx) : sx} />
+  const skinStyles = !src && skin ? colors[color] : {}
+  const avatarSx = sanitizeSxColors(Object.assign({}, skinStyles, safeSx))
+
+  return (
+    <MuiAvatar ref={ref} variant={variant} src={src} {...rest} sx={avatarSx}>
+      {children}
+    </MuiAvatar>
+  )
 })
 
 export default Avatar

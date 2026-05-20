@@ -1,34 +1,25 @@
 import i18n from 'i18next'
-import Backend from 'i18next-http-backend'
 import { initReactI18next } from 'react-i18next'
-import LanguageDetector from 'i18next-browser-languagedetector'
 
-i18n
+import faTranslations from '../../public/locales/fa.json'
 
-  // Enables the i18next backend
-  .use(Backend)
-
-  // Enable automatic language detection
-  .use(LanguageDetector)
-
-  // Enables the hook initialization module
-  .use(initReactI18next)
-  .init({
-    lng: 'fa',
-    backend: {
-      /* translation file path */
-      loadPath: '/locales/{{lng}}.json'
-    },
-    fallbackLng: 'fa',
-    debug: false,
-    keySeparator: false,
-    react: {
-      useSuspense: false
-    },
-    interpolation: {
-      escapeValue: false,
-      formatSeparator: ','
+i18n.use(initReactI18next).init({
+  lng: 'fa',
+  fallbackLng: 'fa',
+  resources: {
+    fa: {
+      translation: faTranslations
     }
-  })
+  },
+  debug: false,
+  keySeparator: false,
+  react: {
+    useSuspense: false
+  },
+  interpolation: {
+    escapeValue: false,
+    formatSeparator: ','
+  }
+})
 
 export default i18n

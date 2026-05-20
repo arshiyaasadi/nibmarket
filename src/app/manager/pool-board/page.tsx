@@ -15,6 +15,15 @@ import MySubsetsLeaderboard from 'src/views/dashboards/pool-board/MySubsetsLeade
 import LastMonthLeaderboard from 'src/views/dashboards/pool-board/LastMonthLeaderboard'
 import HonorsShowcase from 'src/views/dashboards/pool-board/HonorsShowcase'
 
+// ** Mocks (manager pool-board — outside reports plan API slugs; static presentation)
+import {
+  mockLeaderboardCurrentMonth,
+  mockLeaderboardHonors,
+  mockLeaderboardLastMonth,
+  mockLeaderboardMySubsets,
+  mockLeaderboardPoolBalance
+} from 'src/mocks/leaderboard'
+
 const PoolBoardPageContent = () => {
   return (
     <Box>
@@ -22,25 +31,20 @@ const PoolBoardPageContent = () => {
         استخر و بورد
       </Typography>
       <Grid container spacing={6} className='match-height'>
-        {/* Row 1: Pool Balance and Current Month Leaderboard */}
         <Grid item xs={12} md={6}>
-          <PoolBalance />
+          <PoolBalance data={mockLeaderboardPoolBalance} />
         </Grid>
         <Grid item xs={12} md={6}>
-          <CurrentMonthLeaderboard />
-        </Grid>
-
-        {/* Row 2: My Subsets Leaderboard and Last Month Leaderboard */}
-        <Grid item xs={12} md={6}>
-          <MySubsetsLeaderboard />
+          <CurrentMonthLeaderboard entries={mockLeaderboardCurrentMonth.entries} />
         </Grid>
         <Grid item xs={12} md={6}>
-          <LastMonthLeaderboard />
+          <MySubsetsLeaderboard entries={mockLeaderboardMySubsets.entries} />
         </Grid>
-
-        {/* Row 3: Honors Showcase - Full Width */}
+        <Grid item xs={12} md={6}>
+          <LastMonthLeaderboard entries={mockLeaderboardLastMonth.entries} />
+        </Grid>
         <Grid item xs={12}>
-          <HonorsShowcase />
+          <HonorsShowcase honors={mockLeaderboardHonors.honors} />
         </Grid>
       </Grid>
     </Box>

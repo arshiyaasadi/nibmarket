@@ -18,6 +18,12 @@ import TextField from '@mui/material/TextField'
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import Chip from '@mui/material/Chip'
 
+// ** Components
+import DashboardWidgetState from 'src/components/dashboard/DashboardWidgetState'
+
+// ** Hooks
+import { useReportsWallet } from 'src/hooks/reports/useReportsWallet'
+import { shouldUseApiForEndpoint } from 'src/configs/data-source'
 
 // ** Types
 interface WalletTransaction {
@@ -33,42 +39,12 @@ const WalletReportsPageContent = () => {
   const [endDate, setEndDate] = useState<string>('')
   const [transactionType, setTransactionType] = useState<string>('all')
 
-  // ** Sample data - replace with your actual data source
-  const allTransactions: WalletTransaction[] = useMemo(
-    () => [
-      {
-        id: '1',
-        date: '۱۴۰۴/۱۲/۰۶',
-        type: 'واریز',
-        description: 'واریز ۱۰ توکن بابت ورود به سامانه'
-      },
-      {
-        id: '2',
-        date: '۱۴۰۴/۱۲/۰۵',
-        type: 'برداشت',
-        description: 'برداشت ۵ توکن برای خرید پکیج'
-      },
-      {
-        id: '3',
-        date: '۱۴۰۴/۱۲/۰۴',
-        type: 'واریز',
-        description: 'واریز ۲۰ توکن بابت دعوت دوستان'
-      },
-      {
-        id: '4',
-        date: '۱۴۰۴/۱۲/۰۳',
-        type: 'واریز',
-        description: 'واریز ۱۵ توکن بابت تکمیل ماموریت'
-      },
-      {
-        id: '5',
-        date: '۱۴۰۴/۱۲/۰۲',
-        type: 'برداشت',
-        description: 'برداشت ۸ توکن برای ارتقای حساب'
-      }
-    ],
-    []
+  const { data, loading, retrying, error, hasData, usedFallback, refetch } = useReportsWallet(
+    startDate,
+    endDate,
+    transactionType
   )
+  const allTransactions = data.rows
 
   // ** Helper function to format date input automatically
   const formatDateInput = (value: string): string => {
@@ -109,42 +85,18 @@ const WalletReportsPageContent = () => {
     }
   }
 
-  // ** Filter transactions based on filters
   const transactions = useMemo(() => {
-    let filtered = [...allTransactions]
+    if (shouldUseApiForEndpoint('reports-wallet')) {
+      return allTransactions
+    }
 
-    // Filter by transaction type
+    let filtered = [...allTransactions]
     if (transactionType !== 'all') {
       filtered = filtered.filter(t => t.type === transactionType)
     }
 
-    // Filter by date range
-    if (startDate || endDate) {
-      const startDateObj = startDate ? dateStringToDate(startDate) : null
-      const endDateObj = endDate ? dateStringToDate(endDate) : null
-      
-      filtered = filtered.filter(t => {
-        // Convert Persian date to comparable format
-        // For now, we'll do a simple string comparison
-        // In production, convert Persian dates properly
-        const transactionDateStr = t.date
-        
-        if (startDateObj) {
-          // Simple comparison - in production, convert Persian date properly
-          // For now, we'll skip date filtering if dates are in Persian format
-          // You should implement proper Persian to Gregorian conversion
-        }
-        
-        if (endDateObj) {
-          // Simple comparison - in production, convert Persian date properly
-        }
-
-        return true
-      })
-    }
-
     return filtered
-  }, [allTransactions, startDate, endDate, transactionType])
+  }, [allTransactions, transactionType])
 
   // ** Handlers
   const handleTransactionTypeChange = (event: SelectChangeEvent) => {
@@ -314,12 +266,20 @@ const WalletReportsPageContent = () => {
         </CardContent>
       </Card>
 
-      {/* Transactions Table */}
       <Card>
-        <CardContent sx={{ p: theme => `${theme.spacing(5)} !important` }}>
-          <Box sx={{ height: 500, width: '100%' }}>
-            <DataGrid
-              rows={transactions}
+        <DashboardWidgetState
+          loading={loading}
+          retrying={retrying}
+          error={error}
+          usedFallback={usedFallback}
+          onRetry={refetch}
+          skeletonHeight={500}
+          widgetTitle='گزارش کیف پول'
+        >
+          <CardContent sx={{ p: theme => `${theme.spacing(5)} !important` }}>
+            <Box sx={{ height: 500, width: '100%', opacity: hasData ? 1 : 0.5 }}>
+              <DataGrid
+                rows={transactions}
               columns={columns}
               disableRowSelectionOnClick
               hideFooter
@@ -340,7 +300,8 @@ const WalletReportsPageContent = () => {
               }}
             />
           </Box>
-        </CardContent>
+          </CardContent>
+        </DashboardWidgetState>
       </Card>
     </Box>
   )

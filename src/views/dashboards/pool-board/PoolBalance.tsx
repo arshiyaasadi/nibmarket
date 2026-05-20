@@ -7,6 +7,8 @@ import CardContent from '@mui/material/CardContent'
 import CardHeader from '@mui/material/CardHeader'
 import { styled } from '@mui/material/styles'
 
+import type { PoolBalanceResponse } from 'src/types/api/leaderboard'
+
 // ** Styled Component for Enhanced Card
 const StyledCard = styled(Card)(({ theme }) => ({
   height: '100%',
@@ -161,10 +163,12 @@ const DecorativeCircle = styled(Box)(({ theme }) => ({
   zIndex: 0
 }))
 
-const PoolBalance = () => {
-  const poolBalance = 1500000 // Total pool balance (mock)
-  const participantsCount = 1234 // Participant count (mock)
-  const monthlyChangePercent = 12.5 // Month-over-month change % (mock)
+type PoolBalanceProps = {
+  data: PoolBalanceResponse
+}
+
+const PoolBalance = ({ data }: PoolBalanceProps) => {
+  const { poolBalance, participantsCount, monthlyChangePercent } = data
 
   return (
     <StyledCard>

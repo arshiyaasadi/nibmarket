@@ -32,38 +32,13 @@ const HonorCard = styled(Box)(({ theme }) => ({
   }
 }))
 
-// Mock honors data
-const honors = [
-  {
-    id: 1,
-    title: 'قهرمان ماه',
-    icon: 'mdi:trophy',
-    color: '#FFD700',
-    description: 'بهترین عملکرد در ماه جاری',
-    count: 3,
-    totalPoints: 15000
-  },
-  {
-    id: 2,
-    title: 'ستاره طلایی',
-    icon: 'mdi:star',
-    color: '#FFA500',
-    description: 'دستاورد برتر',
-    count: 5,
-    totalPoints: 25000
-  },
-  {
-    id: 3,
-    title: 'مدال نقره',
-    icon: 'mdi:medal',
-    color: '#C0C0C0',
-    description: 'رتبه دوم',
-    count: 2,
-    totalPoints: 8000
-  }
-]
+import type { HonorItem } from 'src/types/api/leaderboard'
 
-const HonorsShowcase = () => {
+type HonorsShowcaseProps = {
+  honors: HonorItem[]
+}
+
+const HonorsShowcase = ({ honors }: HonorsShowcaseProps) => {
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardHeader

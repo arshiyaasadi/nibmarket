@@ -35,6 +35,9 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 // ** Demo Imports
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustrationsV1'
 
+// ** Third Party Import
+import toast from 'react-hot-toast'
+
 // ** Hooks
 import { useAuth } from 'src/hooks/useAuth'
 import { useTranslation } from 'react-i18next'
@@ -92,8 +95,7 @@ export default function LoginPage() {
         rememberMe: values.rememberMe
       },
       () => {
-        // Error callback - you can add error state and display here
-        console.error('Login failed')
+        toast.error(t('email or Password is Invalid'))
       }
     )
   }

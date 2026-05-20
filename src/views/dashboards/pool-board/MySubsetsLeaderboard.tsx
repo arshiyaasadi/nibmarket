@@ -27,16 +27,13 @@ const RankBadge = styled(Box)<{ rank: number }>(({ theme }) => {
   }
 })
 
-// Mock leaderboard data for my subsets
-const mySubsetsLeaderboard = [
-  { id: 1, rank: 1, name: 'سارا محمدی', points: 8500, subordinates: 25, currentMonthRank: 8 },
-  { id: 2, rank: 2, name: 'رضا کریمی', points: 7200, subordinates: 18, currentMonthRank: 12 },
-  { id: 3, rank: 3, name: 'زهرا رضایی', points: 6800, subordinates: 15, currentMonthRank: 15 },
-  { id: 4, rank: 4, name: 'امیر حسینی', points: 5500, subordinates: 12, currentMonthRank: 22 },
-  { id: 5, rank: 5, name: 'مریم احمدی', points: 4800, subordinates: 10, currentMonthRank: 28 }
-]
+import type { LeaderboardEntry } from 'src/types/api/leaderboard'
 
-const MySubsetsLeaderboard = () => {
+type MySubsetsLeaderboardProps = {
+  entries: LeaderboardEntry[]
+}
+
+const MySubsetsLeaderboard = ({ entries }: MySubsetsLeaderboardProps) => {
   const theme = useTheme()
 
   return (
@@ -50,7 +47,7 @@ const MySubsetsLeaderboard = () => {
       />
       <CardContent sx={{ p: 6, flex: 1 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {mySubsetsLeaderboard.map((item, index) => (
+          {entries.map((item, index) => (
             <Box key={item.id}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {/* Name, Rank and Current Month Rank */}
@@ -98,7 +95,7 @@ const MySubsetsLeaderboard = () => {
                   </Box>
                 </Box>
               </Box>
-              {index < mySubsetsLeaderboard.length - 1 && <Divider sx={{ mt: 3 }} />}
+              {index < entries.length - 1 && <Divider sx={{ mt: 3 }} />}
             </Box>
           ))}
         </Box>

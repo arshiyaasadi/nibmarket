@@ -41,11 +41,7 @@ const AclGuard = (props: AclGuardProps) => {
   const auth = useAuth()
   const router = useRouter()
 
-  // ** Build ability for logged in user
-  let ability: AppAbility
-  if (auth.user) {
-    ability = buildAbilityFor(auth.user.role, aclAbilities.subject)
-  }
+  const ability: AppAbility | undefined = auth.user ? buildAbilityFor(auth.user.role) : undefined
 
   useEffect(() => {
     if (auth.user && auth.user.role && !guestGuard && router.route === '/') {

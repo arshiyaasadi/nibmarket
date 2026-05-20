@@ -11,6 +11,7 @@ import Grid from '@mui/material/Grid'
 
 // ** Hooks
 import { useAuth } from 'src/hooks/useAuth'
+import { normalizeUserRole } from 'src/configs/acl'
 
 // ** Component Imports
 import Spinner from 'src/@core/components/spinner'
@@ -34,13 +35,12 @@ const DashboardPageContent = () => {
 
   // ** Redirect manager to manager dashboard
   useEffect(() => {
-    if (auth.user && auth.user.role === 'manager') {
+    if (auth.user && normalizeUserRole(auth.user.role) === 'manager') {
       router.replace('/manager/dashboard')
     }
   }, [auth.user, router])
 
-  // ** Show spinner if user is manager (redirecting)
-  if (auth.user && auth.user.role === 'manager') {
+  if (auth.user && normalizeUserRole(auth.user.role) === 'manager') {
     return <Spinner />
   }
 

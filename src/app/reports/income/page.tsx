@@ -1,7 +1,7 @@
 'use client'
 
 // ** React Imports
-import { Suspense, useMemo, useState } from 'react'
+import { Suspense, useState } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -18,6 +18,12 @@ import Chip from '@mui/material/Chip'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
+
+// ** Components
+import DashboardWidgetState from 'src/components/dashboard/DashboardWidgetState'
+
+// ** Hooks
+import { useReportsIncome } from 'src/hooks/reports/useReportsIncome'
 
 // ** Types
 interface IncomeTransaction {
@@ -52,42 +58,11 @@ const IncomeReportsPageContent = () => {
     { value: '12', label: 'اسفند' }
   ]
 
-  // ** Sample data - replace with your actual data source
-  const transactions: IncomeTransaction[] = useMemo(
-    () => [
-      {
-        id: '1',
-        date: '۱۴۰۴/۱۲/۰۶',
-        type: 'فعالیت در سامانه',
-        description: 'درآمد ۱۰ توکن بابت فعالیت در سامانه'
-      },
-      {
-        id: '2',
-        date: '۱۴۰۴/۱۲/۰۵',
-        type: 'توسعه شبکه',
-        description: 'درآمد ۵ توکن بابت توسعه شبکه'
-      },
-      {
-        id: '3',
-        date: '۱۴۰۴/۱۲/۰۴',
-        type: 'پورسانت',
-        description: 'درآمد ۲۰ توکن بابت پورسانت'
-      },
-      {
-        id: '4',
-        date: '۱۴۰۴/۱۲/۰۳',
-        type: 'فعالیت در سامانه',
-        description: 'درآمد ۱۵ توکن بابت فعالیت در سامانه'
-      },
-      {
-        id: '5',
-        date: '۱۴۰۴/۱۲/۰۲',
-        type: 'توسعه شبکه',
-        description: 'درآمد ۸ توکن بابت توسعه شبکه'
-      }
-    ],
-    []
+  const { data, loading, retrying, error, hasData, usedFallback, refetch } = useReportsIncome(
+    selectedYear,
+    selectedMonth
   )
+  const transactions = data.rows
 
   // ** Handle filter changes
   const handleYearChange = (event: SelectChangeEvent) => {
@@ -99,8 +74,7 @@ const IncomeReportsPageContent = () => {
   }
 
   const handleSearch = () => {
-    // Filter logic here - replace with your actual filtering logic
-    console.log('Searching for:', { year: selectedYear, month: selectedMonth })
+    refetch()
   }
 
   // ** Get chip color based on type
@@ -175,7 +149,16 @@ const IncomeReportsPageContent = () => {
         گزارش درامد ها
       </Typography>
       <Card>
-        <CardContent sx={{ p: theme => `${theme.spacing(5)} !important` }}>
+        <DashboardWidgetState
+          loading={loading}
+          retrying={retrying}
+          error={error}
+          usedFallback={usedFallback}
+          onRetry={refetch}
+          skeletonHeight={500}
+          widgetTitle='گزارش درآمدها'
+        >
+          <CardContent sx={{ p: theme => `${theme.spacing(5)} !important` }}>
           {/* Filter Section */}
           <Box
             sx={{
@@ -240,7 +223,7 @@ const IncomeReportsPageContent = () => {
           </Box>
 
           {/* Table Section */}
-          <Box sx={{ height: 500, width: '100%' }}>
+          <Box sx={{ height: 500, width: '100%', opacity: hasData ? 1 : 0.5 }}>
             <DataGrid
               rows={transactions}
               columns={columns}
@@ -264,7 +247,8 @@ const IncomeReportsPageContent = () => {
               }}
             />
           </Box>
-        </CardContent>
+          </CardContent>
+        </DashboardWidgetState>
       </Card>
     </Box>
   )

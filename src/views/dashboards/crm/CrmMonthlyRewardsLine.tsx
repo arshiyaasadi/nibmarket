@@ -9,19 +9,24 @@ import { ApexOptions } from 'apexcharts'
 
 // ** Custom Components Imports
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
+import DashboardWidgetState from 'src/components/dashboard/DashboardWidgetState'
 
 // ** Util Import
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
-// Sample data for monthly rewards (twin token quantity)
-const series = [{ 
-  name: 'پاداش ماهانه',
-  data: [150, 200, 180, 250, 300, 280, 350, 400, 380, 450, 420, 500]
-}]
+// ** Hooks
+import { useDashboardMonthlyRewards } from 'src/hooks/dashboard/useDashboardMonthlyRewards'
 
 const CrmMonthlyRewardsLine = () => {
-  // ** Hook
   const theme = useTheme()
+  const { data, loading, retrying, error, usedFallback, refetch } = useDashboardMonthlyRewards()
+
+  const series = [
+    {
+      name: data.seriesName,
+      data: data.points.map(p => p.amount)
+    }
+  ]
 
   const options: ApexOptions = {
     chart: {
@@ -30,7 +35,7 @@ const CrmMonthlyRewardsLine = () => {
       zoom: { enabled: false }
     },
     colors: [hexToRGBA(theme.palette.primary.main, 1)],
-    stroke: { 
+    stroke: {
       curve: 'smooth',
       width: 3
     },
@@ -68,14 +73,14 @@ const CrmMonthlyRewardsLine = () => {
       labels: {
         style: { colors: theme.palette.text.disabled },
         formatter: (val: string) => {
-          const months = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
+          const idx = parseInt(val) - 1
 
-          return months[parseInt(val) - 1] || val
+          return data.points[idx]?.monthLabel || val
         }
       },
       axisTicks: { show: false },
       axisBorder: { show: false },
-      categories: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+      categories: data.points.map(p => String(p.month))
     },
     yaxis: {
       labels: {
@@ -91,12 +96,22 @@ const CrmMonthlyRewardsLine = () => {
         title='پاداش ماهانه کسب شده'
         titleTypographyProps={{ variant: 'h6', sx: { letterSpacing: '0.15px', fontWeight: 600 } }}
       />
-      <CardContent sx={{ p: 6 }}>
-        <ReactApexcharts type='line' height={300} options={options} series={series} />
-      </CardContent>
+      <DashboardWidgetState
+        loading={loading}
+        retrying={retrying}
+        error={error}
+        usedFallback={usedFallback}
+        onRetry={refetch}
+        skeletonHeight={300}
+        widgetTitle='پاداش ماهانه'
+        isEmpty={!loading && data.points.length === 0}
+      >
+        <CardContent sx={{ p: 6 }}>
+          <ReactApexcharts type='line' height={300} options={options} series={series} />
+        </CardContent>
+      </DashboardWidgetState>
     </Card>
   )
 }
 
 export default CrmMonthlyRewardsLine
-

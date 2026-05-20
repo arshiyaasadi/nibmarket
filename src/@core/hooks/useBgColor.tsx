@@ -3,6 +3,11 @@ import { useTheme } from '@mui/material/styles'
 
 // ** Util Import
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
+import { isInvalidMuiColorValue } from 'src/@core/utils/sanitize-sx'
+
+function safeMainColor(main: string, fallback: string): string {
+  return isInvalidMuiColorValue(main) ? fallback : main
+}
 
 export type UseBgColorType = {
   [key: string]: {
@@ -15,54 +20,61 @@ const UseBgColor = () => {
   // ** Hooks
   const theme = useTheme()
 
+  const primaryMain = safeMainColor(theme.palette.primary.main, '#666CFF')
+  const secondaryMain = safeMainColor(theme.palette.secondary.main, '#6D788D')
+  const successMain = safeMainColor(theme.palette.success.main, '#72E128')
+  const errorMain = safeMainColor(theme.palette.error.main, '#FF4D49')
+  const warningMain = safeMainColor(theme.palette.warning.main, '#FDB528')
+  const infoMain = safeMainColor(theme.palette.info.main, '#26C6F9')
+
   return {
     primaryFilled: {
       color: theme.palette.primary.contrastText,
-      backgroundColor: theme.palette.primary.main
+      backgroundColor: primaryMain
     },
     primaryLight: {
-      color: theme.palette.primary.main,
-      backgroundColor: hexToRGBA(theme.palette.primary.main, 0.12)
+      color: primaryMain,
+      backgroundColor: hexToRGBA(primaryMain, 0.12)
     },
     secondaryFilled: {
       color: theme.palette.secondary.contrastText,
-      backgroundColor: theme.palette.secondary.main
+      backgroundColor: secondaryMain
     },
     secondaryLight: {
-      color: theme.palette.secondary.main,
-      backgroundColor: hexToRGBA(theme.palette.secondary.main, 0.12)
+      color: secondaryMain,
+      backgroundColor: hexToRGBA(secondaryMain, 0.12)
     },
     successFilled: {
       color: theme.palette.success.contrastText,
-      backgroundColor: theme.palette.success.main
+      backgroundColor: successMain
     },
     successLight: {
-      color: theme.palette.success.main,
-      backgroundColor: hexToRGBA(theme.palette.success.main, 0.12)
+      color: successMain,
+      backgroundColor: hexToRGBA(successMain, 0.12)
     },
     errorFilled: {
       color: theme.palette.error.contrastText,
-      backgroundColor: theme.palette.error.main
+      backgroundColor: errorMain
     },
     errorLight: {
-      color: theme.palette.error.main,
-      backgroundColor: hexToRGBA(theme.palette.error.main, 0.12)
+      color: errorMain,
+      backgroundColor: hexToRGBA(errorMain, 0.12)
     },
     warningFilled: {
       color: theme.palette.warning.contrastText,
-      backgroundColor: theme.palette.warning.main
+      backgroundColor: warningMain
     },
     warningLight: {
-      color: theme.palette.warning.main,
-      backgroundColor: hexToRGBA(theme.palette.warning.main, 0.12)
+      color: warningMain,
+      backgroundColor: hexToRGBA(warningMain, 0.12)
     },
     infoFilled: {
       color: theme.palette.info.contrastText,
-      backgroundColor: theme.palette.info.main
+      backgroundColor: infoMain
     },
     infoLight: {
-      color: theme.palette.info.main,
-      backgroundColor: hexToRGBA(theme.palette.info.main, 0.12)
+      color: infoMain,
+      backgroundColor: hexToRGBA(infoMain, 0.12)
     }
   }
 }

@@ -1,10 +1,14 @@
+import { normalizeUserRole } from 'src/configs/acl'
+
 /**
- *  Set Home URL based on User Roles
+ * Home URL based on user role
  */
 const getHomeRoute = (role: string) => {
-  if (role === 'client') return '/dashboard'
-  else if (role === 'manager') return '/manager/dashboard'
-  else return '/dashboards/analytics'
+  const normalized = normalizeUserRole(role)
+  if (normalized === 'manager') return '/manager/dashboard'
+  if (normalized === 'admin') return '/dashboard'
+
+  return '/dashboard'
 }
 
 export default getHomeRoute

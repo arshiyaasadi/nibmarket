@@ -20,52 +20,18 @@ import ReactApexcharts from 'src/@core/components/react-apexcharts'
 // ** Util Import
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
+import type { TwinPriceCandle } from 'src/types/api/twin-token'
+
 interface TokenPriceChartProps {
   currentPrice: number
   priceChange24h: number
+  candles: TwinPriceCandle[]
 }
 
-// Generate mock candlestick data for the last 24 hours
-const generateMockPriceData = () => {
-  const data = []
-  const now = new Date()
-  const basePrice = 47.37
-  let currentPrice = basePrice
-
-  // Generate data for last 24 hours (1 data point per hour)
-  for (let i = 23; i >= 0; i--) {
-    const time = new Date(now.getTime() - i * 60 * 60 * 1000)
-    
-    // Simulate price movement
-    const change = (Math.random() - 0.5) * 2 // -1 to 1
-    const open = currentPrice
-    
-    // Calculate close price first
-    const close = open + change * 0.8
-    
-    // Ensure high >= max(open, close) and low <= min(open, close)
-    const maxPrice = Math.max(open, close)
-    const minPrice = Math.min(open, close)
-    const volatility = Math.random() * 0.3 + 0.1 // 0.1 to 0.4
-    const high = maxPrice + volatility
-    const low = minPrice - volatility
-    
-    currentPrice = close
-    
-    data.push({
-      x: time.getTime(),
-      y: [open, high, low, close]
-    })
-  }
-  
-  return data
-}
-
-const TokenPriceChart = ({ currentPrice, priceChange24h }: TokenPriceChartProps) => {
+const TokenPriceChart = ({ currentPrice, priceChange24h, candles }: TokenPriceChartProps) => {
   const theme = useTheme()
 
-  // Generate mock data
-  const chartData = useMemo(() => generateMockPriceData(), [])
+  const chartData = useMemo(() => candles, [candles])
 
   const options: ApexOptions = {
     chart: {

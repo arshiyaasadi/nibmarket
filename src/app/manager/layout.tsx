@@ -9,6 +9,7 @@ import dynamic from 'next/dynamic'
 
 // ** Hooks
 import { useAuth } from 'src/hooks/useAuth'
+import { normalizeUserRole } from 'src/configs/acl'
 
 // ** Component Import
 import Spinner from 'src/@core/components/spinner'
@@ -45,12 +46,10 @@ const ManagerLayout = ({ children }: ManagerLayoutProps) => {
       }
     }
 
-    // Redirect non-manager/admin users to their appropriate dashboard
-    if (!auth.loading && auth.user && auth.user.role !== 'manager' && auth.user.role !== 'admin') {
-      if (auth.user.role === 'client') {
+    if (!auth.loading && auth.user) {
+      const role = normalizeUserRole(auth.user.role)
+      if (role !== 'manager' && role !== 'admin') {
         router.replace('/dashboard')
-      } else {
-        router.replace('/')
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -66,8 +65,8 @@ const ManagerLayout = ({ children }: ManagerLayoutProps) => {
     return <Spinner />
   }
 
-  // If user is authenticated but not a manager or admin, show spinner (redirect is happening)
-  if (auth.user.role !== 'manager' && auth.user.role !== 'admin') {
+  const userRole = normalizeUserRole(auth.user.role)
+  if (userRole !== 'manager' && userRole !== 'admin') {
     return <Spinner />
   }
 

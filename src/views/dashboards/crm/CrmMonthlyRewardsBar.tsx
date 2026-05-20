@@ -1,6 +1,3 @@
-// ** React Imports
-import { useState } from 'react'
-
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -16,25 +13,20 @@ import { ApexOptions } from 'apexcharts'
 // ** Custom Components Imports
 import Icon from 'src/@core/components/icon'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
+import DashboardWidgetState from 'src/components/dashboard/DashboardWidgetState'
 
-// Sample data for monthly rewards (line chart)
-const series = [{
-  data: [150, 200, 180, 250, 300, 280, 350, 400, 380, 450, 420, 500]
-}]
+// ** Hooks
+import { useDashboardMonthlyRewardsTrend } from 'src/hooks/dashboard/useDashboardMonthlyRewardsTrend'
 
 const CrmMonthlyRewardsBar = () => {
-  // ** State
-  const [hasData, setHasData] = useState(false) // Set to false to show empty state
-
-  // ** Hook
   const theme = useTheme()
+  const { data, loading, retrying, error, usedFallback, refetch } = useDashboardMonthlyRewardsTrend()
 
-  // ** Handler
-  const handleRefresh = () => {
-    // This function can be used to fetch data from API
-    // For now, we'll just toggle the state to show data
-    setHasData(true)
-  }
+  const series = [
+    {
+      data: data.points.map(p => p.amount)
+    }
+  ]
 
   const options: ApexOptions = {
     chart: {
@@ -44,7 +36,7 @@ const CrmMonthlyRewardsBar = () => {
       background: 'transparent'
     },
     colors: [theme.palette.warning.main],
-    stroke: { 
+    stroke: {
       curve: 'straight',
       width: 3
     },
@@ -84,7 +76,7 @@ const CrmMonthlyRewardsBar = () => {
       labels: {
         style: { colors: theme.palette.text.disabled }
       },
-      categories: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+      categories: data.points.map(p => String(p.month))
     },
     yaxis: {
       labels: {
@@ -94,42 +86,7 @@ const CrmMonthlyRewardsBar = () => {
     }
   }
 
-  // If no data, show empty state
-  if (!hasData) {
-    return (
-      <Card>
-        <CardHeader
-          title='پاداش ماهانه کسب شده'
-          titleTypographyProps={{ variant: 'h6', sx: { letterSpacing: '0.15px', fontWeight: 600 } }}
-        />
-        <CardContent sx={{ p: 6 }}>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: 300,
-              gap: 3
-            }}
-          >
-            <Icon icon='mdi:chart-line-variant' fontSize='4rem' style={{ color: theme.palette.text.disabled }} />
-            <Typography variant='body2' sx={{ color: 'text.secondary', fontSize: '0.875rem', fontWeight: 500 }}>
-              اطلاعاتی هنوز ثبت نشده
-            </Typography>
-            <Button
-              variant='contained'
-              startIcon={<Icon icon='mdi:refresh' />}
-              onClick={handleRefresh}
-              sx={{ mt: 2, fontSize: '0.875rem' }}
-            >
-              به روزرسانی
-            </Button>
-          </Box>
-        </CardContent>
-      </Card>
-    )
-  }
+  const showEmptyState = !loading && !data.hasData
 
   return (
     <Card>
@@ -137,12 +94,49 @@ const CrmMonthlyRewardsBar = () => {
         title='پاداش ماهانه کسب شده'
         titleTypographyProps={{ variant: 'h6', sx: { letterSpacing: '0.15px', fontWeight: 600 } }}
       />
-      <CardContent sx={{ p: 6 }}>
-        <ReactApexcharts type='line' height={300} options={options} series={series} />
-      </CardContent>
+      <DashboardWidgetState
+        loading={loading}
+        retrying={retrying}
+        error={error}
+        usedFallback={usedFallback}
+        onRetry={refetch}
+        skeletonHeight={300}
+        widgetTitle='پاداش ماهانه'
+      >
+        {showEmptyState ? (
+          <CardContent sx={{ p: 6 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: 300,
+                gap: 3
+              }}
+            >
+              <Icon icon='mdi:chart-line-variant' fontSize='4rem' style={{ color: theme.palette.text.disabled }} />
+              <Typography variant='body2' sx={{ color: 'text.secondary', fontSize: '0.875rem', fontWeight: 500 }}>
+                اطلاعاتی هنوز ثبت نشده
+              </Typography>
+              <Button
+                variant='contained'
+                startIcon={<Icon icon='mdi:refresh' />}
+                onClick={refetch}
+                sx={{ mt: 2, fontSize: '0.875rem' }}
+              >
+                به روزرسانی
+              </Button>
+            </Box>
+          </CardContent>
+        ) : (
+          <CardContent sx={{ p: 6 }}>
+            <ReactApexcharts type='line' height={300} options={options} series={series} />
+          </CardContent>
+        )}
+      </DashboardWidgetState>
     </Card>
   )
 }
 
 export default CrmMonthlyRewardsBar
-

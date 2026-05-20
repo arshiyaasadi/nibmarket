@@ -38,6 +38,14 @@ import Icon from 'src/@core/components/icon'
 // ** Hooks
 import useClipboard from 'src/@core/hooks/useClipboard'
 import { useSettings } from 'src/@core/hooks/useSettings'
+import { useNetworkInvite } from 'src/hooks/network/useNetworkInvite'
+import { useSendNetworkInvite } from 'src/hooks/network/useNetworkMutations'
+
+// ** Components
+import DashboardWidgetState from 'src/components/dashboard/DashboardWidgetState'
+
+// ** Config
+import { isApiMode } from 'src/configs/data-source'
 
 // ** Styled Components
 import StepperWrapper from 'src/@core/styles/mui/stepper'
@@ -46,111 +54,9 @@ import StepperWrapper from 'src/@core/styles/mui/stepper'
 import themeConfig from 'src/configs/themeConfig'
 
 // ** Type Definitions
-export interface FundData {
-  id: string
-  name: string
-  symbol: string
-  category: string
-  investors: number
-  capital: number
-  percentage: number
-}
+import type { NetworkFund } from 'src/types/api/network'
 
-// ** Fund List Data
-const FUNDS: FundData[] = [
-  {
-    id: '1',
-    name: 'نهال سرمایه ایرانیان',
-    symbol: 'صنهال',
-    category: 'درآمد ثابت | ETF',
-    investors: 0,
-    capital: 0,
-    percentage: 0
-  },
-  {
-    id: '2',
-    name: 'فراز اندیش نوین',
-    symbol: '',
-    category: 'درآمد ثابت',
-    investors: 0,
-    capital: 0,
-    percentage: 0
-  },
-  {
-    id: '3',
-    name: 'ثابت یکم ایرانیان',
-    symbol: '',
-    category: 'درآمد ثابت',
-    investors: 0,
-    capital: 0,
-    percentage: 0
-  },
-  {
-    id: '4',
-    name: 'طلای گلدیس',
-    symbol: '',
-    category: 'طلا | ETF',
-    investors: 0,
-    capital: 0,
-    percentage: 0
-  },
-  {
-    id: '5',
-    name: 'میعاد ایرانیان',
-    symbol: '',
-    category: 'سهامی',
-    investors: 0,
-    capital: 0,
-    percentage: 0
-  },
-  {
-    id: '6',
-    name: 'سپهر اندیشه نوین',
-    symbol: 'صنوین',
-    category: 'مختلط | ETF',
-    investors: 0,
-    capital: 0,
-    percentage: 0
-  },
-  {
-    id: '7',
-    name: 'ارمغان ایرانیان',
-    symbol: 'ارمغان',
-    category: 'درآمد ثابت | ETF',
-    investors: 0,
-    capital: 0,
-    percentage: 0
-  },
-  {
-    id: '8',
-    name: 'نوین پیشرو',
-    symbol: '',
-    category: 'بازار گردانی اختصاصی',
-    investors: 0,
-    capital: 0,
-    percentage: 0
-  },
-  {
-    id: '9',
-    name: 'پالایشی یکم',
-    symbol: 'پالایش',
-    category: 'سهامی | ETF',
-    investors: 0,
-    capital: 0,
-    percentage: 0
-  }
-]
-
-// ** Mock data
-const invitedUsers = [
-  { id: 1, name: 'علی احمدی', date: '2 روز پیش', avatar: '/images/avatars/1.png' },
-  { id: 2, name: 'سارا محمدی', date: '5 روز پیش', avatar: '/images/avatars/2.png' },
-  { id: 3, name: 'رضا کریمی', date: '1 هفته پیش', avatar: '/images/avatars/3.png' },
-  { id: 4, name: 'زهرا رضایی', date: '2 هفته پیش', avatar: '/images/avatars/4.png' }
-]
-
-const referralCode = 'INVITE2024'
-const MAX_INVITES_PER_MONTH = 15
+export type FundData = NetworkFund
 
 // Wizard steps
 const steps = [
@@ -174,23 +80,26 @@ const getCurrentMonthKey = () => {
   return `invite_limit_${now.getFullYear()}_${now.getMonth()}`
 }
 
-const getRemainingInvites = (): number => {
-  if (typeof window === 'undefined') return MAX_INVITES_PER_MONTH
+const getRemainingInvites = (maxPerMonth: number): number => {
+  if (typeof window === 'undefined') return maxPerMonth
   const monthKey = getCurrentMonthKey()
   const saved = localStorage.getItem(monthKey)
   if (saved) {
     const parsed = parseInt(saved, 10)
+
     return Math.max(0, parsed)
   }
-  return MAX_INVITES_PER_MONTH
+
+  return maxPerMonth
 }
 
-const decrementRemainingInvites = (): number => {
-  if (typeof window === 'undefined') return MAX_INVITES_PER_MONTH - 1
+const decrementRemainingInvites = (maxPerMonth: number): number => {
+  if (typeof window === 'undefined') return maxPerMonth - 1
   const monthKey = getCurrentMonthKey()
-  const current = getRemainingInvites()
+  const current = getRemainingInvites(maxPerMonth)
   const newCount = Math.max(0, current - 1)
   localStorage.setItem(monthKey, newCount.toString())
+
   return newCount
 }
 
@@ -224,21 +133,42 @@ const WhatsAppBtn = styled(IconButton)<IconButtonProps>(({ theme }) => ({
 }))
 
 const InviteFriendsPageContent = () => {
+  const {
+    data: inviteData,
+    loading: inviteLoading,
+    retrying: inviteRetrying,
+    error: inviteError,
+    hasData: inviteHasData,
+    usedFallback: inviteUsedFallback,
+    refetch: refetchInvite
+  } = useNetworkInvite()
+  const { send: sendInvite, submitting: isSendingInvite, error: sendInviteError, clearError: clearSendError } =
+    useSendNetworkInvite()
+
+  const funds = inviteData.funds
+  const referralCode = inviteData.referralCode
+  const maxInvitesPerMonth = inviteData.maxInvitesPerMonth
+
   // ** States
   const [activeStep, setActiveStep] = useState(0)
-  const [selectedFund, setSelectedFund] = useState<FundData | null>(null)
+  const [selectedFund, setSelectedFund] = useState<NetworkFund | null>(null)
   const [inviteName, setInviteName] = useState('')
   const [inviteMobile, setInviteMobile] = useState('')
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
-  const [isSendingInvite, setIsSendingInvite] = useState(false)
-  const [remainingInvites, setRemainingInvites] = useState<number>(MAX_INVITES_PER_MONTH)
+  const [remainingInvites, setRemainingInvites] = useState(inviteData.remainingInvites)
+  const [recentInvites, setRecentInvites] = useState(inviteData.recentInvites)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [referralLink, setReferralLink] = useState('')
 
-  // Initialize remaining invites from localStorage
   useEffect(() => {
-    setRemainingInvites(getRemainingInvites())
-  }, [])
+    if (!inviteHasData) return
+    setRecentInvites(inviteData.recentInvites)
+    if (isApiMode()) {
+      setRemainingInvites(inviteData.remainingInvites)
+    } else {
+      setRemainingInvites(getRemainingInvites(inviteData.maxInvitesPerMonth))
+    }
+  }, [inviteHasData, inviteData.recentInvites, inviteData.remainingInvites, inviteData.maxInvitesPerMonth])
 
   const normalizeToEnglishDigits = (value: string) => {
     const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹']
@@ -392,38 +322,34 @@ const InviteFriendsPageContent = () => {
   const handleSendInvite = async () => {
     if (!inviteMobile.trim() || !resolvedTemplateText.trim()) {
       toast.error('لطفاً شماره موبایل و متن دعوت را تکمیل کنید')
+
       return
     }
 
-    // Check if user has remaining invites
     if (remainingInvites <= 0) {
-      toast.error(`شما حداکثر ${MAX_INVITES_PER_MONTH} پیام در ماه می‌توانید ارسال کنید. لطفاً ماه آینده دوباره تلاش کنید.`)
+      toast.error(
+        `شما حداکثر ${maxInvitesPerMonth} پیام در ماه می‌توانید ارسال کنید. لطفاً ماه آینده دوباره تلاش کنید.`
+      )
+
       return
     }
 
-    try {
-      setIsSendingInvite(true)
+    clearSendError()
+    const result = await sendInvite({
+      inviteeName: inviteName.trim(),
+      inviteeMobile: inviteMobile.trim(),
+      messageTemplate: resolvedTemplateText,
+      fundId: selectedFund?.id
+    })
 
-      // TODO: Replace this mock implementation with a real API call
-      // Example:
-      // await axios.post('/api/network/invite', {
-      //   mobile: inviteMobile,
-      //   message: resolvedTemplateText,
-      //   referralLink,
-      //   fundId: selectedFund?.id
-      // })
-      await new Promise(resolve => setTimeout(resolve, 800))
-
-      // Decrement remaining invites on success
-      const newCount = decrementRemainingInvites()
-      setRemainingInvites(newCount)
-
+    if (result?.success) {
+      if (isApiMode()) {
+        setRemainingInvites(result.remainingInvites)
+      } else {
+        setRemainingInvites(decrementRemainingInvites(maxInvitesPerMonth))
+      }
       toast.success('دعوت‌نامه با موفقیت ارسال شد')
-      setActiveStep(3) // Move to success step
-    } catch (error) {
-      toast.error('ارسال دعوت‌نامه با خطا مواجه شد، لطفاً دوباره تلاش کنید')
-    } finally {
-      setIsSendingInvite(false)
+      setActiveStep(3)
     }
   }
 
@@ -555,7 +481,7 @@ const InviteFriendsPageContent = () => {
             </Typography>
             <Box sx={{ maxHeight: '600px', overflowY: 'auto', pr: 1 }}>
               <Grid container spacing={3}>
-              {FUNDS.map(fund => (
+              {funds.map(fund => (
                 <Grid item xs={6} lg={4} key={fund.id}>
                   <Card
                     onClick={() => setSelectedFund(fund)}
@@ -700,6 +626,11 @@ const InviteFriendsPageContent = () => {
               </>
             )}
 
+            {sendInviteError ? (
+              <Typography variant='body2' sx={{ mt: 2, color: 'error.main', textAlign: 'center' }}>
+                {sendInviteError}
+              </Typography>
+            ) : null}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
               <Button
                 variant='outlined'
@@ -798,7 +729,7 @@ const InviteFriendsPageContent = () => {
                       letterSpacing: '0.01em'
                     }}
                   >
-                    {remainingInvites.toLocaleString('fa-IR')}/{MAX_INVITES_PER_MONTH.toLocaleString('fa-IR')}
+                    {remainingInvites.toLocaleString('fa-IR')}/{maxInvitesPerMonth.toLocaleString('fa-IR')}
                   </Typography>
                   <Tooltip
                     title='در هر ماه ۱۵ پیام قابل ارسال است و با شروع ماه جدید، تعداد پیام‌های باقیمانده به ۱۵ بازمی‌گردد'
@@ -851,14 +782,22 @@ const InviteFriendsPageContent = () => {
           </Card>
         </Grid>
 
-        {/* Recent Invited Friends */}
         <Grid item xs={12}>
           <Card>
-            <CardContent sx={{ p: 6 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
-                <Typography variant='h6' sx={{ fontWeight: 600 }}>
-                  دعوت شدگان اخیر
-                </Typography>
+            <DashboardWidgetState
+              loading={inviteLoading}
+              retrying={inviteRetrying}
+              error={inviteError}
+              usedFallback={inviteUsedFallback}
+              onRetry={refetchInvite}
+              skeletonHeight={360}
+              widgetTitle='دعوت شدگان اخیر'
+            >
+              <CardContent sx={{ p: 6 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
+                  <Typography variant='h6' sx={{ fontWeight: 600 }}>
+                    دعوت شدگان اخیر
+                  </Typography>
                 <Typography
                   component={Link}
                   href='/network/my-subsets'
@@ -877,8 +816,8 @@ const InviteFriendsPageContent = () => {
                 </Typography>
               </Box>
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                {invitedUsers.map(user => (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, opacity: inviteHasData ? 1 : 0.5 }}>
+                {recentInvites.map(user => (
                   <Box
                     key={user.id}
                     sx={{
@@ -933,7 +872,8 @@ const InviteFriendsPageContent = () => {
                   <Icon icon='mdi:facebook' fontSize={20} />
                 </FacebookBtn>
               </Box>
-            </CardContent>
+              </CardContent>
+            </DashboardWidgetState>
           </Card>
         </Grid>
       </Grid>

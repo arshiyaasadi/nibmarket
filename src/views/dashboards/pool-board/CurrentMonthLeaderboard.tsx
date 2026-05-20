@@ -27,16 +27,13 @@ const RankBadge = styled(Box)<{ rank: number }>(({ theme }) => {
   }
 })
 
-// Mock leaderboard data for current month
-const currentMonthLeaderboard = [
-  { id: 1, rank: 1, name: 'علی احمدی', points: 12500, subordinates: 45 },
-  { id: 2, rank: 2, name: 'محمد رضایی', points: 11200, subordinates: 38 },
-  { id: 3, rank: 3, name: 'فاطمه کریمی', points: 9800, subordinates: 32 },
-  { id: 4, rank: 4, name: 'حسن موسوی', points: 8750, subordinates: 28 },
-  { id: 5, rank: 5, name: 'زهرا نوری', points: 8200, subordinates: 25 }
-]
+import type { LeaderboardEntry } from 'src/types/api/leaderboard'
 
-const CurrentMonthLeaderboard = () => {
+type CurrentMonthLeaderboardProps = {
+  entries: LeaderboardEntry[]
+}
+
+const CurrentMonthLeaderboard = ({ entries }: CurrentMonthLeaderboardProps) => {
   const theme = useTheme()
 
   return (
@@ -50,7 +47,7 @@ const CurrentMonthLeaderboard = () => {
       />
       <CardContent sx={{ p: 6, flex: 1 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {currentMonthLeaderboard.map((item, index) => (
+          {entries.map((item, index) => (
             <Box key={item.id}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {/* Name and Rank */}
@@ -86,7 +83,7 @@ const CurrentMonthLeaderboard = () => {
                   </Box>
                 </Box>
               </Box>
-              {index < currentMonthLeaderboard.length - 1 && <Divider sx={{ mt: 3 }} />}
+              {index < entries.length - 1 && <Divider sx={{ mt: 3 }} />}
             </Box>
           ))}
         </Box>

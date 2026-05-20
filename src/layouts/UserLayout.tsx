@@ -16,7 +16,8 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import Layout from 'src/@core/layouts/Layout'
 
 // ** Navigation Imports
-import VerticalNavItems from 'src/navigation/vertical'
+import { getVerticalNavItems } from 'src/navigation/vertical'
+import { filterVerticalNavByAbility } from 'src/navigation/vertical/filterByAbility'
 
 // ** Component Import
 // Uncomment the below line (according to the layout type) when using server-side menu
@@ -33,9 +34,8 @@ import { useAuth } from 'src/hooks/useAuth'
 import Icon from 'src/@core/components/icon'
 
 // ** ACL Imports
-import { buildAbilityFor, defaultACLObj } from 'src/configs/acl'
+import { buildAbilityFor } from 'src/configs/acl'
 import { AbilityContext } from './components/acl/Can'
-import type { AppAbility } from 'src/configs/acl'
 
 interface Props {
   children: ReactNode
@@ -47,13 +47,21 @@ const UserLayout = ({ children, contentHeightFixed }: Props) => {
   const { settings, saveSettings } = useSettings()
   const auth = useAuth()
 
-  // ** Build ability for logged in user
+  const userRole = auth.user?.role
+
   const ability = useMemo(() => {
     if (auth.user) {
-      return buildAbilityFor(auth.user.role, defaultACLObj.subject)
+      return buildAbilityFor(auth.user.role)
     }
+
     return undefined
-  }, [auth.user])
+  }, [userRole])
+
+  const verticalNavItems = useMemo(() => {
+    const items = getVerticalNavItems(auth.user?.role)
+
+    return ability ? filterVerticalNavByAbility(items, ability) : items
+  }, [userRole, ability])
 
   // ** Vars for server side navigation
   // const { menuItems: verticalMenuItems } = ServerSideVerticalNavItems()
@@ -230,7 +238,7 @@ const UserLayout = ({ children, contentHeightFixed }: Props) => {
       contentHeightFixed={contentHeightFixed}
       verticalLayoutProps={{
         navMenu: {
-          navItems: VerticalNavItems(),
+          navItems: verticalNavItems,
           afterContent: (props?: any) => <BottomNavButtons {...props} />
 
           // Uncomment the below line when using server-side menu in vertical layout and comment the above line

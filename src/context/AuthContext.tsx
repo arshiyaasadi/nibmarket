@@ -9,6 +9,7 @@ import axios from 'axios'
 
 // ** Config
 import authConfig from 'src/configs/auth'
+import { normalizeUserRole } from 'src/configs/acl'
 
 // ** Types
 import { AuthValuesType, LoginParams, ErrCallbackType, UserDataType } from './types'
@@ -52,7 +53,10 @@ const AuthProvider = ({ children }: Props) => {
           })
           .then(async response => {
             setLoading(false)
-            setUser({ ...response.data.userData })
+            setUser({
+              ...response.data.userData,
+              role: normalizeUserRole(response.data.userData?.role)
+            })
           })
           .catch(() => {
             localStorage.removeItem('userData')
@@ -82,8 +86,12 @@ const AuthProvider = ({ children }: Props) => {
           : null
         const returnUrl = searchParams.get('returnUrl')
 
-        setUser({ ...response.data.userData })
-        params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(response.data.userData)) : null
+        const userData = {
+          ...response.data.userData,
+          role: normalizeUserRole(response.data.userData?.role)
+        }
+        setUser(userData)
+        params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(userData)) : null
 
         const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/dashboard'
 

@@ -1,48 +1,63 @@
-import { AbilityBuilder, Ability } from '@casl/ability'
+import { AbilityBuilder, PureAbility } from '@casl/ability'
 
-export type Subjects = string
+export type AppRole = 'admin' | 'manager' | 'client'
+
+export type Subjects = 'client-pages' | 'manager-dashboard' | 'all'
 export type Actions = 'manage' | 'create' | 'read' | 'update' | 'delete'
 
-export type AppAbility = Ability<[Actions, Subjects]> | undefined
+export type AppAbility = PureAbility<[Actions, Subjects]>
 
-export const AppAbility = Ability as any
 export type ACLObj = {
   action: Actions
-  subject: string
+  subject: Subjects
 }
 
 /**
- * Please define your own Ability rules according to your app requirements.
- * We have just shown Admin and Client rules for demo purpose where
- * admin can manage everything and client can just visit ACL page
+ * Map API / SSO / JWT role values to app ACL roles.
+ * Backend JWT uses numeric role (e.g. role: 1 = regular member).
  */
-const defineRulesFor = (role: string) => {
-  const { can, rules } = new AbilityBuilder(AppAbility)
-
-  if (role === 'admin') {
-    can('manage', 'all')
-  } else if (role === 'client') {
-    // Regular users can only access client-pages, not manager-dashboard
-    can(['read'], 'client-pages')
-  } else if (role === 'manager') {
-    // Managers can only access manager-dashboard, not client-pages
-    can(['read', 'manage'], 'manager-dashboard')
-  } else {
-    // For unknown roles, allow read access to all
-    can(['read'], 'all')
+export function normalizeUserRole(role: string | number | undefined | null): AppRole {
+  if (role === null || role === undefined) {
+    return 'client'
   }
 
-  return rules
+  if (typeof role === 'number') {
+    if (role === 2) return 'manager'
+    if (role === 3 || role === 9 || role === 99) return 'admin'
+
+    return 'client'
+  }
+
+  const r = String(role).trim().toLowerCase()
+
+  if (r === 'admin' || r === 'administrator' || r === '3' || r === '9' || r === '99') {
+    return 'admin'
+  }
+  if (r === 'manager' || r === 'مدیر' || r === '2') {
+    return 'manager'
+  }
+  if (r === 'client' || r === 'user' || r === 'member' || r === 'customer' || r === '1' || r === '0') {
+    return 'client'
+  }
+
+  return 'client'
 }
 
-export const buildAbilityFor = (role: string, subject: string): AppAbility => {
-  // Note: subject parameter is kept for backward compatibility but not used
-  // Ability rules are now defined solely based on role
-  return new AppAbility(defineRulesFor(role), {
-    // https://casl.js.org/v5/en/guide/subject-type-detection
-    // @ts-ignore
-    detectSubjectType: object => object!.type
-  })
+export function buildAbilityFor(role: string | number | undefined | null): AppAbility {
+  const { can, cannot, build } = new AbilityBuilder<AppAbility>(PureAbility)
+  const normalized = normalizeUserRole(role)
+
+  if (normalized === 'admin') {
+    can('manage', 'all')
+  } else if (normalized === 'manager') {
+    can(['read', 'manage'], 'manager-dashboard')
+    cannot(['read', 'manage'], 'client-pages')
+  } else {
+    can(['read'], 'client-pages')
+    cannot(['read', 'manage'], 'manager-dashboard')
+  }
+
+  return build()
 }
 
 export const defaultACLObj: ACLObj = {
@@ -50,4 +65,4 @@ export const defaultACLObj: ACLObj = {
   subject: 'all'
 }
 
-export default defineRulesFor
+export default buildAbilityFor

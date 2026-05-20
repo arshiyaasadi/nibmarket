@@ -1,10 +1,13 @@
 'use client'
 
 // ** React Imports
-import React, { ReactNode, Suspense, useEffect } from 'react'
+import React, { ReactNode, Suspense } from 'react'
 
 // ** Config Imports
 import 'src/configs/i18n'
+
+// ** Fake-DB Import (must load before login API calls — not in useEffect)
+import 'src/@fake-db'
 
 // ** Prismjs Styles
 import 'prismjs'
@@ -37,6 +40,7 @@ import { Toaster } from 'react-hot-toast'
 import ThemeComponent from 'src/@core/theme/ThemeComponent'
 
 // ** Contexts
+import ApiBootstrap from 'src/components/ApiBootstrap'
 import { AuthProvider } from 'src/context/AuthContext'
 import { SettingsConsumer, SettingsProvider } from 'src/@core/context/settingsContext'
 
@@ -51,16 +55,12 @@ const clientSideEmotionCache = createEmotionCache()
 
 // ** Client-side Providers Component
 export default function Providers({ children }: { children: ReactNode }) {
-  // ** Fake-DB Import (client-side only - dynamically imported)
-  useEffect(() => {
-    import('src/@fake-db')
-  }, [])
-
   return (
     <Provider store={store}>
       <CacheProvider value={clientSideEmotionCache}>
         <Suspense fallback={<div>Loading...</div>}>
           <AuthProvider>
+            <ApiBootstrap />
             <SettingsProvider>
               <SettingsConsumer>
                 {({ settings }) => {

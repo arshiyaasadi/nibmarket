@@ -11,7 +11,7 @@ import dynamic from 'next/dynamic'
 import { useAuth } from 'src/hooks/useAuth'
 
 // ** Config Import
-import { buildAbilityFor } from 'src/configs/acl'
+import { buildAbilityFor, normalizeUserRole } from 'src/configs/acl'
 
 // ** Component Import
 import Spinner from 'src/@core/components/spinner'
@@ -50,8 +50,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       }
     }
 
-    // Redirect managers to their dashboard immediately
-    if (!auth.loading && auth.user && auth.user.role === 'manager') {
+    if (!auth.loading && auth.user && normalizeUserRole(auth.user.role) === 'manager') {
       router.replace('/manager/dashboard')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -68,14 +67,14 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   }
 
   // Redirect managers to their dashboard (show spinner while redirecting)
-  if (auth.user && auth.user.role === 'manager') {
+  if (auth.user && normalizeUserRole(auth.user.role) === 'manager') {
     return <Spinner />
   }
 
   // Check ACL permission for dashboard access
   // Dashboard requires 'read' permission on 'client-pages'
   if (auth.user) {
-    const ability = buildAbilityFor(auth.user.role, 'client-pages')
+    const ability = buildAbilityFor(auth.user.role)
     if (!ability || !ability.can('read', 'client-pages')) {
       return (
         <BlankLayout>

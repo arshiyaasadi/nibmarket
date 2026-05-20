@@ -1,7 +1,7 @@
 'use client'
 
 // ** React Imports
-import { Suspense, useState, useMemo } from 'react'
+import { Suspense } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -10,30 +10,15 @@ import Typography from '@mui/material/Typography'
 // ** Component Imports
 import TwinTokenStatistics from 'src/views/dashboards/manager/twin-token/TwinTokenStatistics'
 import TokenPriceChart from 'src/views/dashboards/manager/twin-token/TokenPriceChart'
+import DashboardWidgetState from 'src/components/dashboard/DashboardWidgetState'
 
-// ** Mock Data Generator
-const generateMockTwinTokenData = () => {
-  // Mock data - in real app, this would come from API
-  const totalTokens = 1000000000 // 1 billion tokens
-  const burnedTokens = 50000000 // 50 million burned
-  const circulatingTokens = totalTokens - burnedTokens // 950 million
-  const poolBalance = 45000000000 // 45 billion Rial
-  const tokenPrice = 47.37 // Rial per token
-  const priceChange24h = 2.45 // 2.45% increase
-
-  return {
-    poolBalance,
-    totalTokens,
-    circulatingTokens,
-    tokenPrice,
-    priceChange24h,
-    burnedTokens
-  }
-}
+// ** Hooks
+import { useTwinTokenStats } from 'src/hooks/manager/useTwinTokenStats'
+import { useTwinTokenPriceChart } from 'src/hooks/manager/useTwinTokenPriceChart'
 
 const TwinTokenPageContent = () => {
-  // ** Mock data - in real app, this would come from API
-  const [tokenData] = useState(() => generateMockTwinTokenData())
+  const stats = useTwinTokenStats()
+  const chart = useTwinTokenPriceChart()
 
   return (
     <Box>
@@ -41,24 +26,43 @@ const TwinTokenPageContent = () => {
         توکن TWIN
       </Typography>
 
-      {/* Statistics */}
       <Box sx={{ mb: 6 }}>
-        <TwinTokenStatistics
-          poolBalance={tokenData.poolBalance}
-          totalTokens={tokenData.totalTokens}
-          circulatingTokens={tokenData.circulatingTokens}
-          tokenPrice={tokenData.tokenPrice}
-          priceChange24h={tokenData.priceChange24h}
-          burnedTokens={tokenData.burnedTokens}
-        />
+        <DashboardWidgetState
+          loading={stats.loading}
+          retrying={stats.retrying}
+          error={stats.error}
+          usedFallback={stats.usedFallback}
+          onRetry={stats.refetch}
+          skeletonHeight={200}
+          widgetTitle='آمار توکن TWIN'
+        >
+          <TwinTokenStatistics
+            poolBalance={stats.data.poolBalance}
+            totalTokens={stats.data.totalTokens}
+            circulatingTokens={stats.data.circulatingTokens}
+            tokenPrice={stats.data.tokenPrice}
+            priceChange24h={stats.data.priceChange24h}
+            burnedTokens={stats.data.burnedTokens}
+          />
+        </DashboardWidgetState>
       </Box>
 
-      {/* Price Chart */}
       <Box>
-        <TokenPriceChart
-          currentPrice={tokenData.tokenPrice}
-          priceChange24h={tokenData.priceChange24h}
-        />
+        <DashboardWidgetState
+          loading={chart.loading}
+          retrying={chart.retrying}
+          error={chart.error}
+          usedFallback={chart.usedFallback}
+          onRetry={chart.refetch}
+          skeletonHeight={400}
+          widgetTitle='نمودار قیمت'
+        >
+          <TokenPriceChart
+            currentPrice={chart.data.currentPrice}
+            priceChange24h={chart.data.priceChange24h}
+            candles={chart.data.candles}
+          />
+        </DashboardWidgetState>
       </Box>
     </Box>
   )

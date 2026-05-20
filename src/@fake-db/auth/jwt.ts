@@ -6,6 +6,7 @@ import mock from 'src/@fake-db/mock'
 
 // ** Default AuthConfig
 import defaultAuthConfig from 'src/configs/auth'
+import { normalizeUserRole } from 'src/configs/acl'
 
 // ** Types
 import { UserDataType } from 'src/context/types'
@@ -60,7 +61,7 @@ mock.onPost('/jwt/login').reply(request => {
 
     const response = {
       accessToken,
-      userData: { ...user, password: undefined }
+      userData: { ...user, password: undefined, role: normalizeUserRole(user.role) }
     }
 
     return [200, response]
@@ -134,28 +135,40 @@ mock.onGet('/auth/me').reply(config => {
         // ** 401 response will logout user from AuthContext file
         response = [401, { error: { error: 'Invalid User' } }]
       } else {
-        // ** If onTokenExpiration === 'refreshToken' then generate the new token
         const oldTokenDecoded = jwt.decode(token, { complete: true })
+        const payload = (oldTokenDecoded?.payload ?? {}) as {
+          id?: number
+          user_id?: number
+          role?: string | number
+        }
 
-        // ** Get user id from old token
-        // @ts-ignore
-        const { id: userId } = oldTokenDecoded.payload
-
-        // ** Get user that matches id in token
+        const userId = payload.user_id ?? payload.id
+        const appRole = normalizeUserRole(payload.role)
         const user = users.find(u => u.id === userId)
 
-        // ** Sign a new token
-        const accessToken = jwt.sign({ id: userId }, jwtConfig.secret as string, {
-          expiresIn: jwtConfig.expirationTime
-        })
-
-        // ** Set new token in localStorage
-        window.localStorage.setItem(defaultAuthConfig.storageTokenKeyName, accessToken)
-
-        const obj = { userData: { ...user, password: undefined } }
-
-        // ** return 200 with user data
-        response = [200, obj]
+        if (user && userId) {
+          const accessToken = jwt.sign({ id: userId }, jwtConfig.secret as string, {
+            expiresIn: jwtConfig.expirationTime
+          })
+          window.localStorage.setItem(defaultAuthConfig.storageTokenKeyName, accessToken)
+          response = [200, { userData: { ...user, password: undefined, role: appRole } }]
+        } else if (userId) {
+          response = [
+            200,
+            {
+              userData: {
+                id: userId,
+                role: appRole,
+                email: '',
+                fullName: '',
+                username: String(userId),
+                password: ''
+              }
+            }
+          ]
+        } else {
+          response = [401, { error: { error: 'Invalid User' } }]
+        }
       }
     } else {
       // ** If token is valid do nothing
@@ -163,12 +176,15 @@ mock.onGet('/auth/me').reply(config => {
       const userId = decoded.id
 
       // ** Get user that matches id in token
-      const userData = JSON.parse(JSON.stringify(users.find((u: UserDataType) => u.id === userId)))
-
-      delete userData.password
-
-      // ** return 200 with user data
-      response = [200, { userData }]
+      const user = users.find((u: UserDataType) => u.id === userId)
+      if (!user) {
+        response = [401, { error: { error: 'Invalid User' } }]
+      } else {
+        const userData = JSON.parse(JSON.stringify(user))
+        delete userData.password
+        userData.role = normalizeUserRole(userData.role)
+        response = [200, { userData }]
+      }
     }
   })
 

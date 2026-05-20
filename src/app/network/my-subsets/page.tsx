@@ -28,6 +28,10 @@ import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** Hooks
 import { useSettings } from 'src/@core/hooks/useSettings'
+import { useNetworkSubsets } from 'src/hooks/network/useNetworkSubsets'
+
+// ** Components
+import DashboardWidgetState from 'src/components/dashboard/DashboardWidgetState'
 
 // ** Utils Import
 import { getInitials } from 'src/@core/utils/get-initials'
@@ -60,18 +64,6 @@ type StyledTreeItemProps = TreeItemProps & {
 const escapeRegExp = (value: string) => {
   return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
 }
-
-// ** Table Mock Data
-const tableRows: TableRowType[] = [
-  { id: 1, fullName: 'علی احمدی', level: 5, joinDate: '1402/08/15', subMembersCount: 12, leaderboardRank: 3, avatar: '/images/avatars/1.png' },
-  { id: 2, fullName: 'سارا محمدی', level: 7, joinDate: '1402/07/20', subMembersCount: 25, leaderboardRank: 1, avatar: '/images/avatars/2.png' },
-  { id: 3, fullName: 'رضا کریمی', level: 4, joinDate: '1402/09/10', subMembersCount: 8, leaderboardRank: 15, avatar: '/images/avatars/3.png' },
-  { id: 4, fullName: 'زهرا رضایی', level: 6, joinDate: '1402/06/05', subMembersCount: 18, leaderboardRank: 5, avatar: '/images/avatars/4.png' },
-  { id: 5, fullName: 'محمد حسینی', level: 3, joinDate: '1402/09/25', subMembersCount: 5, leaderboardRank: 28, avatar: '/images/avatars/5.png' },
-  { id: 6, fullName: 'فاطمه علیزاده', level: 8, joinDate: '1402/05/12', subMembersCount: 32, leaderboardRank: 2, avatar: '/images/avatars/6.png' },
-  { id: 7, fullName: 'حسن رضوی', level: 2, joinDate: '1402/10/01', subMembersCount: 3, leaderboardRank: 42, avatar: '/images/avatars/7.png' },
-  { id: 8, fullName: 'مریم کاظمی', level: 5, joinDate: '1402/08/18', subMembersCount: 14, leaderboardRank: 10, avatar: '/images/avatars/8.png' }
-]
 
 // ** Custom Search Toolbar
 interface CustomSearchToolbarProps extends Omit<GridToolbarProps, 'onChange'> {
@@ -329,6 +321,8 @@ const MySubsetsPageContent = () => {
   // ** Hooks
   const { settings } = useSettings()
   const direction = settings.direction || 'rtl'
+  const { data, loading, retrying, error, hasData, usedFallback, refetch } = useNetworkSubsets()
+  const tableRows = data.rows
 
   // ** Sample data structure - replace with your actual data
   const treeData: SubsetNode[] = useMemo(
@@ -437,11 +431,19 @@ const MySubsetsPageContent = () => {
         زیر مجموعه های من
       </Typography>
 
-      {/* Users Table with Search */}
       <Card>
-        <CardContent sx={{ p: theme => theme.spacing(5, 6) }}>
-          <Box sx={{ direction: 'rtl' }} suppressHydrationWarning>
-            <DataGrid
+        <DashboardWidgetState
+          loading={loading}
+          retrying={retrying}
+          error={error}
+          usedFallback={usedFallback}
+          onRetry={refetch}
+          skeletonHeight={480}
+          widgetTitle='زیر مجموعه‌های من'
+        >
+          <CardContent sx={{ p: theme => theme.spacing(5, 6) }}>
+            <Box sx={{ direction: 'rtl', opacity: hasData ? 1 : 0.5 }} suppressHydrationWarning>
+              <DataGrid
               autoHeight
               columns={columns}
               pageSizeOptions={[7, 10, 25, 50]}
@@ -592,9 +594,10 @@ const MySubsetsPageContent = () => {
                 textAlign: 'center'
               }
             }}
-            />
-          </Box>
-        </CardContent>
+              />
+            </Box>
+          </CardContent>
+        </DashboardWidgetState>
       </Card>
     </Box>
   )

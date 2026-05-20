@@ -43,6 +43,13 @@ src/
     └── ...               ← Existing pages router code (template reference)
 ```
 
+### Data source (dashboard mock vs API)
+
+- Dashboard widgets use **`NEXT_PUBLIC_DATA_SOURCE`** (`mock` | `api`) and **`NEXT_PUBLIC_API_ENABLED`** — not fake-db.
+- Template auth and legacy pages still use **`src/@fake-db`** (axios-mock).
+- Before adding dashboard API calls: read [`docs/DATA_SOURCE.md`](docs/DATA_SOURCE.md) and [`docs/schema.md`](docs/schema.md).
+- Env template: [`.env.example`](.env.example).
+
 ### Important Notes
 
 - The root route (`/`) now serves the login page from `src/app/page.tsx`

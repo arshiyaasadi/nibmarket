@@ -11,6 +11,10 @@ import CardContent from '@mui/material/CardContent'
 
 // ** Hooks
 import { useSettings } from 'src/@core/hooks/useSettings'
+import { useNetworkSubsetTree } from 'src/hooks/network/useNetworkSubsetTree'
+
+// ** Components
+import DashboardWidgetState from 'src/components/dashboard/DashboardWidgetState'
 
 // ** Types for network tree
 interface NetworkNode {
@@ -291,79 +295,8 @@ const NetworkTree = ({ root }: { root: NetworkNode }) => {
 const SubsetTreePageContent = () => {
   const { settings } = useSettings()
   const direction = settings.direction || 'rtl'
-
-  // Example mock data - each node has at least 2 children
-  const rootNode: NetworkNode = useMemo(
-    () => ({
-      id: '1',
-      name: 'علی',
-      family: 'احمدی',
-      balance: 5000000,
-      networks: [
-        {
-          id: '2',
-          name: 'محمد',
-          family: 'رضایی',
-          balance: 3000000,
-          networks: [
-            {
-              id: '4',
-              name: 'حسن',
-              family: 'کریمی',
-              balance: 1500000,
-              networks: [
-              ]
-            },
-            {
-              id: '5',
-              name: 'سارا',
-              family: 'رضایی',
-              balance: 1100000,
-              networks: []
-            }
-          ]
-        },
-        {
-          id: '3',
-          name: 'رضا',
-          family: 'محمدی',
-          balance: 2500000,
-          networks: [
-            {
-              id: '13',
-              name: 'الهام',
-              family: 'صبوری',
-              balance: 1200000,
-              networks: [
-                {
-                  id: '14',
-                  name: 'نگین',
-                  family: 'صبوری',
-                  balance: 510000,
-                  networks: [
-                    {
-                      id: '15',
-                      name: 'سارا',
-                      family: 'رضایی',
-                      balance: 1100000,
-                      networks: []
-                    },
-                    {
-                      id: '16',
-                      name: 'سارا',
-                      family: 'رضایی',
-                      balance: 1100000,
-                      networks: []
-                    }]
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }),
-    []
-  )
+  const { data, loading, retrying, error, hasData, usedFallback, refetch } = useNetworkSubsetTree()
+  const rootNode = data.root
 
   return (
     <Box dir={direction}>
@@ -371,9 +304,19 @@ const SubsetTreePageContent = () => {
         درخت زیر مجموعه
       </Typography>
       <Card>
-        <CardContent sx={{ p: theme => `${theme.spacing(5)} !important` }}>
-          <NetworkTree root={rootNode} />
-        </CardContent>
+        <DashboardWidgetState
+          loading={loading}
+          retrying={retrying}
+          error={error}
+          usedFallback={usedFallback}
+          onRetry={refetch}
+          skeletonHeight={420}
+          widgetTitle='درخت زیر مجموعه'
+        >
+          <CardContent sx={{ p: theme => `${theme.spacing(5)} !important` }}>
+            <NetworkTree root={rootNode} />
+          </CardContent>
+        </DashboardWidgetState>
       </Card>
     </Box>
   )

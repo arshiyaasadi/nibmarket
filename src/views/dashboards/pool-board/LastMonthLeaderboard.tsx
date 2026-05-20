@@ -17,6 +17,8 @@ import { styled } from '@mui/material/styles'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
+import type { LeaderboardEntry } from 'src/types/api/leaderboard'
+
 // ** Styled Components
 const RankBadge = styled(Box)<{ rank: number }>(({ theme }) => {
   return {
@@ -33,16 +35,11 @@ const RankBadge = styled(Box)<{ rank: number }>(({ theme }) => {
   }
 })
 
-// Mock leaderboard data for last month
-const lastMonthLeaderboard = [
-  { id: 1, rank: 1, name: 'حسین احمدی', points: 11800, subordinates: 42 },
-  { id: 2, rank: 2, name: 'محمد رضایی', points: 10500, subordinates: 35 },
-  { id: 3, rank: 3, name: 'فاطمه کریمی', points: 9200, subordinates: 30 },
-  { id: 4, rank: 4, name: 'علی موسوی', points: 8100, subordinates: 26 },
-  { id: 5, rank: 5, name: 'زهرا نوری', points: 7500, subordinates: 22 }
-]
+type LastMonthLeaderboardProps = {
+  entries: LeaderboardEntry[]
+}
 
-const LastMonthLeaderboard = () => {
+const LastMonthLeaderboard = ({ entries }: LastMonthLeaderboardProps) => {
   // ** State
   const [filter, setFilter] = useState<string>('all')
   const theme = useTheme()
@@ -83,7 +80,7 @@ const LastMonthLeaderboard = () => {
       />
       <CardContent sx={{ p: 6, flex: 1 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {lastMonthLeaderboard.map((item, index) => (
+          {entries.map((item, index) => (
             <Box key={item.id}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {/* Name and Rank */}
@@ -119,7 +116,7 @@ const LastMonthLeaderboard = () => {
                   </Box>
                 </Box>
               </Box>
-              {index < lastMonthLeaderboard.length - 1 && <Divider sx={{ mt: 3 }} />}
+              {index < entries.length - 1 && <Divider sx={{ mt: 3 }} />}
             </Box>
           ))}
         </Box>

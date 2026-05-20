@@ -18,16 +18,16 @@ Docker/npm use `package-lock.json` (see `Dockerfile`).
 
 ## Docker
 
+**Production** (standalone image, port **3000**):
+
+```bash
+docker compose up --build -d
+```
+
 **Development** (hot reload, source mounted):
 
 ```bash
-docker compose up --build
-```
-
-**Production-style** (standalone image, port **3000**):
-
-```bash
-docker compose -f docker-compose.prod.yml up --build -d
+docker compose -f docker-compose.dev.yml up --build
 ```
 
 The image is based on `node:22-bookworm-slim` from Docker Hub; the build host needs outbound access to pull base layers (or use a registry mirror on restricted networks).
@@ -78,6 +78,23 @@ JSON response includes `ok`, `status`, and `url`. If the container cannot route 
 
 ## Environment
 
-See [`.env.example`](./.env.example) for JWT and optional URLs.
+Copy and edit env files:
 
-~curl http://localhost:3000/api/health/backend/
+```bash
+cp .env.example .env
+# optional: .env.local for NEXT_PUBLIC_USER_TOKEN and overrides
+```
+
+| Topic | Doc |
+|-------|-----|
+| All env variables (JWT, mock/api, token) | [`.env.example`](./.env.example) |
+| **Mock vs fake-db vs real API** | [`docs/DATA_SOURCE.md`](./docs/DATA_SOURCE.md) |
+| Dashboard API contracts | [`docs/schema.md`](./docs/schema.md) |
+
+Quick defaults: `NEXT_PUBLIC_DATA_SOURCE=mock` (dashboard uses local mocks; template auth still uses `@fake-db`). Set `NEXT_PUBLIC_DATA_SOURCE=api` and list slugs in `NEXT_PUBLIC_API_ENABLED` to call `https://api-club.nibdev.com` gradually.
+
+Restart `npm run dev` after changing any `NEXT_PUBLIC_*` variable.
+
+```bash
+curl http://localhost:3000/api/health/backend/
+```

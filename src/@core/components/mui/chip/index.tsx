@@ -10,11 +10,16 @@ import { CustomChipProps } from './types'
 // ** Hooks Imports
 import useBgColor, { UseBgColorType } from 'src/@core/hooks/useBgColor'
 
-const Chip = (props: CustomChipProps) => {
-  // ** Props
-  const { sx, skin, color, rounded } = props
+// ** Utils
+import { isThemeColor, safeThemeColor } from 'src/@core/utils/safe-theme-color'
+import { sanitizeSxColors } from 'src/@core/utils/sanitize-sx'
 
-  // ** Hook
+const Chip = (props: CustomChipProps) => {
+  const { sx, skin, color: colorProp, rounded, label, children, ...rest } = props
+
+  const color = colorProp != null ? safeThemeColor(colorProp) : undefined
+  const safeSx = sanitizeSxColors(sx)
+
   const bgColors = useBgColor()
 
   const colors: UseBgColorType = {
@@ -26,20 +31,26 @@ const Chip = (props: CustomChipProps) => {
     info: { ...bgColors.infoLight }
   }
 
-  const propsToPass = { ...props }
-
-  propsToPass.rounded = undefined
+  const muiColor = color && isThemeColor(color) ? color : undefined
+  const chipSx =
+    skin === 'light' && color && colors[color]
+      ? sanitizeSxColors(Object.assign({}, colors[color], safeSx))
+      : safeSx
 
   return (
     <MuiChip
-      {...propsToPass}
+      {...rest}
+      label={label}
+      color={muiColor}
       variant='filled'
       className={clsx({
         'MuiChip-rounded': rounded,
         'MuiChip-light': skin === 'light'
       })}
-      sx={skin === 'light' && color && colors[color] ? Object.assign(colors[color], sx) : sx}
-    />
+      sx={chipSx}
+    >
+      {children}
+    </MuiChip>
   )
 }
 

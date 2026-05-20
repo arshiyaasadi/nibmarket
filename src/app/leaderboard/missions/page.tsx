@@ -19,9 +19,11 @@ import Icon from 'src/@core/components/icon'
 // ** Custom Components Imports
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import CustomChip from 'src/@core/components/mui/chip'
+import DashboardWidgetState from 'src/components/dashboard/DashboardWidgetState'
 
-// ** Global Missions Data
-import { missionsData, MissionType } from 'src/data/missions'
+// ** Hooks
+import { useLeaderboardMissions } from 'src/hooks/leaderboard/useLeaderboardMissions'
+import type { Mission } from 'src/types/api/leaderboard'
 
 // ** Styled Components
 const MissionCard = styled(Card)(({ theme }) => ({
@@ -31,7 +33,6 @@ const MissionCard = styled(Card)(({ theme }) => ({
   border: `1px solid ${theme.palette.divider}`
 }))
 
-// Mission icons mapping
 const getMissionIcon = (id: number) => {
   const icons = [
     'mdi:account-plus',
@@ -43,13 +44,16 @@ const getMissionIcon = (id: number) => {
     'mdi:account-supervisor',
     'mdi:account-multiple-check'
   ]
+
   return icons[id - 1] || 'mdi:star'
 }
 
 const MissionsPageContent = () => {
-  const handleMissionClick = (mission: MissionType) => {
+  const { data, loading, retrying, error, hasData, usedFallback, refetch } = useLeaderboardMissions()
+  const missions = data.missions
+
+  const handleMissionClick = (mission: Mission) => {
     if (!mission.completed) {
-      // Handle mission click logic here
       console.log('Mission clicked:', mission)
     }
   }
@@ -60,88 +64,83 @@ const MissionsPageContent = () => {
         ماموریت ها
       </Typography>
       <Card>
-        <CardHeader
-          title='جدول فعالیت هایی که فرد می تواند با تکمیل و انجام آن توکن بدست بیاورد'
-          titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }}
-        />
-        <CardContent>
-          <Grid container spacing={7}>
-            {missionsData.map((mission: MissionType) => (
-              <Grid item xs={12} sm={6} key={mission.id}>
-                <MissionCard onClick={() => handleMissionClick(mission)}>
-                  <CardContent sx={{ p: 4 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3 }}>
-                      <CustomAvatar
-                        skin='light'
-                        variant='rounded'
-                        color={mission.completed ? 'success' : 'primary'}
-                        sx={{
-                          width: 56,
-                          height: 56,
-                          mr: 3,
-                          borderRadius: 1.5
-                        }}
-                      >
-                        <Icon icon={getMissionIcon(mission.id)} fontSize='1.75rem' />
-                      </CustomAvatar>
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography
-                          variant='body1'
+        <DashboardWidgetState
+          loading={loading}
+          retrying={retrying}
+          error={error}
+          usedFallback={usedFallback}
+          onRetry={refetch}
+          skeletonHeight={480}
+          widgetTitle='ماموریت‌ها'
+        >
+          <CardHeader
+            title='جدول فعالیت هایی که فرد می تواند با تکمیل و انجام آن توکن بدست بیاورد'
+            titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }}
+          />
+          <CardContent sx={{ opacity: hasData ? 1 : 0.5 }}>
+            <Grid container spacing={7}>
+              {missions.map((mission: Mission) => (
+                <Grid item xs={12} sm={6} key={mission.id}>
+                  <MissionCard onClick={() => handleMissionClick(mission)}>
+                    <CardContent sx={{ p: 4 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3 }}>
+                        <CustomAvatar
+                          skin='light'
+                          variant='rounded'
+                          color={mission.completed ? 'success' : 'primary'}
                           sx={{
-                            fontWeight: 600,
-                            mb: 1,
-                            fontSize: '0.9375rem',
-                            color: mission.completed ? 'text.secondary' : 'text.primary'
+                            width: 56,
+                            height: 56,
+                            mr: 3,
+                            borderRadius: 1.5
                           }}
                         >
-                          {mission.title}
-                        </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1.5 }}>
-                          <Icon
-                            icon={mission.completed ? 'mdi:check-circle' : 'mdi:clock-outline'}
-                            fontSize={16}
-                            style={{
-                              color: mission.completed ? '#2e7d32' : '#9e9e9e'
-                            }}
-                          />
+                          <Icon icon={getMissionIcon(mission.id)} fontSize='1.75rem' />
+                        </CustomAvatar>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
                           <Typography
-                            variant='caption'
+                            variant='body1'
                             sx={{
-                              color: mission.completed ? 'success.main' : 'text.secondary',
-                              fontWeight: 500,
-                              fontSize: '0.75rem'
+                              fontWeight: 600,
+                              mb: 1,
+                              fontSize: '0.9375rem',
+                              color: mission.completed ? 'text.secondary' : 'text.primary'
                             }}
                           >
-                            {mission.completed ? 'تکمیل شده' : 'در انتظار'}
+                            {mission.title}
                           </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1.5 }}>
+                            <Icon
+                              icon='mdi:gift-outline'
+                              fontSize={18}
+                              style={{ color: mission.completed ? 'inherit' : undefined }}
+                            />
+                            <Typography variant='body2' sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                              پاداش: {mission.reward}
+                            </Typography>
+                          </Box>
                         </Box>
                       </Box>
-                    </Box>
-                    <Divider sx={{ my: 2.5 }} />
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <Typography variant='body2' sx={{ color: 'text.secondary', fontSize: '0.8125rem' }}>
-                        پاداش:
-                      </Typography>
-                      <CustomChip
-                        size='small'
-                        label={mission.reward}
-                        color='success'
-                        skin='light'
-                        sx={{
-                          height: 28,
-                          fontSize: '0.875rem',
-                          fontWeight: 700,
-                          px: 2,
-                          borderRadius: 1
-                        }}
-                      />
-                    </Box>
-                  </CardContent>
-                </MissionCard>
-              </Grid>
-            ))}
-          </Grid>
-        </CardContent>
+                      <Divider sx={{ mb: 3 }} />
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <CustomChip
+                          skin='light'
+                          size='small'
+                          label={mission.completed ? 'تکمیل شده' : 'در انتظار انجام'}
+                          color={mission.completed ? 'success' : 'warning'}
+                          sx={{ fontWeight: 600, fontSize: '0.75rem' }}
+                        />
+                        {!mission.completed && (
+                          <Icon icon='mdi:chevron-left' fontSize={20} style={{ color: 'inherit' }} />
+                        )}
+                      </Box>
+                    </CardContent>
+                  </MissionCard>
+                </Grid>
+              ))}
+            </Grid>
+          </CardContent>
+        </DashboardWidgetState>
       </Card>
     </Box>
   )
@@ -156,4 +155,3 @@ const MissionsPage = () => {
 }
 
 export default MissionsPage
-
