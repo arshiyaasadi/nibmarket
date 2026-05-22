@@ -2,14 +2,15 @@
 
 import { useEffect } from 'react'
 
-import { ensureAccessToken } from 'src/lib/auth-token'
+import { seedEntryTokenFromEnv } from 'src/lib/auth-token'
 
 /**
- * Runs once on client mount to seed cookie from NEXT_PUBLIC_USER_TOKEN when needed.
+ * Seeds dev SSO entry token from env when no session exists.
+ * AuthProvider exchanges it via /api/v1/auth/check_token before API calls use accessToken.
  */
 export default function ApiBootstrap() {
   useEffect(() => {
-    ensureAccessToken()
+    seedEntryTokenFromEnv()
   }, [])
 
   return null

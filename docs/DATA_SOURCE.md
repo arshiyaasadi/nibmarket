@@ -66,9 +66,10 @@ Fake-DB با **axios-mock-adapter** روی همان `axios` پیش‌فرض تم
 | متغیر | پیش‌فرض | توضیح |
 |--------|---------|--------|
 | `NEXT_PUBLIC_DATA_SOURCE` | `mock` | `mock` = داشبورد فقط از mock محلی. `api` = ترکیب API + mock تدریجی |
-| `NEXT_PUBLIC_API_BASE_URL` | `https://api-club.nibdev.com` | Base URL برای `apiClient` (مسیرها به‌صورت خودکار با `/v1` پیشوند می‌شوند، مثلاً `/v1/api/dashboard/wallet`) |
+| `NEXT_PUBLIC_API_BASE_URL` | `https://api-club.nibdev.com` | آدرس بک‌اند؛ در مرورگر اگر host با فرانت فرق داشته باشد، درخواست‌ها از همان origin (`/api/v1/...`) با **rewrite** Next به بک‌اند می‌روند تا هدر `Authorization` به‌خاطر CORS حذف نشود |
+| `NEXT_PUBLIC_API_USE_PROXY` | (خالی = auto) | `false` = همیشه مستقیم به `API_BASE_URL` (فقط اگر بک‌اند CORS را برای `Authorization` باز کرده) |
 | `NEXT_PUBLIC_API_ENABLED` | خالی در حالت `api` | **خالی یا `all`** = همه slugها (داشبورد + شبکه + گزارش + لیدربورد + TWIN)؛ یا لیست با کاما |
-| `NEXT_PUBLIC_USER_TOKEN` | خالی | `Bearer ...` برای dev وقتی کاربر لاگین نکرده |
+| `NEXT_PUBLIC_USER_TOKEN` | خالی | توکن خام (بدون `Bearer`) برای dev وقتی کاربر لاگین نکرده |
 | `NEXT_PUBLIC_JWT_*` | — | فقط **fake-db auth** (لاگین mock تمپلیت) |
 
 ### slugهای `NEXT_PUBLIC_API_ENABLED`
@@ -162,9 +163,19 @@ NEXT_PUBLIC_API_ENABLED=dashboard-wallet,dashboard-rewards
 
 ```env
 NEXT_PUBLIC_DATA_SOURCE=api
+NEXT_PUBLIC_API_BASE_URL=http://192.168.1.94:5118
 NEXT_PUBLIC_API_ENABLED=dashboard-wallet
-NEXT_PUBLIC_USER_TOKEN=Bearer eyJ...
+NEXT_PUBLIC_USER_TOKEN=eyJ...
 ```
+
+**پروکسی dev (CORS):** اگر فرانت روی `localhost:3000` و بک‌اند روی IP دیگر است، مرورگر هدر `Authorization` را در cross-origin ارسال نمی‌کند. با `next.config.js` → `rewrites` و `resolveApiBaseUrl()` در مرورگر، درخواست‌ها به همان origin می‌روند:
+
+```text
+مرورگر → GET http://localhost:3000/api/v1/dashboard/rewards  (+ Authorization)
+Next.js rewrite → http://192.168.1.94:5118/api/v1/dashboard/rewards
+```
+
+برای غیرفعال کردن: `NEXT_PUBLIC_API_USE_PROXY=false` (فقط وقتی بک‌اند CORS را برای `authorization` باز کرده).
 
 **اولویت توکن** (`src/lib/auth-token.ts`):
 
@@ -174,9 +185,9 @@ NEXT_PUBLIC_USER_TOKEN=Bearer eyJ...
 
 توکن را در **`.env.local`** بگذارید، نه در git.
 
-### ۴. بعد از `npm run dev`
+### ۴. ری‌استارت dev server
 
-تغییر `NEXT_PUBLIC_*` نیاز به **ری‌استارت dev server** دارد (مقادیر در build-time embed می‌شوند).
+بعد از تغییر `next.config.js`، `NEXT_PUBLIC_API_BASE_URL` یا هر `NEXT_PUBLIC_*` دیگر، `npm run dev` را **restart** کنید (rewriteها و env در build-time embed می‌شوند).
 
 ---
 

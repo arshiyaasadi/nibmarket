@@ -2,26 +2,27 @@
 
 import { useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import toast from 'react-hot-toast'
+
 import Spinner from 'src/@core/components/spinner'
+import { setEntryToken } from 'src/lib/auth-token'
 
 /**
- * Test entry: external site redirects here with a token in the path.
- * For now we only confirm receipt and send the user to normal login.
+ * SSO entry: store foreign token and send user to dashboard.
+ * AuthProvider exchanges it via /api/v1/auth/check_token before rendering app data.
  */
 export default function LoginTokenPage() {
   const params = useParams()
   const router = useRouter()
-  const token = typeof params?.token === 'string' ? params.token : undefined
+  const token = typeof params?.token === 'string' ? decodeURIComponent(params.token) : undefined
 
   useEffect(() => {
-    if (!token) return
+    if (!token) {
+      router.replace('/')
+      return
+    }
 
-    toast.success('SSO token received — test flow OK. Redirecting to login.', {
-      duration: 4500,
-      id: 'sso-token-test'
-    })
-    router.replace('/')
+    setEntryToken(token)
+    router.replace('/dashboard')
   }, [token, router])
 
   return <Spinner />

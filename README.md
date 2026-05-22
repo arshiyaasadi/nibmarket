@@ -45,15 +45,20 @@ The image is based on `node:22-bookworm-slim` from Docker Hub; the build host ne
 
 3. Otherwise use VPN or your company’s Docker registry mirror.
 
-## SSO token entry (test)
+## SSO token entry
 
-External site redirects users here with the token in the path:
+External systems send users with a **foreign token** (not the app session token). The app exchanges it once, then uses the returned `accessToken` for all API calls.
 
-`https://{project-domain}/login/token/{TOKEN}`
+| Step | What happens |
+|------|----------------|
+| 1 | Redirect to `https://{project-domain}/login/token/{ENTRY_TOKEN}/` (or `?token=` on any route) |
+| 2 | `POST /api/v1/auth/check_token` with `Authorization: Bearer {ENTRY_TOKEN}` |
+| 3 | On **200**: store `accessToken`, `userId`, `role` in `localStorage` → redirect `/dashboard` |
+| 4 | On **401**: redirect to login (`/`) |
 
-With `trailingSlash: true`, the canonical path is often `https://{project-domain}/login/token/{TOKEN}/`.
+**Dev:** set `NEXT_PUBLIC_USER_TOKEN` in `.env` to the foreign token; on first load `AuthProvider` runs the same exchange (no manual login).
 
-Current behavior: the app shows a success toast and redirects to the normal login page (`/`). Wire real token exchange later as needed.
+**Session token:** only `accessToken` from `check_token` is sent to dashboard/network/reports APIs. The entry token is never reused after exchange.
 
 ## Backend health check
 

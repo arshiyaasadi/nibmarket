@@ -1,7 +1,9 @@
 import Cookies from 'js-cookie'
 
 import authConfig from 'src/configs/auth'
-import { ACCESS_TOKEN_COOKIE, ENV_USER_TOKEN } from 'src/configs/api'
+import { ACCESS_TOKEN_COOKIE, ENV_ENTRY_TOKEN } from 'src/configs/api'
+
+const ENTRY_TOKEN_STORAGE_KEY = 'ssoEntryToken'
 
 const COOKIE_OPTIONS: Cookies.CookieAttributes = {
   sameSite: 'lax',
@@ -9,15 +11,28 @@ const COOKIE_OPTIONS: Cookies.CookieAttributes = {
   path: '/'
 }
 
-function normalizeToken(token: string): string {
+/** Strip Bearer prefix; return raw JWT/string. */
+export function stripBearerPrefix(token: string): string {
   const trimmed = token.trim()
-  if (!trimmed) return ''
-  if (trimmed.toLowerCase().startsWith('bearer ')) return trimmed
+  if (trimmed.toLowerCase().startsWith('bearer ')) {
+    return trimmed.slice(7).trim()
+  }
 
-  return `Bearer ${trimmed}`
+  return trimmed
 }
 
-/** Read token from localStorage (logged-in user). */
+export function toAuthorizationHeader(token: string): string {
+  const raw = stripBearerPrefix(token)
+  if (!raw) return ''
+
+  return `Bearer ${raw}`
+}
+
+function normalizeToken(token: string): string {
+  return toAuthorizationHeader(token)
+}
+
+/** Read session accessToken from localStorage (post check_token). */
 function getTokenFromLocalStorage(): string | null {
   if (typeof window === 'undefined') return null
   const raw = window.localStorage.getItem(authConfig.storageTokenKeyName)
@@ -26,7 +41,7 @@ function getTokenFromLocalStorage(): string | null {
   return normalizeToken(raw)
 }
 
-/** Read token from cookie. */
+/** Read session accessToken from cookie. */
 function getTokenFromCookie(): string | null {
   const raw = Cookies.get(ACCESS_TOKEN_COOKIE)
   if (!raw?.trim()) return null
@@ -34,26 +49,76 @@ function getTokenFromCookie(): string | null {
   return normalizeToken(raw)
 }
 
-/**
- * Priority: localStorage (user login) → cookie → env NEXT_PUBLIC_USER_TOKEN
- */
-export function getAccessToken(): string | null {
-  return getTokenFromLocalStorage() || getTokenFromCookie() || (ENV_USER_TOKEN ? normalizeToken(ENV_USER_TOKEN) : null)
+/** External SSO token — only for /api/v1/auth/check_token. */
+export function getEntryToken(): string | null {
+  if (typeof window === 'undefined') return null
+
+  const fromSession = window.sessionStorage.getItem(ENTRY_TOKEN_STORAGE_KEY)
+  if (fromSession?.trim()) return stripBearerPrefix(fromSession)
+
+  if (ENV_ENTRY_TOKEN) return stripBearerPrefix(ENV_ENTRY_TOKEN)
+
+  return null
+}
+
+export function setEntryToken(token: string): void {
+  if (typeof window === 'undefined') return
+  const raw = stripBearerPrefix(token)
+  if (!raw) return
+  window.sessionStorage.setItem(ENTRY_TOKEN_STORAGE_KEY, raw)
+}
+
+export function clearEntryToken(): void {
+  if (typeof window === 'undefined') return
+  window.sessionStorage.removeItem(ENTRY_TOKEN_STORAGE_KEY)
+}
+
+/** Which store supplied the session token (no token value). */
+export function getAccessTokenSource(): 'localStorage' | 'cookie' | 'none' {
+  if (getTokenFromLocalStorage()) return 'localStorage'
+  if (getTokenFromCookie()) return 'cookie'
+
+  return 'none'
 }
 
 /**
- * If no user token exists, persist env token to cookie for subsequent API calls.
+ * Session token for API calls (after check_token).
+ * Does not return SSO entry token — use getEntryToken() for exchange only.
  */
-export function ensureAccessToken(): void {
+export function getAccessToken(): string | null {
+  return getTokenFromLocalStorage() || getTokenFromCookie()
+}
+
+/** Persist accessToken from check_token as the app session token. */
+export function persistSessionAccessToken(accessToken: string): void {
   if (typeof window === 'undefined') return
+  const raw = stripBearerPrefix(accessToken)
+  if (!raw) return
 
+  window.localStorage.setItem(authConfig.storageTokenKeyName, raw)
+  Cookies.set(ACCESS_TOKEN_COOKIE, normalizeToken(raw), COOKIE_OPTIONS)
+}
+
+export function clearSessionTokens(): void {
+  if (typeof window === 'undefined') return
+  window.localStorage.removeItem(authConfig.storageTokenKeyName)
+  window.localStorage.removeItem('userData')
+  window.localStorage.removeItem('refreshToken')
+  Cookies.remove(ACCESS_TOKEN_COOKIE)
+}
+
+/**
+ * Dev: seed entry token from env when no session exists (AuthProvider will exchange).
+ */
+export function seedEntryTokenFromEnv(): void {
+  if (typeof window === 'undefined') return
   if (getTokenFromLocalStorage() || getTokenFromCookie()) return
+  if (!ENV_ENTRY_TOKEN) return
+  if (window.sessionStorage.getItem(ENTRY_TOKEN_STORAGE_KEY)) return
 
-  if (ENV_USER_TOKEN) {
-    Cookies.set(ACCESS_TOKEN_COOKIE, normalizeToken(ENV_USER_TOKEN), COOKIE_OPTIONS)
-  }
+  setEntryToken(ENV_ENTRY_TOKEN)
 }
 
 export function setAccessTokenCookie(token: string): void {
-  Cookies.set(ACCESS_TOKEN_COOKIE, normalizeToken(token), COOKIE_OPTIONS)
+  persistSessionAccessToken(token)
 }

@@ -1,0 +1,7 @@
+{"sessionId":"4a689a","hypothesisId":"H1-H2-H3","location":"auth-token.ts:getAccessToken","message":"token resolution","data":{"source":"cookie","hasToken":true,"tokenLen":863,"envTokenLen":863,"lsRawLen":0},"timestamp":1779446407975}
+{"sessionId":"4a689a","hypothesisId":"H4-H5","location":"api-client.ts:request-interceptor","message":"outgoing api request","data":{"method":"get","url":"/api/v1/dashboard/rewards","baseURL":"","usesSameOriginProxy":true,"hadTokenArg":true,"authViaGetLen":863,"authViaPropLen":863,"headersType":"AxiosHeaders"},"timestamp":1779446407975}
+{"sessionId":"4a689a","hypothesisId":"H1-H2-H3","location":"auth-token.ts:getAccessToken","message":"token resolution","data":{"source":"cookie","hasToken":true,"tokenLen":863,"envTokenLen":863,"lsRawLen":0},"timestamp":1779446530581}
+{"sessionId":"4a689a","hypothesisId":"H5","location":"ApiBootstrap.tsx:useEffect","message":"ensureAccessToken before","data":{"ts":1779446536269},"timestamp":1779446536269}
+{"sessionId":"4a689a","hypothesisId":"H5","location":"ApiBootstrap.tsx:useEffect","message":"ensureAccessToken after","data":{"ts":1779446536271},"timestamp":1779446536271}
+{"sessionId":"4a689a","hypothesisId":"H5","location":"ApiBootstrap.tsx:useEffect","message":"ensureAccessToken before","data":{"ts":1779446536292},"timestamp":1779446536292}
+{"sessionId":"4a689a","hypothesisId":"H5","location":"ApiBootstrap.tsx:useEffect","message":"ensureAccessToken after","data":{"ts":1779446536293},"timestamp":1779446536293}
