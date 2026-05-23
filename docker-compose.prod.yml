@@ -8,6 +8,11 @@ services:
       target: production
       args:
         NODE_BASE_IMAGE: ${NODE_BASE_IMAGE:-node:22-bookworm-slim}
+        GIT_COMMIT: ${GIT_COMMIT:-unknown}
+        GIT_COMMIT_FULL: ${GIT_COMMIT_FULL:-unknown}
+        BUILD_TIME: ${BUILD_TIME:-}
+        APP_VERSION: ${APP_VERSION:-2.1.0}
+        APP_ENV: production
     ports:
       - "3000:3000"
     env_file:

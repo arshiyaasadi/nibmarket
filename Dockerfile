@@ -27,9 +27,22 @@ CMD ["npm", "run", "dev", "--", "--hostname", "0.0.0.0", "--port", "3000"]
 
 FROM base AS builder
 ENV NODE_ENV=production
+ARG GIT_COMMIT=unknown
+ARG GIT_COMMIT_FULL=unknown
+ARG BUILD_TIME=
+ARG APP_VERSION=0.0.0
+ARG APP_ENV=production
+ENV GIT_COMMIT=$GIT_COMMIT \
+    GIT_COMMIT_FULL=$GIT_COMMIT_FULL \
+    BUILD_TIME=$BUILD_TIME \
+    APP_VERSION=$APP_VERSION \
+    APP_ENV=$APP_ENV
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+RUN chmod +x scripts/write-build-info.sh \
+  && if [ -z "$BUILD_TIME" ]; then export BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"; fi \
+  && ./scripts/write-build-info.sh \
+  && npm run build
 
 FROM base AS production
 ENV NODE_ENV=production

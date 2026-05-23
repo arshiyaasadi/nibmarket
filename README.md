@@ -21,8 +21,16 @@ Docker/npm use `package-lock.json` (see `Dockerfile`).
 **Production** (standalone image, port **3000**):
 
 ```bash
+./scripts/run-prod.sh
+```
+
+یا دستی:
+
+```bash
 docker compose up --build -d
 ```
+
+بعد از بالا آمدن سرویس: [http://localhost:3000/version](http://localhost:3000/version) — زمان بیلد، commit، و محیط (پروداکشن/توسعه).
 
 **Development** (hot reload, source mounted):
 
