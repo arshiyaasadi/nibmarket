@@ -9,6 +9,7 @@ import dynamic from 'next/dynamic'
 
 // ** Hooks
 import { useAuth } from 'src/hooks/useAuth'
+import { getEntryToken } from 'src/lib/auth-token'
 
 // ** Config Import
 import { buildAbilityFor, normalizeUserRole } from 'src/configs/acl'
@@ -45,7 +46,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
     if (!auth.loading && auth.user === null) {
       const hasUserData = window.localStorage.getItem('userData')
-      if (!hasUserData) {
+      const pendingEntryToken = getEntryToken()
+      if (!hasUserData && !pendingEntryToken) {
         router.replace(`/?returnUrl=${encodeURIComponent(pathname)}`)
       }
     }
@@ -61,7 +63,6 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     return <Spinner />
   }
 
-  // If user is not authenticated, show spinner (redirect is happening)
   if (auth.user === null) {
     return <Spinner />
   }

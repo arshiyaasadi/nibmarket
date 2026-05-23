@@ -35,6 +35,11 @@ export async function exchangeEntryToken(entryToken: string): Promise<UserDataTy
   return user
 }
 
+/** Drop session only — keeps SSO entry token for check_token exchange. */
+export function clearStaleSession(): void {
+  clearSessionTokens()
+}
+
 export function clearAuthSession(): void {
   clearSessionTokens()
   clearEntryToken()

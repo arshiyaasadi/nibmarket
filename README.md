@@ -61,8 +61,8 @@ External systems send users with a **foreign token** (not the app session token)
 |------|----------------|
 | 1 | Redirect to `https://{project-domain}/login/token/{ENTRY_TOKEN}/` (or `?token=` on any route) |
 | 2 | `POST /api/v1/auth/check_token` with `Authorization: Bearer {ENTRY_TOKEN}` |
-| 3 | On **200**: store `accessToken`, `userId`, `role` in `localStorage` → redirect `/dashboard` |
-| 4 | On **401**: redirect to login (`/`) |
+| 3 | `/login/token/{token}` calls `check_token`, waits for **200**, stores session → redirects to `/dashboard` |
+| 4 | On **401**: error message on `/login/token/{token}` (no email/password form on `/`) |
 
 **Dev:** set `NEXT_PUBLIC_USER_TOKEN` in `.env` to the foreign token; on first load `AuthProvider` runs the same exchange (no manual login).
 

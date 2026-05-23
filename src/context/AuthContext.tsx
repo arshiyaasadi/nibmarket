@@ -14,10 +14,12 @@ import { normalizeUserRole } from 'src/configs/acl'
 // ** Auth
 import {
   clearAuthSession,
+  clearStaleSession,
   exchangeEntryToken,
   hasSessionAccessToken,
   userFromSessionTokenJwt
 } from 'src/lib/auth-exchange'
+import { extractTokenFromLoginPath, isLoginTokenPath } from 'src/lib/auth-entry'
 import { getEntryToken, seedEntryTokenFromEnv, setEntryToken } from 'src/lib/auth-token'
 import getHomeRoute from 'src/layouts/components/acl/getHomeRoute'
 
@@ -66,21 +68,30 @@ const AuthProvider = ({ children }: Props) => {
   const searchParams = useSearchParams()
 
   useEffect(() => {
+    if (isLoginTokenPath(pathname)) {
+      return
+    }
+
     const initAuth = async (): Promise<void> => {
       setLoading(true)
       seedEntryTokenFromEnv()
 
-      const tokenFromQuery = searchParams.get('token')
-      if (tokenFromQuery?.trim()) {
-        setEntryToken(tokenFromQuery)
-      }
-
-      const pathTokenMatch = pathname.match(/\/login\/token\/([^/]+)/)
-      if (pathTokenMatch?.[1]) {
-        setEntryToken(decodeURIComponent(pathTokenMatch[1]))
-      }
+      const pathToken = extractTokenFromLoginPath(pathname)
+      const tokenFromQuery = searchParams.get('token')?.trim()
+      if (pathToken) setEntryToken(pathToken)
+      if (tokenFromQuery) setEntryToken(tokenFromQuery)
 
       try {
+        const entryToken = getEntryToken()
+        if (entryToken) {
+          clearStaleSession()
+          const userData = await exchangeEntryToken(entryToken)
+          setUser(userData)
+          setLoading(false)
+
+          return
+        }
+
         if (hasSessionAccessToken()) {
           const cachedUser = loadUserFromStorage()
           if (cachedUser) {
@@ -100,7 +111,7 @@ const AuthProvider = ({ children }: Props) => {
               return
             }
 
-            clearAuthSession()
+            clearStaleSession()
           } else {
             const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)
             if (storedToken) {
@@ -126,22 +137,11 @@ const AuthProvider = ({ children }: Props) => {
           }
         }
 
-        const entryToken = getEntryToken()
-        if (entryToken) {
-          const userData = await exchangeEntryToken(entryToken)
-          setUser(userData)
-          setLoading(false)
-
-          return
-        }
-
         setUser(null)
       } catch {
         clearAuthSession()
         setUser(null)
-        if (authConfig.onTokenExpiration === 'logout' && !pathname.includes('login') && pathname !== '/') {
-          router.replace('/')
-        } else if (pathname !== '/' && !pathname.startsWith('/login')) {
+        if (pathname !== '/' && !pathname.startsWith('/login')) {
           router.replace('/')
         }
       } finally {
@@ -149,7 +149,7 @@ const AuthProvider = ({ children }: Props) => {
       }
     }
 
-    initAuth()
+    void initAuth()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, searchParams])
 
