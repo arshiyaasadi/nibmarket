@@ -1,7 +1,12 @@
 import authConfig from 'src/configs/auth'
 import { normalizeUserRole } from 'src/configs/acl'
 import { fetchCheckToken } from 'src/api/auth/check-token'
-import { clearEntryToken, clearSessionTokens, persistSessionAccessToken } from 'src/lib/auth-token'
+import {
+  clearEntryToken,
+  clearSessionTokens,
+  persistSessionAccessToken,
+  stripBearerPrefix
+} from 'src/lib/auth-token'
 import type { UserDataType } from 'src/context/types'
 import type { CheckTokenResponse } from 'src/types/api/auth'
 
@@ -39,4 +44,27 @@ export function hasSessionAccessToken(): boolean {
   if (typeof window === 'undefined') return false
 
   return Boolean(window.localStorage.getItem(authConfig.storageTokenKeyName)?.trim())
+}
+
+/** Restore user profile from session JWT when userData is missing (api mode). */
+export function userFromSessionTokenJwt(): UserDataType | null {
+  if (typeof window === 'undefined') return null
+
+  const raw = window.localStorage.getItem(authConfig.storageTokenKeyName)?.trim()
+  if (!raw) return null
+
+  try {
+    const payload = JSON.parse(atob(stripBearerPrefix(raw).split('.')[1])) as Record<string, unknown>
+    const userId = payload.user_id ?? payload.userId ?? payload.sub
+    const role = payload.role
+    if (userId == null || role == null) return null
+
+    return userDataFromCheckToken({
+      accessToken: stripBearerPrefix(raw),
+      userId: Number(userId),
+      role: Number(role)
+    })
+  } catch {
+    return null
+  }
 }

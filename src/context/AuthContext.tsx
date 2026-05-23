@@ -12,8 +12,14 @@ import authConfig from 'src/configs/auth'
 import { normalizeUserRole } from 'src/configs/acl'
 
 // ** Auth
-import { clearAuthSession, exchangeEntryToken, hasSessionAccessToken } from 'src/lib/auth-exchange'
-import { getEntryToken, setEntryToken } from 'src/lib/auth-token'
+import {
+  clearAuthSession,
+  exchangeEntryToken,
+  hasSessionAccessToken,
+  userFromSessionTokenJwt
+} from 'src/lib/auth-exchange'
+import { getEntryToken, seedEntryTokenFromEnv, setEntryToken } from 'src/lib/auth-token'
+import getHomeRoute from 'src/layouts/components/acl/getHomeRoute'
 
 // ** Types
 import { AuthValuesType, LoginParams, ErrCallbackType, UserDataType } from './types'
@@ -47,6 +53,10 @@ function loadUserFromStorage(): UserDataType | null {
   }
 }
 
+function isApiDataSource(): boolean {
+  return (process.env.NEXT_PUBLIC_DATA_SOURCE || 'mock').toLowerCase() === 'api'
+}
+
 const AuthProvider = ({ children }: Props) => {
   const [user, setUser] = useState<UserDataType | null>(defaultProvider.user)
   const [loading, setLoading] = useState<boolean>(defaultProvider.loading)
@@ -58,6 +68,7 @@ const AuthProvider = ({ children }: Props) => {
   useEffect(() => {
     const initAuth = async (): Promise<void> => {
       setLoading(true)
+      seedEntryTokenFromEnv()
 
       const tokenFromQuery = searchParams.get('token')
       if (tokenFromQuery?.trim()) {
@@ -79,24 +90,39 @@ const AuthProvider = ({ children }: Props) => {
             return
           }
 
-          const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)
-          if (storedToken) {
-            await axios
-              .get(authConfig.meEndpoint, {
-                headers: { Authorization: storedToken.startsWith('Bearer ') ? storedToken : `Bearer ${storedToken}` }
-              })
-              .then(response => {
-                const userData = {
-                  ...response.data.userData,
-                  role: normalizeUserRole(response.data.userData?.role)
-                }
-                setUser(userData)
-                window.localStorage.setItem('userData', JSON.stringify(userData))
-              })
+          if (isApiDataSource()) {
+            const fromJwt = userFromSessionTokenJwt()
+            if (fromJwt) {
+              setUser(fromJwt)
+              window.localStorage.setItem('userData', JSON.stringify(fromJwt))
+              setLoading(false)
 
-            setLoading(false)
+              return
+            }
 
-            return
+            clearAuthSession()
+          } else {
+            const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)
+            if (storedToken) {
+              await axios
+                .get(authConfig.meEndpoint, {
+                  headers: {
+                    Authorization: storedToken.startsWith('Bearer ') ? storedToken : `Bearer ${storedToken}`
+                  }
+                })
+                .then(response => {
+                  const userData = {
+                    ...response.data.userData,
+                    role: normalizeUserRole(response.data.userData?.role)
+                  }
+                  setUser(userData)
+                  window.localStorage.setItem('userData', JSON.stringify(userData))
+                })
+
+              setLoading(false)
+
+              return
+            }
           }
         }
 
@@ -127,6 +153,19 @@ const AuthProvider = ({ children }: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, searchParams])
 
+  useEffect(() => {
+    if (loading || !user) return
+    if (pathname !== '/') return
+
+    const returnUrl = searchParams.get('returnUrl')
+    const destination =
+      returnUrl && returnUrl !== '/' && returnUrl.startsWith('/')
+        ? returnUrl
+        : getHomeRoute(user.role)
+
+    router.replace(destination)
+  }, [loading, user, pathname, searchParams, router])
+
   const handleLogin = (params: LoginParams, errorCallback?: ErrCallbackType) => {
     axios
       .post(authConfig.loginEndpoint, params)
@@ -143,7 +182,7 @@ const AuthProvider = ({ children }: Props) => {
         setUser(userData)
         params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(userData)) : null
 
-        const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/dashboard'
+        const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : getHomeRoute(userData.role)
 
         router.replace(redirectURL)
       })
