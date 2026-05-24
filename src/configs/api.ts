@@ -10,9 +10,8 @@ export function isApiProxyMode(): boolean {
 }
 
 /**
- * Axios base URL in the browser.
- * Proxy mode: same-origin (window.location.origin) → app/api/v1/[...path]/route.ts → backend.
- * Direct mode: NEXT_PUBLIC_API_BASE_URL (needs CORS on the API).
+ * Axios base URL — always NEXT_PUBLIC_API_BASE_URL (client → api-club directly).
+ * Optional proxy (NEXT_PUBLIC_API_USE_PROXY=true) uses same-origin /api/v1 rewrites only.
  */
 export function resolveApiBaseUrl(): string {
   if (typeof window === 'undefined') return API_BACKEND_URL
@@ -24,7 +23,7 @@ export function resolveApiBaseUrl(): string {
         return window.location.origin
       }
     } catch {
-      return API_BACKEND_URL
+      /* fall through */
     }
   }
 

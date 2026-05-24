@@ -168,7 +168,7 @@ NEXT_PUBLIC_API_ENABLED=dashboard-wallet
 NEXT_PUBLIC_USER_TOKEN=eyJ...
 ```
 
-**پیش‌فرض (مستقیم):** مرورگر → `https://api-club.nibdev.com/api/v1/...` با `Authorization`.
+**پیش‌فرض (مستقیم):** مرورگر → `https://api-club.nibdev.com/api/v1/...` با `Authorization`. هدرهای CORS باید روی **سرور API** باشند — فرانت نمی‌تواند CORS بک‌اند خارجی را باز کند؛ جزئیات در [CORS.md](./CORS.md).
 
 **پروکسی اختیاری (CORS):** اگر بک‌اند CORS را برای `Authorization` باز نکرده، `NEXT_PUBLIC_API_USE_PROXY=true` بگذارید:
 

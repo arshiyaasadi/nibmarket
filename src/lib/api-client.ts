@@ -1,32 +1,17 @@
 import axios from 'axios'
 
-import {
-  API_BACKEND_URL,
-  API_VERSION_PREFIX,
-  isApiProxyMode,
-  resolveApiBaseUrl
-} from 'src/configs/api'
+import { API_BACKEND_URL, API_VERSION_PREFIX, resolveApiBaseUrl } from 'src/configs/api'
 import { getAccessToken } from 'src/lib/auth-token'
 
-/** Normalize /api/... paths for v1 + Next trailingSlash when using same-origin proxy. */
+/** Map /api/dashboard/... → /api/v1/dashboard/... */
 export function normalizeApiRequestUrl(url: string | undefined): string | undefined {
   if (!url || !url.startsWith('/api/')) return url
+  if (url.startsWith(`${API_VERSION_PREFIX}/`)) return url
 
-  const [pathPart, query = ''] = url.split('?')
-  let path = pathPart
-
-  if (path.startsWith('/api/') && !path.startsWith(`${API_VERSION_PREFIX}/`)) {
-    path = path.replace(/^\/api\//, `${API_VERSION_PREFIX}/`)
-  }
-
-  if (isApiProxyMode() && !path.endsWith('/')) {
-    path = `${path}/`
-  }
-
-  return query ? `${path}?${query}` : path
+  return url.replace(/^\/api\//, `${API_VERSION_PREFIX}/`)
 }
 
-/** Browser: direct NEXT_PUBLIC_API_BASE_URL unless NEXT_PUBLIC_API_USE_PROXY=true. */
+/** Client calls NEXT_PUBLIC_API_BASE_URL directly (see docs/CORS.md for API server headers). */
 export const apiClient = axios.create({
   baseURL: API_BACKEND_URL,
   headers: {
