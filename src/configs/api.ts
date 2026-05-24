@@ -4,29 +4,20 @@ import authConfig from 'src/configs/auth'
 export const API_BACKEND_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, '') || 'https://api-club.nibdev.com'
 
-/** Whether the browser should call same-origin /api/v1 (proxied by Next route handler). */
-export function isApiProxyMode(): boolean {
-  return process.env.NEXT_PUBLIC_API_USE_PROXY === 'true'
+/** Full URL for an API path (browser + server). */
+export function buildApiUrl(path: string): string {
+  const normalized = path.startsWith('/api/v1/')
+    ? path
+    : path.replace(/^\/api\//, '/api/v1/')
+
+  return `${API_BACKEND_URL}${normalized.startsWith('/') ? normalized : `/${normalized}`}`
 }
 
 /**
- * Axios base URL — always NEXT_PUBLIC_API_BASE_URL (client → api-club directly).
- * Optional proxy (NEXT_PUBLIC_API_USE_PROXY=true) uses same-origin /api/v1 rewrites only.
+ * Axios base URL — always the backend origin (client → api-club directly).
+ * Ignores NEXT_PUBLIC_API_USE_PROXY so a stale build cannot send API calls to the Next origin.
  */
 export function resolveApiBaseUrl(): string {
-  if (typeof window === 'undefined') return API_BACKEND_URL
-
-  if (isApiProxyMode()) {
-    try {
-      const backendHost = new URL(API_BACKEND_URL).host
-      if (backendHost && backendHost !== window.location.host) {
-        return window.location.origin
-      }
-    } catch {
-      /* fall through */
-    }
-  }
-
   return API_BACKEND_URL
 }
 

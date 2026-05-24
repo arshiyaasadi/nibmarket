@@ -27,9 +27,11 @@ Access-Control-Allow-Credentials: true   # در صورت نیاز به cookie
 
 ## چک در مرورگر
 
-1. DevTools → Network → یک GET مثل `dashboard/rewards`
-2. **Request URL** باید `https://api-club.nibdev.com/api/v1/...` باشد (نه `club.../api/v1`)
-3. اگر CORS باشد: خطای console با `blocked by CORS policy` و درخواست بدون پاسخ قابل خواندن
+1. DevTools → Network → فیلتر `api-club` یا `check_token` (نه فقط `?_rsc=`)
+2. **Request URL** باید `https://api-club.nibdev.com/api/v1/...` باشد (نه `club.nibdev.com:3000/api/v1`)
+3. Console (با `npm run dev` یا `NEXT_PUBLIC_DEBUG_API=true`): خط `[api-client] POST https://api-club.nibdev.com/api/v1/auth/check_token`
+4. اگر CORS باشد: خطای console با `blocked by CORS policy`
+5. اگر `ERR_SSL_PROTOCOL_ERROR` روی `?_rsc=` دیدید: سایت را با **http** باز کرده‌اید ولی مرورگر به **https** ریدایرکت می‌کند — از `https://club.nibdev.com` با TLS درست استفاده کنید یا HSTS را برای دامنه پاک کنید (این خطا مربوط به ناوبری Next است، نه الزاماً API)
 
 ## پروکسی (اختیاری)
 

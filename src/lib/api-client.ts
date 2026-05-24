@@ -1,7 +1,10 @@
 import axios from 'axios'
 
-import { API_BACKEND_URL, API_VERSION_PREFIX, resolveApiBaseUrl } from 'src/configs/api'
+import { API_BACKEND_URL, API_VERSION_PREFIX, buildApiUrl, resolveApiBaseUrl } from 'src/configs/api'
 import { getAccessToken } from 'src/lib/auth-token'
+
+const DEBUG_API =
+  process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEBUG_API === 'true'
 
 /** Map /api/dashboard/... → /api/v1/dashboard/... */
 export function normalizeApiRequestUrl(url: string | undefined): string | undefined {
@@ -43,5 +46,21 @@ apiClient.interceptors.request.use(config => {
 
   config.url = normalizeApiRequestUrl(config.url)
 
+  if (DEBUG_API && typeof window !== 'undefined' && config.url) {
+    const method = (config.method || 'get').toUpperCase()
+    console.info('[api-client]', method, buildApiUrl(config.url))
+  }
+
   return config
 })
+
+apiClient.interceptors.response.use(
+  response => response,
+  error => {
+    if (DEBUG_API && axios.isAxiosError(error) && error.config?.url) {
+      console.error('[api-client] failed', buildApiUrl(error.config.url), error.code, error.message)
+    }
+
+    return Promise.reject(error)
+  }
+)

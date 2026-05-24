@@ -10,6 +10,7 @@ import Link from 'next/link'
 import Spinner from 'src/@core/components/spinner'
 import BlankLayout from 'src/@core/layouts/BlankLayout'
 import { useAuth } from 'src/hooks/useAuth'
+import { formatApiErrorMessage } from 'src/lib/api-errors'
 import { exchangeEntryToken } from 'src/lib/auth-exchange'
 import { setEntryToken } from 'src/lib/auth-token'
 import getHomeRoute from 'src/layouts/components/acl/getHomeRoute'
@@ -46,10 +47,10 @@ export default function LoginTokenPage() {
 
         auth.setUser(user)
         router.replace(getHomeRoute(user.role))
-      } catch {
+      } catch (err) {
         if (cancelled) return
 
-        setError('تبادل توکن با سرور انجام نشد. توکن منقضی یا نامعتبر است.')
+        setError(formatApiErrorMessage(err))
         auth.setUser(null)
       } finally {
         if (!cancelled) auth.setLoading(false)
