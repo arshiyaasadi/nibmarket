@@ -4,18 +4,25 @@ import authConfig from 'src/configs/auth'
 export const API_BACKEND_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, '') || 'https://api-club.nibdev.com'
 
+/** Whether the browser should call same-origin /api/v1 (proxied by Next route handler). */
+export function isApiProxyMode(): boolean {
+  return process.env.NEXT_PUBLIC_API_USE_PROXY === 'true'
+}
+
 /**
  * Axios base URL in the browser.
- * Default (NEXT_PUBLIC_API_USE_PROXY=true): same-origin /api/v1/* via Next rewrite — no browser CORS.
- * Set false only if the API sends Access-Control-Allow-Origin for your club/panel domain.
+ * Proxy mode: same-origin (window.location.origin) → app/api/v1/[...path]/route.ts → backend.
+ * Direct mode: NEXT_PUBLIC_API_BASE_URL (needs CORS on the API).
  */
 export function resolveApiBaseUrl(): string {
   if (typeof window === 'undefined') return API_BACKEND_URL
 
-  if (process.env.NEXT_PUBLIC_API_USE_PROXY === 'true') {
+  if (isApiProxyMode()) {
     try {
       const backendHost = new URL(API_BACKEND_URL).host
-      if (backendHost && backendHost !== window.location.host) return ''
+      if (backendHost && backendHost !== window.location.host) {
+        return window.location.origin
+      }
     } catch {
       return API_BACKEND_URL
     }
