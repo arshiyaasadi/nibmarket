@@ -6,8 +6,8 @@ export const API_BACKEND_URL =
 
 /**
  * Axios base URL in the browser.
- * Default: direct calls to NEXT_PUBLIC_API_BASE_URL (e.g. https://api-club.nibdev.com/api/v1/...).
- * Set NEXT_PUBLIC_API_USE_PROXY=true only if you need same-origin rewrite via Next (localhost/api/v1).
+ * Default (NEXT_PUBLIC_API_USE_PROXY=true): same-origin /api/v1/* via Next rewrite — no browser CORS.
+ * Set false only if the API sends Access-Control-Allow-Origin for your club/panel domain.
  */
 export function resolveApiBaseUrl(): string {
   if (typeof window === 'undefined') return API_BACKEND_URL
