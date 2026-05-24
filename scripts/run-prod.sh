@@ -26,8 +26,29 @@ if ! command -v docker >/dev/null 2>&1; then
   exit 1
 fi
 
-if [ ! -f "$ROOT/.env" ] && [ -f "$ROOT/.env.example" ]; then
-  log "${YELLOW}هشدار:${NC} فایل .env وجود ندارد — از .env.example کپی کنید: cp .env.example .env"
+if [ ! -f "$ROOT/.env" ]; then
+  if [ -f "$ROOT/.env.production" ]; then
+    log "کپی .env.production → .env"
+    cp "$ROOT/.env.production" "$ROOT/.env"
+  elif [ -f "$ROOT/.env.example" ]; then
+    log "کپی .env.example → .env"
+    cp "$ROOT/.env.example" "$ROOT/.env"
+  else
+    log "${YELLOW}هشدار:${NC} فایل .env وجود ندارد"
+  fi
+fi
+
+if [ -f "$ROOT/.env" ]; then
+  set -a
+  # shellcheck disable=SC1091
+  . "$ROOT/.env"
+  set +a
+fi
+
+API_URL="${NEXT_PUBLIC_API_BASE_URL:-https://api-club.nibdev.com}"
+log "API (build + rewrite): ${API_URL}"
+if [ -z "${NEXT_PUBLIC_API_BASE_URL:-}" ]; then
+  log "${YELLOW}هشدار:${NC} NEXT_PUBLIC_API_BASE_URL در .env خالی است — از پیش‌فرض compose استفاده می‌شود"
 fi
 
 GIT_COMMIT="$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)"
@@ -46,6 +67,14 @@ docker compose -f "$COMPOSE_FILE" build \
   --build-arg "BUILD_TIME=${BUILD_TIME}" \
   --build-arg "APP_VERSION=${APP_VERSION}" \
   --build-arg "APP_ENV=${APP_ENV}" \
+  --build-arg "NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL:-https://api-club.nibdev.com}" \
+  --build-arg "NEXT_PUBLIC_DATA_SOURCE=${NEXT_PUBLIC_DATA_SOURCE:-api}" \
+  --build-arg "NEXT_PUBLIC_API_ENABLED=${NEXT_PUBLIC_API_ENABLED:-}" \
+  --build-arg "NEXT_PUBLIC_API_USE_PROXY=${NEXT_PUBLIC_API_USE_PROXY:-}" \
+  --build-arg "NEXT_PUBLIC_USER_TOKEN=${NEXT_PUBLIC_USER_TOKEN:-}" \
+  --build-arg "NEXT_PUBLIC_JWT_EXPIRATION=${NEXT_PUBLIC_JWT_EXPIRATION:-5m}" \
+  --build-arg "NEXT_PUBLIC_JWT_SECRET=${NEXT_PUBLIC_JWT_SECRET:-dd5f3089-40c3-403d-af14-d0c228b05cb4}" \
+  --build-arg "NEXT_PUBLIC_JWT_REFRESH_TOKEN_SECRET=${NEXT_PUBLIC_JWT_REFRESH_TOKEN_SECRET:-7c4c1c50-3230-45bf-9eae-c9b2e401c767}" \
   "$SERVICE"
 
 log "اجرای کانتینر..."

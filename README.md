@@ -21,16 +21,23 @@ Docker/npm use `package-lock.json` (see `Dockerfile`).
 **Production** (standalone image, port **3000**):
 
 ```bash
+# روی سرور لایو (اولین بار):
+cp .env.production .env   # همان مقادیر لوکال — API + SSO token
 ./scripts/run-prod.sh
 ```
 
 یا دستی:
 
 ```bash
+cp .env.production .env
 docker compose up --build -d
 ```
 
+**مهم:** فایل `.env` داخل image کپی نمی‌شود. مقادیر `NEXT_PUBLIC_*` (مثل `NEXT_PUBLIC_API_BASE_URL`) باید **موقع `docker compose build`** از `.env` به‌عنوان `build-arg` پاس داده شوند تا rewrite مسیر `/api/v1/*` به بک‌اند و SSO (`check_token`) کار کند. بعد از هر تغییر در `NEXT_PUBLIC_*` حتماً `--build` بزنید.
+
 بعد از بالا آمدن سرویس: [http://localhost:3000/version](http://localhost:3000/version) — زمان بیلد، commit، و محیط (پروداکشن/توسعه).
+
+**عیب‌یابی SSO روی سرور:** از همان ماشین `curl -s http://127.0.0.1:3000/api/health/backend/` (دسترسی کانتینر به API) و `curl -i -X POST http://127.0.0.1:3000/api/v1/auth/check_token -H 'Authorization: Bearer TOKEN' -d '{}'`.
 
 **Development** (hot reload, source mounted):
 
