@@ -19,8 +19,14 @@ import {
   hasSessionAccessToken,
   userFromSessionTokenJwt
 } from 'src/lib/auth-exchange'
-import { extractTokenFromLoginPath, isLoginTokenPath } from 'src/lib/auth-entry'
-import { getEntryToken, seedEntryTokenFromEnv, setEntryToken } from 'src/lib/auth-token'
+import {
+  buildLoginTokenPath,
+  extractTokenFromLoginPath,
+  hasAttemptedNibAuthSso,
+  isLoginTokenPath,
+  markNibAuthSsoAttempted
+} from 'src/lib/auth-entry'
+import { getEntryToken, getNibAuthCookieToken, seedEntryTokenFromEnv, setEntryToken } from 'src/lib/auth-token'
 import getHomeRoute from 'src/layouts/components/acl/getHomeRoute'
 
 // ** Types
@@ -74,6 +80,19 @@ const AuthProvider = ({ children }: Props) => {
 
     const initAuth = async (): Promise<void> => {
       setLoading(true)
+
+      if (pathname === '/' && !hasAttemptedNibAuthSso()) {
+        const nibToken = getNibAuthCookieToken()
+        if (nibToken) {
+          markNibAuthSsoAttempted()
+          setEntryToken(nibToken)
+          router.replace(buildLoginTokenPath(nibToken))
+          setLoading(false)
+
+          return
+        }
+      }
+
       seedEntryTokenFromEnv()
 
       const pathToken = extractTokenFromLoginPath(pathname)

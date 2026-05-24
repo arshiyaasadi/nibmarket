@@ -32,6 +32,9 @@ export const API_VERSION_PREFIX = '/api/v1'
 /** Cookie name aligned with auth localStorage key */
 export const ACCESS_TOKEN_COOKIE = authConfig.storageTokenKeyName
 
+/** SSO token from panel.nibdev.com — read on `/` once, then redirect to /login/token/… */
+export const NIB_AUTH_COOKIE = 'nib_auth'
+
 /** External SSO token for dev — exchanged via check_token; not sent to other APIs. */
 export const ENV_ENTRY_TOKEN = process.env.NEXT_PUBLIC_USER_TOKEN?.trim() || ''
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
@@ -12,6 +12,8 @@ import Spinner from 'src/@core/components/spinner'
 import { useAuth } from 'src/hooks/useAuth'
 import { isTemplateLoginEnabled } from 'src/configs/auth'
 import getHomeRoute from 'src/layouts/components/acl/getHomeRoute'
+import { buildLoginTokenPath, hasAttemptedNibAuthSso, markNibAuthSsoAttempted } from 'src/lib/auth-entry'
+import { getNibAuthCookieToken, setEntryToken } from 'src/lib/auth-token'
 
 /**
  * App entry: SSO token exchange (env / URL / cookie) then redirect to dashboard.
@@ -21,6 +23,19 @@ export default function RootEntryPage() {
   const auth = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [nibAuthRedirecting, setNibAuthRedirecting] = useState(false)
+
+  useEffect(() => {
+    if (hasAttemptedNibAuthSso()) return
+
+    const nibToken = getNibAuthCookieToken()
+    if (!nibToken) return
+
+    markNibAuthSsoAttempted()
+    setEntryToken(nibToken)
+    setNibAuthRedirecting(true)
+    router.replace(buildLoginTokenPath(nibToken))
+  }, [router])
 
   useEffect(() => {
     if (auth.loading) return
@@ -35,7 +50,7 @@ export default function RootEntryPage() {
     }
   }, [auth.loading, auth.user, router, searchParams])
 
-  if (auth.loading || auth.user) {
+  if (nibAuthRedirecting || auth.loading || auth.user) {
     return (
       <BlankLayout>
         <Box className='content-center' sx={{ minHeight: '100vh' }}>
