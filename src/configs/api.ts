@@ -5,19 +5,20 @@ export const API_BACKEND_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, '') || 'https://api-club.nibdev.com'
 
 /**
- * Axios base URL. In the browser, cross-origin calls drop Authorization (CORS);
- * use same-origin '' so Next rewrites /api/v1/* → API_BACKEND_URL.
+ * Axios base URL in the browser.
+ * Default: direct calls to NEXT_PUBLIC_API_BASE_URL (e.g. https://api-club.nibdev.com/api/v1/...).
+ * Set NEXT_PUBLIC_API_USE_PROXY=true only if you need same-origin rewrite via Next (localhost/api/v1).
  */
 export function resolveApiBaseUrl(): string {
   if (typeof window === 'undefined') return API_BACKEND_URL
 
-  if (process.env.NEXT_PUBLIC_API_USE_PROXY === 'false') return API_BACKEND_URL
-
-  try {
-    const backendHost = new URL(API_BACKEND_URL).host
-    if (backendHost && backendHost !== window.location.host) return ''
-  } catch {
-    /* invalid URL — use as-is */
+  if (process.env.NEXT_PUBLIC_API_USE_PROXY === 'true') {
+    try {
+      const backendHost = new URL(API_BACKEND_URL).host
+      if (backendHost && backendHost !== window.location.host) return ''
+    } catch {
+      return API_BACKEND_URL
+    }
   }
 
   return API_BACKEND_URL

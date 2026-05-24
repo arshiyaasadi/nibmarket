@@ -3,7 +3,7 @@ import axios from 'axios'
 import { API_BACKEND_URL, API_VERSION_PREFIX, resolveApiBaseUrl } from 'src/configs/api'
 import { getAccessToken } from 'src/lib/auth-token'
 
-/** Server default; browser requests override baseURL in the interceptor (same-origin proxy). */
+/** Browser: direct NEXT_PUBLIC_API_BASE_URL unless NEXT_PUBLIC_API_USE_PROXY=true. */
 export const apiClient = axios.create({
   baseURL: API_BACKEND_URL,
   headers: {
