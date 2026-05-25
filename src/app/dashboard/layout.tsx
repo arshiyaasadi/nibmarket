@@ -9,7 +9,6 @@ import dynamic from 'next/dynamic'
 
 // ** Hooks
 import { useAuth } from 'src/hooks/useAuth'
-import { getEntryToken } from 'src/lib/auth-token'
 
 // ** Config Import
 import { buildAbilityFor, normalizeUserRole } from 'src/configs/acl'
@@ -46,9 +45,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
     if (!auth.loading && auth.user === null) {
       const hasUserData = window.localStorage.getItem('userData')
-      const pendingEntryToken = getEntryToken()
-      if (!hasUserData && !pendingEntryToken) {
-        router.replace(`/?returnUrl=${encodeURIComponent(pathname)}`)
+      if (!hasUserData) {
+        router.replace(`/login?returnUrl=${encodeURIComponent(pathname)}`)
       }
     }
 

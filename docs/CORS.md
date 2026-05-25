@@ -1,12 +1,12 @@
 # CORS — درخواست مستقیم از مرورگر به API
 
-با `NEXT_PUBLIC_API_USE_PROXY=false` (پیش‌فرض)، مرورگر مستقیم به `NEXT_PUBLIC_API_BASE_URL` درخواست می‌زند (مثلاً `https://api-club.nibdev.com`).
+مرورگر مستقیم به `NEXT_PUBLIC_API_BASE_URL` درخواست می‌زند (مثلاً `https://api-club.nibdev.com`).
 
 ## چرا فرانت CORS را «ست» نمی‌کند؟
 
 **CORS فقط روی سرور API** تنظیم می‌شود. اپ Next.js نمی‌تواند به مرورگر اجازه دهد پاسخ `api-club.nibdev.com` را بخواند؛ آن دامنه باید خودش هدرهای CORS را برگرداند.
 
-هدرهای CORS روی routeهای داخلی Next (`/api/health/*`, `/api/version`) فقط همان origin را پوشش می‌دهند، نه بک‌اند خارجی.
+هدرهای CORS روی routeهای داخلی Next فقط همان origin را پوشش می‌دهند، نه بک‌اند خارجی.
 
 ## آنچه تیم بک‌اند باید روی `api-club.nibdev.com` بگذارد
 
@@ -33,6 +33,4 @@ Access-Control-Allow-Credentials: true   # در صورت نیاز به cookie
 4. اگر CORS باشد: خطای console با `blocked by CORS policy`
 5. اگر `ERR_SSL_PROTOCOL_ERROR` روی `?_rsc=` دیدید: سایت را با **http** باز کرده‌اید ولی مرورگر به **https** ریدایرکت می‌کند — از `https://club.nibdev.com` با TLS درست استفاده کنید یا HSTS را برای دامنه پاک کنید (این خطا مربوط به ناوبری Next است، نه الزاماً API)
 
-## پروکسی (اختیاری)
-
-اگر تا CORS روی API باز نشده: `NEXT_PUBLIC_API_USE_PROXY=true` و rebuild — درخواست از همان origin با rewrite در `next.config.js` (بدون نیاز به CORS روی API برای مرورگر).
+اگر CORS روی API باز نشده باشد، درخواست مستقیم مرورگر fail می‌شود و باید تنظیم CORS روی خود API اصلاح شود.

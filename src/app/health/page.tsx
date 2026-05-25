@@ -10,8 +10,9 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
 import BlankLayout from 'src/@core/layouts/BlankLayout'
 
-const BACKEND_HEALTH_URL = 'https://api-club.nibdev.com/health'
-const PROBE_API = '/api/health/backend/'
+const HEALTH_URL = `${
+  process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, '') || 'https://api-club.nibdev.com'
+}/health`
 
 type HealthProbeResult = {
   ok: boolean
@@ -30,16 +31,38 @@ export default function HealthPage() {
   const runCheck = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(PROBE_API, { cache: 'no-store' })
-      const data = (await res.json()) as HealthProbeResult
-      setResult(data)
+      const res = await fetch(HEALTH_URL, {
+        method: 'GET',
+        cache: 'no-store',
+        headers: { Accept: 'application/json,*/*' }
+      })
+
+      let body: HealthProbeResult['body'] = null
+      const contentType = res.headers.get('content-type') ?? ''
+      if (contentType.includes('application/json')) {
+        try {
+          body = (await res.json()) as HealthProbeResult['body']
+        } catch {
+          body = null
+        }
+      }
+
+      const healthy = res.status === 200 && body?.status === 'healthy'
+      setResult({
+        ok: healthy,
+        status: res.status,
+        statusText: res.statusText,
+        url: HEALTH_URL,
+        body,
+        healthy
+      })
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err)
       setResult({
         ok: false,
         status: 0,
         statusText: 'client_fetch_failed',
-        url: BACKEND_HEALTH_URL,
+        url: HEALTH_URL,
         body: null,
         healthy: false,
         error: message
@@ -73,11 +96,11 @@ export default function HealthPage() {
               Backend health check
             </Typography>
             <Typography variant='body2' color='text.secondary'>
-              This page calls the backend from the Next.js server (same path as{' '}
+              This page calls the backend directly from the browser ({' '}
               <Box component='code' sx={{ fontSize: '0.85em' }}>
-                GET {BACKEND_HEALTH_URL}
+                GET {HEALTH_URL}
               </Box>
-              ) so you can confirm the app can reach the API.
+              ) so you can confirm client-side API reachability and CORS.
             </Typography>
 
             {loading ? (

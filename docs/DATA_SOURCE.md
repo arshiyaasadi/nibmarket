@@ -67,9 +67,7 @@ Fake-DB با **axios-mock-adapter** روی همان `axios` پیش‌فرض تم
 |--------|---------|--------|
 | `NEXT_PUBLIC_DATA_SOURCE` | `mock` | `mock` = داشبورد فقط از mock محلی. `api` = ترکیب API + mock تدریجی |
 | `NEXT_PUBLIC_API_BASE_URL` | `https://api-club.nibdev.com` | آدرس بک‌اند — مرورگر مستقیم به `https://.../api/v1/...` درخواست می‌زند |
-| `NEXT_PUBLIC_API_USE_PROXY` | `false` | `false` = مستقیم به بک‌اند (پیش‌فرض). `true` = از `/api/v1` روی همان origin با rewrite Next |
 | `NEXT_PUBLIC_API_ENABLED` | خالی در حالت `api` | **خالی یا `all`** = همه slugها (داشبورد + شبکه + گزارش + لیدربورد + TWIN)؛ یا لیست با کاما |
-| `NEXT_PUBLIC_USER_TOKEN` | خالی | توکن خام (بدون `Bearer`) برای dev وقتی کاربر لاگین نکرده |
 | `NEXT_PUBLIC_JWT_*` | — | فقط **fake-db auth** (لاگین mock تمپلیت) |
 
 ### slugهای `NEXT_PUBLIC_API_ENABLED`
@@ -159,35 +157,26 @@ NEXT_PUBLIC_API_ENABLED=dashboard-wallet,dashboard-rewards
 - بقیه ویجت‌ها همان mock محلی
 - اگر API خطا بدهد (404، شبکه، 5xx): **فقط همان کارت** به mock برمی‌گردد + Alert «تلاش مجدد»
 
-### ۳. تست بدون لاگین (توکن dev)
+### ۳. تست با توکن دستی
 
 ```env
 NEXT_PUBLIC_DATA_SOURCE=api
 NEXT_PUBLIC_API_BASE_URL=http://192.168.1.94:5118
 NEXT_PUBLIC_API_ENABLED=dashboard-wallet
-NEXT_PUBLIC_USER_TOKEN=eyJ...
 ```
 
-**پیش‌فرض (مستقیم):** مرورگر → `https://api-club.nibdev.com/api/v1/...` با `Authorization`. هدرهای CORS باید روی **سرور API** باشند — فرانت نمی‌تواند CORS بک‌اند خارجی را باز کند؛ جزئیات در [CORS.md](./CORS.md).
-
-**پروکسی اختیاری (CORS):** اگر بک‌اند CORS را برای `Authorization` باز نکرده، `NEXT_PUBLIC_API_USE_PROXY=true` بگذارید:
-
-```text
-مرورگر → GET http://localhost:3000/api/v1/dashboard/rewards
-Next.js rewrite → http://api-club.nibdev.com/api/v1/dashboard/rewards
-```
+مرورگر → `https://api-club.nibdev.com/api/v1/...` با `Authorization`. هدرهای CORS باید روی **سرور API** باشند — فرانت نمی‌تواند CORS بک‌اند خارجی را باز کند؛ جزئیات در [CORS.md](./CORS.md).
 
 **اولویت توکن** (`src/lib/auth-token.ts`):
 
 1. `localStorage.accessToken` — بعد از لاگین mock/real
 2. Cookie `accessToken`
-3. `NEXT_PUBLIC_USER_TOKEN` — در بوت با `ApiBootstrap` در cookie ذخیره می‌شود
 
-توکن را در **`.env.local`** بگذارید، نه در git.
+برای ساخت سشن جدید، توکن را در `/login` وارد کنید یا لینک `/login/token/{token}/` را باز کنید.
 
 ### ۴. ری‌استارت dev server
 
-بعد از تغییر `next.config.js`، `NEXT_PUBLIC_API_BASE_URL` یا هر `NEXT_PUBLIC_*` دیگر، `npm run dev` را **restart** کنید (rewriteها و env در build-time embed می‌شوند).
+بعد از تغییر `NEXT_PUBLIC_API_BASE_URL` یا هر `NEXT_PUBLIC_*` دیگر، `npm run dev` را **restart** کنید (env در build-time embed می‌شود).
 
 ---
 
@@ -247,11 +236,11 @@ src/app/network/*/page.tsx   → صفحات شبکه من
 | همیشه mock | `DATA_SOURCE=mock` یا (در `api`) slug در لیست جزئی `API_ENABLED` نیست |
 | Alert بدون نمودار | API خطا — فقط همان ویجت؛ retry را بزنید |
 | کرش رنگ `76, 78, 100` | API `color` نامعتبر بود؛ باید با mapper اصلاح شود (اگر دیدید، dev server را restart کنید) |
-| 401 از API | توکن منقضی یا `NEXT_PUBLIC_USER_TOKEN` / لاگین را چک کنید |
+| 401 از API | توکن منقضی است؛ دوباره از `/login` یا `/login/token/{token}/` وارد شوید |
 | CORS | بک‌اند باید origin فرانت را allow کند |
 | تغییر env اعمال نشد | dev server را restart کنید |
 
-**Health بک‌اند (جدا از داشبورد):** [`/health/`](../src/app/health/page.tsx) و `BACKEND_HEALTH_URL` — server-side probe.
+**Health بک‌اند (جدا از داشبورد):** [`/health/`](../src/app/health/page.tsx) مستقیماً از مرورگر `NEXT_PUBLIC_API_BASE_URL/health` را صدا می‌زند.
 
 ---
 

@@ -12,7 +12,7 @@ import Providers from './providers'
 
 // ** Metadata
 export const metadata = {
-  title: `${themeConfig.templateName} - Material Design React Admin Template`,
+  title: `${themeConfig.templateName} - باشگاه مشتریان`,
   description: `${themeConfig.templateName} – Material Design React Admin Dashboard Template – is the most developer friendly & highly customizable Admin Dashboard Template based on MUI v5.`,
   keywords: 'Material Design, MUI, Admin Template, React Admin Template'
 }

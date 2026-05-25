@@ -1,9 +1,13 @@
-export type ErrCallbackType = (err: { [key: string]: string }) => void
+export type ErrCallbackType = (err: unknown) => void
 
 export type LoginParams = {
   email: string
   password: string
   rememberMe?: boolean
+}
+
+export type TokenLoginParams = {
+  token: string
 }
 
 export type UserDataType = {
@@ -23,4 +27,5 @@ export type AuthValuesType = {
   setLoading: (value: boolean) => void
   setUser: (value: UserDataType | null) => void
   login: (params: LoginParams, errorCallback?: ErrCallbackType) => void
+  loginWithToken: (params: TokenLoginParams, errorCallback?: ErrCallbackType) => Promise<void>
 }

@@ -6,9 +6,6 @@ import React, { ReactNode, Suspense } from 'react'
 // ** Config Imports
 import 'src/configs/i18n'
 
-// ** Fake-DB Import (must load before login API calls — not in useEffect)
-import 'src/@fake-db'
-
 // ** Prismjs Styles
 import 'prismjs'
 import 'prismjs/themes/prism-tomorrow.css'
@@ -40,7 +37,6 @@ import { Toaster } from 'react-hot-toast'
 import ThemeComponent from 'src/@core/theme/ThemeComponent'
 
 // ** Contexts
-import ApiBootstrap from 'src/components/ApiBootstrap'
 import { AuthProvider } from 'src/context/AuthContext'
 import { SettingsConsumer, SettingsProvider } from 'src/@core/context/settingsContext'
 
@@ -60,7 +56,6 @@ export default function Providers({ children }: { children: ReactNode }) {
       <CacheProvider value={clientSideEmotionCache}>
         <Suspense fallback={<div>Loading...</div>}>
           <AuthProvider>
-            <ApiBootstrap />
             <SettingsProvider>
               <SettingsConsumer>
                 {({ settings }) => {

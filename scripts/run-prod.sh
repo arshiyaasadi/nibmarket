@@ -46,7 +46,7 @@ if [ -f "$ROOT/.env" ]; then
 fi
 
 API_URL="${NEXT_PUBLIC_API_BASE_URL:-https://api-club.nibdev.com}"
-log "API (build + rewrite): ${API_URL}"
+log "API (client direct): ${API_URL}"
 if [ -z "${NEXT_PUBLIC_API_BASE_URL:-}" ]; then
   log "${YELLOW}هشدار:${NC} NEXT_PUBLIC_API_BASE_URL در .env خالی است — از پیش‌فرض compose استفاده می‌شود"
 fi
@@ -70,8 +70,6 @@ docker compose -f "$COMPOSE_FILE" build \
   --build-arg "NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL:-https://api-club.nibdev.com}" \
   --build-arg "NEXT_PUBLIC_DATA_SOURCE=${NEXT_PUBLIC_DATA_SOURCE:-api}" \
   --build-arg "NEXT_PUBLIC_API_ENABLED=${NEXT_PUBLIC_API_ENABLED:-}" \
-  --build-arg "NEXT_PUBLIC_API_USE_PROXY=${NEXT_PUBLIC_API_USE_PROXY:-false}" \
-  --build-arg "NEXT_PUBLIC_USER_TOKEN=${NEXT_PUBLIC_USER_TOKEN:-}" \
   --build-arg "NEXT_PUBLIC_JWT_EXPIRATION=${NEXT_PUBLIC_JWT_EXPIRATION:-5m}" \
   --build-arg "NEXT_PUBLIC_JWT_SECRET=${NEXT_PUBLIC_JWT_SECRET:-dd5f3089-40c3-403d-af14-d0c228b05cb4}" \
   --build-arg "NEXT_PUBLIC_JWT_REFRESH_TOKEN_SECRET=${NEXT_PUBLIC_JWT_REFRESH_TOKEN_SECRET:-7c4c1c50-3230-45bf-9eae-c9b2e401c767}" \

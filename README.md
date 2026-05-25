@@ -33,11 +33,11 @@ cp .env.production .env
 docker compose up --build -d
 ```
 
-**مهم:** فایل `.env` داخل image کپی نمی‌شود. مقادیر `NEXT_PUBLIC_*` (مثل `NEXT_PUBLIC_API_BASE_URL`) باید **موقع `docker compose build`** از `.env` به‌عنوان `build-arg` پاس داده شوند تا rewrite مسیر `/api/v1/*` به بک‌اند و SSO (`check_token`) کار کند. بعد از هر تغییر در `NEXT_PUBLIC_*` حتماً `--build` بزنید.
+**مهم:** فایل `.env` داخل image کپی نمی‌شود. مقادیر `NEXT_PUBLIC_*` (مثل `NEXT_PUBLIC_API_BASE_URL`) باید **موقع `docker compose build`** از `.env` به‌عنوان `build-arg` پاس داده شوند تا درخواست‌های کلاینت به بک‌اند درست ساخته شوند. بعد از هر تغییر در `NEXT_PUBLIC_*` حتماً `--build` بزنید.
 
 بعد از بالا آمدن سرویس: [http://localhost:3000/version](http://localhost:3000/version) — زمان بیلد، commit، و محیط (پروداکشن/توسعه).
 
-**عیب‌یابی SSO روی سرور:** از همان ماشین `curl -s http://127.0.0.1:3000/api/health/backend/` (دسترسی کانتینر به API) و `curl -i -X POST http://127.0.0.1:3000/api/v1/auth/check_token -H 'Authorization: Bearer TOKEN' -d '{}'`.
+**عیب‌یابی SSO:** در DevTools باید درخواست مستقیم به `NEXT_PUBLIC_API_BASE_URL/api/v1/auth/check_token` با هدر `Authorization: Bearer TOKEN` دیده شود.
 
 **Development** (hot reload, source mounted):
 
@@ -66,35 +66,20 @@ External systems send users with a **foreign token** (not the app session token)
 
 | Step | What happens |
 |------|----------------|
-| 1 | Redirect to `https://{project-domain}/login/token/{ENTRY_TOKEN}/` (or `?token=` on any route) |
-| 2 | `POST /api/v1/auth/check_token` with `Authorization: Bearer {ENTRY_TOKEN}` |
+| 1 | Redirect to `https://{project-domain}/login/token/{ENTRY_TOKEN}/` یا ورود دستی در `/login` |
+| 2 | `POST {NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/check_token` with `Authorization: Bearer {ENTRY_TOKEN}` |
 | 3 | `/login/token/{token}` calls `check_token`, waits for **200**, stores session → redirects to `/dashboard` |
-| 4 | On **401**: error message on `/login/token/{token}` (no email/password form on `/`) |
+| 4 | On **401**: error message on `/login/token/{token}` or `/login` |
 
-**Dev:** set `NEXT_PUBLIC_USER_TOKEN` in `.env` to the foreign token; on first load `AuthProvider` runs the same exchange (no manual login).
+**Dev:** open `/login` and paste the foreign token, or open `/login/token/{token}/`.
 
 **Session token:** only `accessToken` from `check_token` is sent to dashboard/network/reports APIs. The entry token is never reused after exchange.
 
 ## Backend health check
 
-UI page (calls the backend from the Next.js server):
+UI page (calls the backend directly from the browser):
 
 - **[`/health/`](http://localhost:3000/health/)** — probes `GET https://api-club.nibdev.com/health` and shows whether the response is HTTP **200** with `{ "status": "healthy" }`.
-
-API (same probe, JSON only):
-
-- **GET** [`/api/health/backend/`](http://localhost:3000/api/health/backend/)  
-  Override target with env: `BACKEND_HEALTH_URL` (see `.env.example`).
-
-## Backend / Swagger reachability
-
-Server-side check (from the machine or container running Node — must reach the internal network):
-
-- **GET** [`/api/health/swagger-proxy/`](http://localhost:3000/api/health/swagger-proxy/)  
-  Default target: `http://192.168.8.199:8070/swagger/index.html`  
-  Override with env: `BACKEND_SWAGGER_TEST_URL` (see `.env.example`).
-
-JSON response includes `ok`, `status`, and `url`. If the container cannot route to `192.168.8.199`, expect `502` and an error message.
 
 ## Environment
 
@@ -102,7 +87,7 @@ Copy and edit env files:
 
 ```bash
 cp .env.example .env
-# optional: .env.local for NEXT_PUBLIC_USER_TOKEN and overrides
+# optional: .env.local for local overrides
 ```
 
 | Topic | Doc |
@@ -114,7 +99,3 @@ cp .env.example .env
 Quick defaults: `NEXT_PUBLIC_DATA_SOURCE=mock` (dashboard uses local mocks; template auth still uses `@fake-db`). Set `NEXT_PUBLIC_DATA_SOURCE=api` and list slugs in `NEXT_PUBLIC_API_ENABLED` to call `https://api-club.nibdev.com` gradually.
 
 Restart `npm run dev` after changing any `NEXT_PUBLIC_*` variable.
-
-```bash
-curl http://localhost:3000/api/health/backend/
-```

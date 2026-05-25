@@ -1,7 +1,7 @@
 import Cookies from 'js-cookie'
 
 import authConfig from 'src/configs/auth'
-import { ACCESS_TOKEN_COOKIE, ENV_ENTRY_TOKEN, NIB_AUTH_COOKIE } from 'src/configs/api'
+import { ACCESS_TOKEN_COOKIE, NIB_AUTH_COOKIE } from 'src/configs/api'
 
 const ENTRY_TOKEN_STORAGE_KEY = 'ssoEntryToken'
 
@@ -57,25 +57,6 @@ function getTokenFromCookie(): string | null {
   return normalizeToken(raw)
 }
 
-/** External SSO token — only for /api/v1/auth/check_token. */
-export function getEntryToken(): string | null {
-  if (typeof window === 'undefined') return null
-
-  const fromSession = window.sessionStorage.getItem(ENTRY_TOKEN_STORAGE_KEY)
-  if (fromSession?.trim()) return stripBearerPrefix(fromSession)
-
-  if (ENV_ENTRY_TOKEN) return stripBearerPrefix(ENV_ENTRY_TOKEN)
-
-  return null
-}
-
-export function setEntryToken(token: string): void {
-  if (typeof window === 'undefined') return
-  const raw = stripBearerPrefix(token)
-  if (!raw) return
-  window.sessionStorage.setItem(ENTRY_TOKEN_STORAGE_KEY, raw)
-}
-
 export function clearEntryToken(): void {
   if (typeof window === 'undefined') return
   window.sessionStorage.removeItem(ENTRY_TOKEN_STORAGE_KEY)
@@ -91,7 +72,7 @@ export function getAccessTokenSource(): 'localStorage' | 'cookie' | 'none' {
 
 /**
  * Session token for API calls (after check_token).
- * Does not return SSO entry token — use getEntryToken() for exchange only.
+ * Does not return SSO entry tokens; those are exchanged only by explicit login flows.
  */
 export function getAccessToken(): string | null {
   return getTokenFromLocalStorage() || getTokenFromCookie()
@@ -113,18 +94,6 @@ export function clearSessionTokens(): void {
   window.localStorage.removeItem('userData')
   window.localStorage.removeItem('refreshToken')
   Cookies.remove(ACCESS_TOKEN_COOKIE)
-}
-
-/**
- * Dev: seed entry token from env when no session exists (AuthProvider will exchange).
- */
-export function seedEntryTokenFromEnv(): void {
-  if (typeof window === 'undefined') return
-  if (getTokenFromLocalStorage() || getTokenFromCookie()) return
-  if (!ENV_ENTRY_TOKEN) return
-  if (window.sessionStorage.getItem(ENTRY_TOKEN_STORAGE_KEY)) return
-
-  setEntryToken(ENV_ENTRY_TOKEN)
 }
 
 export function setAccessTokenCookie(token: string): void {

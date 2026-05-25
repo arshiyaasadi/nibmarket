@@ -14,23 +14,14 @@ import { normalizeUserRole } from 'src/configs/acl'
 // ** Auth
 import {
   clearAuthSession,
-  clearStaleSession,
   exchangeEntryToken,
   hasSessionAccessToken,
   userFromSessionTokenJwt
 } from 'src/lib/auth-exchange'
-import {
-  buildLoginTokenPath,
-  extractTokenFromLoginPath,
-  hasAttemptedNibAuthSso,
-  isLoginTokenPath,
-  markNibAuthSsoAttempted
-} from 'src/lib/auth-entry'
-import { getEntryToken, getNibAuthCookieToken, seedEntryTokenFromEnv, setEntryToken } from 'src/lib/auth-token'
 import getHomeRoute from 'src/layouts/components/acl/getHomeRoute'
 
 // ** Types
-import { AuthValuesType, LoginParams, ErrCallbackType, UserDataType } from './types'
+import { AuthValuesType, LoginParams, TokenLoginParams, ErrCallbackType, UserDataType } from './types'
 
 // ** Defaults
 const defaultProvider: AuthValuesType = {
@@ -39,6 +30,7 @@ const defaultProvider: AuthValuesType = {
   setUser: () => null,
   setLoading: () => Boolean,
   login: () => Promise.resolve(),
+  loginWithToken: () => Promise.resolve(),
   logout: () => Promise.resolve()
 }
 
@@ -74,43 +66,10 @@ const AuthProvider = ({ children }: Props) => {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    if (isLoginTokenPath(pathname)) {
-      return
-    }
-
     const initAuth = async (): Promise<void> => {
       setLoading(true)
 
-      if (pathname === '/' && !hasAttemptedNibAuthSso()) {
-        const nibToken = getNibAuthCookieToken()
-        if (nibToken) {
-          markNibAuthSsoAttempted()
-          setEntryToken(nibToken)
-          router.replace(buildLoginTokenPath(nibToken))
-          setLoading(false)
-
-          return
-        }
-      }
-
-      seedEntryTokenFromEnv()
-
-      const pathToken = extractTokenFromLoginPath(pathname)
-      const tokenFromQuery = searchParams.get('token')?.trim()
-      if (pathToken) setEntryToken(pathToken)
-      if (tokenFromQuery) setEntryToken(tokenFromQuery)
-
       try {
-        const entryToken = getEntryToken()
-        if (entryToken) {
-          clearStaleSession()
-          const userData = await exchangeEntryToken(entryToken)
-          setUser(userData)
-          setLoading(false)
-
-          return
-        }
-
         if (hasSessionAccessToken()) {
           const cachedUser = loadUserFromStorage()
           if (cachedUser) {
@@ -130,10 +89,11 @@ const AuthProvider = ({ children }: Props) => {
               return
             }
 
-            clearStaleSession()
+            clearAuthSession()
           } else {
             const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)
             if (storedToken) {
+              await import('src/@fake-db')
               await axios
                 .get(authConfig.meEndpoint, {
                   headers: {
@@ -161,7 +121,7 @@ const AuthProvider = ({ children }: Props) => {
         clearAuthSession()
         setUser(null)
         if (pathname !== '/' && !pathname.startsWith('/login')) {
-          router.replace('/')
+          router.replace('/login')
         }
       } finally {
         setLoading(false)
@@ -185,30 +145,58 @@ const AuthProvider = ({ children }: Props) => {
     router.replace(destination)
   }, [loading, user, pathname, searchParams, router])
 
+  const redirectAfterLogin = (userData: UserDataType) => {
+    const returnUrl = searchParams.get('returnUrl')
+    const redirectURL =
+      returnUrl && returnUrl !== '/' && returnUrl.startsWith('/')
+        ? returnUrl
+        : getHomeRoute(userData.role)
+
+    router.replace(redirectURL)
+  }
+
   const handleLogin = (params: LoginParams, errorCallback?: ErrCallbackType) => {
-    axios
-      .post(authConfig.loginEndpoint, params)
+    void import('src/@fake-db')
+      .then(() => axios.post(authConfig.loginEndpoint, params))
       .then(async response => {
-        params.rememberMe
-          ? window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.accessToken)
-          : null
-        const returnUrl = searchParams.get('returnUrl')
+        if (params.rememberMe) {
+          window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.accessToken)
+        }
 
         const userData = {
           ...response.data.userData,
           role: normalizeUserRole(response.data.userData?.role)
         }
+
         setUser(userData)
-        params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(userData)) : null
+        if (params.rememberMe) {
+          window.localStorage.setItem('userData', JSON.stringify(userData))
+        }
 
-        const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : getHomeRoute(userData.role)
-
-        router.replace(redirectURL)
+        redirectAfterLogin(userData)
       })
-
       .catch(err => {
         if (errorCallback) errorCallback(err)
       })
+  }
+
+  const handleTokenLogin = async (params: TokenLoginParams, errorCallback?: ErrCallbackType) => {
+    const token = params.token.trim()
+    if (!token) return
+
+    setLoading(true)
+
+    try {
+      const userData = await exchangeEntryToken(token)
+      setUser(userData)
+      redirectAfterLogin(userData)
+    } catch (err) {
+      clearAuthSession()
+      setUser(null)
+      if (errorCallback) errorCallback(err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleLogout = () => {
@@ -223,6 +211,7 @@ const AuthProvider = ({ children }: Props) => {
     setUser,
     setLoading,
     login: handleLogin,
+    loginWithToken: handleTokenLogin,
     logout: handleLogout
   }
 
