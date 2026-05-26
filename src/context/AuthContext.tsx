@@ -120,9 +120,6 @@ const AuthProvider = ({ children }: Props) => {
       } catch {
         clearAuthSession()
         setUser(null)
-        if (pathname !== '/' && !pathname.startsWith('/login')) {
-          router.replace('/login')
-        }
       } finally {
         setLoading(false)
       }
@@ -130,7 +127,7 @@ const AuthProvider = ({ children }: Props) => {
 
     void initAuth()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, searchParams])
+  }, [])
 
   useEffect(() => {
     if (loading || !user) return

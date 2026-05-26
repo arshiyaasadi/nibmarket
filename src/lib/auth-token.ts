@@ -1,7 +1,7 @@
 import Cookies from 'js-cookie'
 
 import authConfig from 'src/configs/auth'
-import { ACCESS_TOKEN_COOKIE, NIB_AUTH_COOKIE } from 'src/configs/api'
+import { ACCESS_TOKEN_COOKIE } from 'src/configs/api'
 
 const ENTRY_TOKEN_STORAGE_KEY = 'ssoEntryToken'
 
@@ -39,14 +39,6 @@ function getTokenFromLocalStorage(): string | null {
   if (!raw?.trim()) return null
 
   return normalizeToken(raw)
-}
-
-/** Panel SSO JWT from shared cookie (e.g. Domain=.nibdev.com). */
-export function getNibAuthCookieToken(): string | null {
-  const raw = Cookies.get(NIB_AUTH_COOKIE)
-  if (!raw?.trim()) return null
-
-  return stripBearerPrefix(raw)
 }
 
 /** Read session accessToken from cookie. */

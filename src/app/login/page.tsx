@@ -49,8 +49,14 @@ export default function LoginPage() {
   useEffect(() => {
     if (auth.loading || !auth.user) return
 
-    router.replace(getHomeRoute(auth.user.role))
-  }, [auth.loading, auth.user, router])
+    const returnUrl = searchParams.get('returnUrl')
+    const destination =
+      returnUrl && returnUrl !== '/' && returnUrl.startsWith('/')
+        ? returnUrl
+        : getHomeRoute(auth.user.role)
+
+    router.replace(destination)
+  }, [auth.loading, auth.user, router, searchParams])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
