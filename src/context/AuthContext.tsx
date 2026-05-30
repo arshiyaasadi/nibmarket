@@ -18,6 +18,7 @@ import {
   hasSessionAccessToken,
   userFromSessionTokenJwt
 } from 'src/lib/auth-exchange'
+import { persistSessionAccessToken } from 'src/lib/auth-token'
 import getHomeRoute from 'src/layouts/components/acl/getHomeRoute'
 
 // ** Types
@@ -156,20 +157,23 @@ const AuthProvider = ({ children }: Props) => {
     void import('src/@fake-db')
       .then(() => axios.post(authConfig.loginEndpoint, params))
       .then(async response => {
-        if (params.rememberMe) {
-          window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.accessToken)
-        }
-
         const userData = {
           ...response.data.userData,
           role: normalizeUserRole(response.data.userData?.role)
         }
 
-        setUser(userData)
+        if (params.adminOnly && normalizeUserRole(userData.role) !== 'admin') {
+          if (errorCallback) errorCallback(new Error('admin_only'))
+
+          return
+        }
+
         if (params.rememberMe) {
+          persistSessionAccessToken(response.data.accessToken)
           window.localStorage.setItem('userData', JSON.stringify(userData))
         }
 
+        setUser(userData)
         redirectAfterLogin(userData)
       })
       .catch(err => {

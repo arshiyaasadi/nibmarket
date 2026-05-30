@@ -27,3 +27,6 @@ export const API_VERSION_PREFIX = '/api/v1'
 
 /** Cookie name aligned with auth localStorage key */
 export const ACCESS_TOKEN_COOKIE = authConfig.storageTokenKeyName
+
+/** Panel SSO JWT from shared cookie (e.g. Domain=.nibdev.com). */
+export const NIB_AUTH_COOKIE = 'nib_auth'

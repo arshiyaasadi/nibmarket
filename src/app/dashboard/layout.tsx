@@ -50,8 +50,14 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       }
     }
 
-    if (!auth.loading && auth.user && normalizeUserRole(auth.user.role) === 'manager') {
-      router.replace('/manager/dashboard')
+    if (!auth.loading && auth.user) {
+      const role = normalizeUserRole(auth.user.role)
+      if (role === 'manager') {
+        router.replace('/manager/dashboard')
+      }
+      if (role === 'admin') {
+        router.replace('/manager/dashboard')
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mounted, auth.loading, auth.user, pathname])
@@ -65,9 +71,12 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     return <Spinner />
   }
 
-  // Redirect managers to their dashboard (show spinner while redirecting)
-  if (auth.user && normalizeUserRole(auth.user.role) === 'manager') {
-    return <Spinner />
+  // Redirect managers and admins to their dashboard (show spinner while redirecting)
+  if (auth.user) {
+    const role = normalizeUserRole(auth.user.role)
+    if (role === 'manager' || role === 'admin') {
+      return <Spinner />
+    }
   }
 
   // Check ACL permission for dashboard access

@@ -85,6 +85,10 @@ const UserLayout = ({ children, contentHeightFixed }: Props) => {
 
   // ** Bottom Navbar Buttons Component
   const BottomNavButtons = (props?: any) => {
+    if (appRole === 'admin' || appRole === 'manager') {
+      return null
+    }
+
     // Get navHover and settings from props (passed from Navigation component)
     const navHover = props?.navHover || false
     const settingsFromProps = props?.settings || settings

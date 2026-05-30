@@ -4,6 +4,8 @@ export type LoginParams = {
   email: string
   password: string
   rememberMe?: boolean
+  /** When true, only users with admin role may complete login (e.g. `/admin`). */
+  adminOnly?: boolean
 }
 
 export type TokenLoginParams = {

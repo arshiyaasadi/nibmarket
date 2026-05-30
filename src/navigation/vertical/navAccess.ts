@@ -16,10 +16,19 @@ function isManagerNavEntry(item: NavLink | NavGroup | NavSectionTitle): boolean 
   return false
 }
 
-/** Strip manager routes unless role may access the manager panel. */
+/** Strip routes the role may not see in the sidebar. */
 export function filterNavItemsByAppRole(items: VerticalNavItemsType, appRole: AppRole): VerticalNavItemsType {
   if (appRole === 'admin' || appRole === 'manager') {
-    return items
+    return items.filter(item => {
+      if ('path' in item && item.path && !isManagerNavPath(item.path)) {
+        return false
+      }
+      if ('children' in item && item.children) {
+        return item.children.some(child => isManagerNavEntry(child))
+      }
+
+      return isManagerNavEntry(item)
+    })
   }
 
   return items

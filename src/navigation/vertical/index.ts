@@ -187,7 +187,7 @@ export function getVerticalNavItems(role: string | number | undefined | null): V
 
 export function getVerticalNavItemsForRole(appRole: AppRole): VerticalNavItemsType {
   if (appRole === 'admin') {
-    return [...clientNavItems, ...managerNavItems]
+    return managerNavItems
   }
   if (appRole === 'manager') {
     return managerNavItems
