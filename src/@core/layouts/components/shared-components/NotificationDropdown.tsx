@@ -51,6 +51,7 @@ export type NotificationsType = {
 interface Props {
   settings: Settings
   notifications: NotificationsType[]
+  loading?: boolean
 }
 
 // ** Styled Menu component
@@ -125,7 +126,7 @@ const ScrollWrapper = ({ children, hidden }: { children: ReactNode; hidden: bool
 
 const NotificationDropdown = (props: Props) => {
   // ** Props
-  const { settings, notifications } = props
+  const { settings, notifications, loading = false } = props
 
   // ** States
   const [anchorEl, setAnchorEl] = useState<(EventTarget & Element) | null>(null)
@@ -193,7 +194,7 @@ const NotificationDropdown = (props: Props) => {
             '& .MuiBadge-badge': { top: 4, right: 4, boxShadow: theme => `0 0 0 2px ${theme.palette.background.paper}` }
           }}
         >
-          <Icon icon='mdi:bell-outline' />
+          <Icon icon='mdi:bell-outline' fontSize='1.375rem' />
         </Badge>
       </Box>
       <Menu
@@ -210,17 +211,32 @@ const NotificationDropdown = (props: Props) => {
         >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
             <Typography sx={{ cursor: 'text', fontWeight: 600 }}>اخبار و اطلاعیه ها</Typography>
-            <CustomChip
-              skin='light'
-              size='small'
-              color='primary'
-              label={`${notifications.length} جدید`}
-              sx={{ height: 20, fontSize: '0.75rem', fontWeight: 500, borderRadius: '10px' }}
-            />
+            {notifications.length > 0 && (
+              <CustomChip
+                skin='light'
+                size='small'
+                color='primary'
+                label={`${notifications.length} جدید`}
+                sx={{ height: 20, fontSize: '0.75rem', fontWeight: 500, borderRadius: '10px' }}
+              />
+            )}
           </Box>
         </MenuItem>
         <ScrollWrapper hidden={hidden}>
-          {notifications.map((notification: NotificationsType, index: number) => (
+          {loading && notifications.length === 0 ? (
+            <MenuItem disableRipple sx={{ py: 4, justifyContent: 'center', cursor: 'default' }}>
+              <Typography variant='body2' color='text.secondary'>
+                در حال بارگذاری…
+              </Typography>
+            </MenuItem>
+          ) : notifications.length === 0 ? (
+            <MenuItem disableRipple sx={{ py: 4, justifyContent: 'center', cursor: 'default' }}>
+              <Typography variant='body2' color='text.secondary'>
+                اطلاعیه‌ای وجود ندارد
+              </Typography>
+            </MenuItem>
+          ) : (
+            notifications.map((notification: NotificationsType, index: number) => (
             <MenuItem
               key={index}
               onClick={handleDropdownClose}
@@ -275,7 +291,8 @@ const NotificationDropdown = (props: Props) => {
                 </Box>
               </NewsItem>
             </MenuItem>
-          ))}
+          ))
+          )}
         </ScrollWrapper>
         <MenuItem
           disableRipple

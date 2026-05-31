@@ -10,6 +10,9 @@
 | [schema.reports.md](./schema.reports.md) | گزارشات (`/reports/*`, `/capital-deposit`) |
 | [schema.leaderboard.md](./schema.leaderboard.md) | لیدر بورد (`/leaderboard/*`) |
 | [schema.twin-token.md](./schema.twin-token.md) | توکن TWIN مدیر (`/manager/twin-token`) |
+| [schema.layout.md](./schema.layout.md) | هدر — پروفایل و اطلاعیه‌ها |
+| [schema.api-registry.md](./schema.api-registry.md) | فهرست کل + **لاگ تغییرات API** |
+| [external-urls.md](./external-urls.md) | URLهای اینترنتی (مپ، پنل، CDN) |
 
 ---
 
@@ -121,6 +124,13 @@ POST: `POST /api/network/referrer`، `POST /api/network/invite` — از [`useNe
 |------|----------|
 | `manager-twin-stats` | `GET /api/manager/twin-token/stats` |
 | `manager-twin-price-chart` | `GET /api/manager/twin-token/price-history` |
+
+### slugهای layout (`layout-*`)
+
+| slug | Endpoint |
+|------|----------|
+| `layout-user` | `GET /api/auth/getinfo` |
+| `layout-announcements` | `GET /api/User/Announcements` (404 → لیست خالی) |
 
 ---
 

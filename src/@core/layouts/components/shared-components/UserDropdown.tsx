@@ -3,24 +3,28 @@
 // ** React Imports
 import { useState, SyntheticEvent, Fragment } from 'react'
 
-// ** Next Import
-import { useRouter } from 'src/lib/next-router-shim'
+// ** Next Import — (external panel links use window.location)
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
+import IconButton from '@mui/material/IconButton'
 import Menu from '@mui/material/Menu'
-import Badge from '@mui/material/Badge'
-import Avatar from '@mui/material/Avatar'
 import Divider from '@mui/material/Divider'
 import MenuItem from '@mui/material/MenuItem'
-import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// ** Context
+// ** Config Imports
+import { panelProfileHref, panelUserAccountHref } from 'src/configs/panel-urls'
+
+// ** Hook Imports
 import { useAuth } from 'src/hooks/useAuth'
+import { useCurrentUser } from 'src/hooks/layout/useCurrentUser'
+
+// ** Lib Imports
+import { formatUserDisplayName } from 'src/lib/layout/mappers'
 
 // ** Type Imports
 import { Settings } from 'src/@core/context/settingsContext'
@@ -32,58 +36,30 @@ interface Props {
   settings: Settings
 }
 
-// ** Styled Components
-const BadgeContentSpan = styled('span')(({ theme }) => ({
-  width: 8,
-  height: 8,
-  borderRadius: '50%',
-  backgroundColor: theme.palette.success.main,
-  boxShadow: `0 0 0 2px ${theme.palette.background.paper}`
-}))
-
 const UserDropdown = (props: Props) => {
-  // ** Props
   const { settings } = props
 
-  // ** States
   const [anchorEl, setAnchorEl] = useState<Element | null>(null)
 
-  // ** Hooks
-  const router = useRouter()
-  const { logout, user } = useAuth()
+  const { logout } = useAuth()
   const { t } = useTranslation()
+  const { data: currentUser, hasData } = useCurrentUser()
 
-  // ** Get role display text
-  const getRoleLabel = (role: string | undefined) => {
-    if (!role) return 'کاربر'
-    switch (role) {
-      case 'manager':
-        return 'مدیر'
-      case 'admin':
-        return 'مدیر سیستم'
-      case 'client':
-        return 'کاربر عادی'
-      default:
-        return role
-    }
-  }
+  const displayName = hasData ? formatUserDisplayName(currentUser) : ''
 
-  // ** Get user display name
-  const displayName = user?.fullName || 'کاربر'
-  const displayRole = getRoleLabel(user?.role)
-
-  // ** Vars
   const { direction } = settings
 
   const handleDropdownOpen = (event: SyntheticEvent) => {
     setAnchorEl(event.currentTarget)
   }
 
-  const handleDropdownClose = (url?: string) => {
-    if (url) {
-      router.push(url)
-    }
+  const handleDropdownClose = () => {
     setAnchorEl(null)
+  }
+
+  const handleExternalNavigate = (url: string) => {
+    handleDropdownClose()
+    window.location.href = url
   }
 
   const styles = {
@@ -108,68 +84,69 @@ const UserDropdown = (props: Props) => {
 
   return (
     <Fragment>
-      <Badge
-        overlap='circular'
+      <IconButton
         onClick={handleDropdownOpen}
-        sx={{ ml: 2, cursor: 'pointer' }}
-        badgeContent={<BadgeContentSpan />}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right'
+        aria-label='user menu'
+        sx={{
+          ml: 1,
+          width: 40,
+          height: 40,
+          border: theme => `1px solid ${theme.palette.divider}`,
+          backgroundColor: theme =>
+            theme.palette.mode === 'light' ? theme.palette.grey[50] : theme.palette.action.selected,
+          color: 'text.primary',
+          transition: 'background-color 0.2s ease, border-color 0.2s ease',
+          '&:hover': {
+            backgroundColor: 'action.hover',
+            borderColor: 'primary.main'
+          }
         }}
       >
-        <Avatar
-          alt={displayName}
-          onClick={handleDropdownOpen}
-          sx={{ width: 40, height: 40 }}
-          src='/images/avatars/1.png'
-        />
-      </Badge>
+        <Icon icon='mdi:account-circle-outline' fontSize='1.625rem' />
+      </IconButton>
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
-        onClose={() => handleDropdownClose()}
-        sx={{ '& .MuiMenu-paper': { width: 230, mt: 4 } }}
+        onClose={handleDropdownClose}
+        sx={{ '& .MuiMenu-paper': { width: 260, mt: 4 } }}
         anchorOrigin={{ vertical: 'bottom', horizontal: direction === 'ltr' ? 'right' : 'left' }}
         transformOrigin={{ vertical: 'top', horizontal: direction === 'ltr' ? 'right' : 'left' }}
       >
         <Box sx={{ pt: 2, pb: 3, px: 4 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Badge
-              overlap='circular'
-              badgeContent={<BadgeContentSpan />}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'right'
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+            <Box
+              sx={{
+                width: 42,
+                height: 42,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                backgroundColor: theme => theme.palette.primary.main,
+                color: 'common.white'
               }}
             >
-              <Avatar alt={displayName} src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
-            </Badge>
-            <Box sx={{ display: 'flex', ml: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
-              <Typography sx={{ fontWeight: 600 }}>{displayName}</Typography>
-              <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-                {displayRole}
+              <Icon icon='mdi:account-outline' fontSize='1.375rem' />
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography sx={{ fontWeight: 600, lineHeight: 1.4 }} noWrap>
+                {displayName || '\u00A0'}
               </Typography>
             </Box>
           </Box>
         </Box>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/pages/user-profile/profile')}>
+        <MenuItem sx={{ p: 0 }} onClick={() => handleExternalNavigate(panelProfileHref())}>
           <Box sx={styles}>
             <Icon icon='mdi:account-outline' />
             {t('Profile')}
           </Box>
         </MenuItem>
         <Divider />
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/pages/account-settings/account')}>
+        <MenuItem sx={{ p: 0 }} onClick={() => handleExternalNavigate(panelUserAccountHref())}>
           <Box sx={styles}>
             <Icon icon='mdi:cog-outline' />
             {t('Settings')}
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/pages/faq')}>
-          <Box sx={styles}>
-            <Icon icon='mdi:help-circle-outline' />
-            {t('FAQ')}
           </Box>
         </MenuItem>
         <Divider />

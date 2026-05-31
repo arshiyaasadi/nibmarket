@@ -2,12 +2,12 @@
 import { ReactNode, useMemo } from 'react'
 
 // ** Next Imports
-import Link from 'next/link'
 
 // ** MUI Imports
 import { Theme } from '@mui/material/styles'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
+import Chip from '@mui/material/Chip'
 import Typography from '@mui/material/Typography'
 import useMediaQuery from '@mui/material/useMediaQuery'
 
@@ -96,9 +96,37 @@ const UserLayout = ({ children, contentHeightFixed }: Props) => {
     
     // Menu is open when: !navCollapsed || navHover
     // Menu is closed when: navCollapsed && !navHover
-    const isMenuOpen = !navCollapsed || navHover
     const isMenuClosed = navCollapsed && !navHover
     
+    const soonChipSx = {
+      height: 22,
+      fontSize: '0.6875rem',
+      fontWeight: 600,
+      borderRadius: '11px',
+      opacity: isMenuClosed ? 0 : 1,
+      transition: 'opacity .25s ease-in-out',
+      ...(isMenuClosed && { width: 0, overflow: 'hidden', p: 0, minWidth: 0 })
+    }
+
+    const soonButtonSx = {
+      justifyContent: isMenuClosed ? 'center' : 'flex-start',
+      textTransform: 'none',
+      color: 'text.secondary',
+      cursor: 'default',
+      pointerEvents: 'none' as const,
+      '& .MuiButton-startIcon': {
+        ...(isMenuClosed && { mr: 0 })
+      }
+    }
+
+    const soonLabelSx = {
+      opacity: isMenuClosed ? 0 : 1,
+      transition: 'opacity .25s ease-in-out',
+      flex: 1,
+      textAlign: 'right' as const,
+      ...(isMenuClosed && { width: 0, overflow: 'hidden' })
+    }
+
     return (
       <Box
         sx={{
@@ -112,123 +140,39 @@ const UserLayout = ({ children, contentHeightFixed }: Props) => {
         }}
       >
         <Button
-          component={Link}
-          href='/notifications'
           fullWidth
           variant='text'
+          disableRipple
           startIcon={<Icon icon='mdi:bell-outline' />}
-          sx={{
-            justifyContent: isMenuClosed ? 'center' : 'flex-start',
-            textTransform: 'none',
-            color: 'text.primary',
-            transition: 'background-color .2s ease-in-out',
-
-            // Hide text when menu is closed
-            '& .MuiButton-startIcon': {
-              ...(isMenuClosed && { mr: 0 })
-            },
-
-            // Hover styles when menu is open
-            '&:hover': {
-              ...(isMenuOpen && {
-                backgroundColor: 'action.hover'
-              }),
-
-              // Hover styles when menu is closed
-              ...(isMenuClosed && {
-                backgroundColor: 'action.selected'
-              })
-            }
-          }}
+          sx={soonButtonSx}
         >
-          <Box
-            sx={{
-              opacity: isMenuClosed ? 0 : 1,
-              transition: 'opacity .25s ease-in-out',
-              ...(isMenuClosed && { width: 0, overflow: 'hidden' })
-            }}
-          >
-            <Typography sx={{ textTransform: 'none' }}>اخبار و اطلاعیه ها</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
+            <Typography sx={{ ...soonLabelSx, textTransform: 'none' }}>اخبار و اطلاعیه ها</Typography>
+            <Chip label='به زودی' size='small' color='default' variant='outlined' sx={soonChipSx} />
           </Box>
         </Button>
         <Button
-          component={Link}
-          href='/rules'
           fullWidth
           variant='text'
+          disableRipple
           startIcon={<Icon icon='mdi:file-document-outline' />}
-          sx={{
-            justifyContent: isMenuClosed ? 'center' : 'flex-start',
-            textTransform: 'none',
-            color: 'text.primary',
-            transition: 'background-color .2s ease-in-out',
-
-            // Hide text when menu is closed
-            '& .MuiButton-startIcon': {
-              ...(isMenuClosed && { mr: 0 })
-            },
-
-            // Hover styles when menu is open
-            '&:hover': {
-              ...(isMenuOpen && {
-                backgroundColor: 'action.hover'
-              }),
-
-              // Hover styles when menu is closed
-              ...(isMenuClosed && {
-                backgroundColor: 'action.selected'
-              })
-            }
-          }}
+          sx={soonButtonSx}
         >
-          <Box
-            sx={{
-              opacity: isMenuClosed ? 0 : 1,
-              transition: 'opacity .25s ease-in-out',
-              ...(isMenuClosed && { width: 0, overflow: 'hidden' })
-            }}
-          >
-            <Typography sx={{ textTransform: 'none' }}>قوانین و مقررات</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
+            <Typography sx={{ ...soonLabelSx, textTransform: 'none' }}>قوانین و مقررات</Typography>
+            <Chip label='به زودی' size='small' color='default' variant='outlined' sx={soonChipSx} />
           </Box>
         </Button>
         <Button
-          component={Link}
-          href='/support'
           fullWidth
           variant='text'
+          disableRipple
           startIcon={<Icon icon='mdi:help-circle-outline' />}
-          sx={{
-            justifyContent: isMenuClosed ? 'center' : 'flex-start',
-            textTransform: 'none',
-            color: 'text.primary',
-            transition: 'background-color .2s ease-in-out',
-
-            // Hide text when menu is closed
-            '& .MuiButton-startIcon': {
-              ...(isMenuClosed && { mr: 0 })
-            },
-
-            // Hover styles when menu is open
-            '&:hover': {
-              ...(isMenuOpen && {
-                backgroundColor: 'action.hover'
-              }),
-
-              // Hover styles when menu is closed
-              ...(isMenuClosed && {
-                backgroundColor: 'action.selected'
-              })
-            }
-          }}
+          sx={soonButtonSx}
         >
-          <Box
-            sx={{
-              opacity: isMenuClosed ? 0 : 1,
-              transition: 'opacity .25s ease-in-out',
-              ...(isMenuClosed && { width: 0, overflow: 'hidden' })
-            }}
-          >
-            <Typography sx={{ textTransform: 'none' }}>پشتیبانی</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
+            <Typography sx={{ ...soonLabelSx, textTransform: 'none' }}>پشتیبانی</Typography>
+            <Chip label='به زودی' size='small' color='default' variant='outlined' sx={soonChipSx} />
           </Box>
         </Button>
       </Box>

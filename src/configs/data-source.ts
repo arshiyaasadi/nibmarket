@@ -31,12 +31,15 @@ export type LeaderboardEndpointSlug =
 
 export type ManagerTwinEndpointSlug = 'manager-twin-stats' | 'manager-twin-price-chart'
 
+export type LayoutEndpointSlug = 'layout-user' | 'layout-announcements'
+
 export type ApiEndpointSlug =
   | DashboardEndpointSlug
   | NetworkEndpointSlug
   | ReportsEndpointSlug
   | LeaderboardEndpointSlug
   | ManagerTwinEndpointSlug
+  | LayoutEndpointSlug
 
 const ALL_DASHBOARD_SLUGS: DashboardEndpointSlug[] = [
   'dashboard-rewards',
@@ -73,12 +76,15 @@ const ALL_LEADERBOARD_SLUGS: LeaderboardEndpointSlug[] = [
 
 const ALL_MANAGER_TWIN_SLUGS: ManagerTwinEndpointSlug[] = ['manager-twin-stats', 'manager-twin-price-chart']
 
+const ALL_LAYOUT_SLUGS: LayoutEndpointSlug[] = ['layout-user', 'layout-announcements']
+
 const ALL_API_SLUGS: ApiEndpointSlug[] = [
   ...ALL_DASHBOARD_SLUGS,
   ...ALL_NETWORK_SLUGS,
   ...ALL_REPORTS_SLUGS,
   ...ALL_LEADERBOARD_SLUGS,
-  ...ALL_MANAGER_TWIN_SLUGS
+  ...ALL_MANAGER_TWIN_SLUGS,
+  ...ALL_LAYOUT_SLUGS
 ]
 
 function parseDataSource(): DataSourceMode {
