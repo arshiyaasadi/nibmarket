@@ -66,12 +66,6 @@ export const clientNavItems: VerticalNavItemsType = [
         path: '/reports/wallet',
         action: 'read',
         subject: 'client-pages'
-      },
-      {
-        title: 'رسوب سرمایه',
-        path: '/capital-deposit',
-        action: 'read',
-        subject: 'client-pages'
       }
     ]
   },

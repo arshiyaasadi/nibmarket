@@ -173,7 +173,7 @@ const CrmProjectTimeline = () => {
                         variant='caption'
                         sx={{ color: 'text.secondary', display: 'block', mb: 0.5, fontSize: '0.75rem' }}
                       >
-                        مجموع امتیازات
+                        مجموع توکن‌ها
                       </Typography>
                       <Typography variant='body2' sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
                         {person.totalPoints.toLocaleString('fa-IR')}

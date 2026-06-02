@@ -6,7 +6,7 @@ import { mapSendInviteResponse, postNetworkInviteRaw } from 'src/api/network/inv
 import { postNetworkReferrerRaw } from 'src/api/network/referrer'
 import { isApiMode } from 'src/configs/data-source'
 import { mapSubmitReferrerResponse } from 'src/lib/network/mappers'
-import { mockSubmitReferrerResult } from 'src/mocks/network'
+import { MOCK_VALID_REFERRER_CODES, mockSubmitReferrerResult } from 'src/mocks/network'
 import type {
   NetworkReferrerInfo,
   SendNetworkInviteRequest,
@@ -43,6 +43,17 @@ export function useSubmitReferrerCode() {
     try {
       if (!isApiMode()) {
         await new Promise(r => setTimeout(r, 400))
+
+        const code = body.referralCode.trim()
+        const isValid = MOCK_VALID_REFERRER_CODES.some(
+          valid => valid.toLowerCase() === code.toLowerCase()
+        )
+
+        if (!isValid) {
+          setError('کد معرف نامعتبر است. لطفاً کد صحیح را وارد کنید.')
+
+          return null
+        }
 
         return { ...mockSubmitReferrerResult }
       }

@@ -13,19 +13,19 @@ export const mockNetworkSubsets: NetworkSubsetsResponse = {
     {
       id: 1,
       fullName: 'علی احمدی',
-      level: 5,
-      joinDate: '1402/08/15',
-      subMembersCount: 12,
-      leaderboardRank: 3,
+      level: 0,
+      joinDate: '—',
+      subMembersCount: 0,
+      leaderboardRank: 0,
       avatar: '/images/avatars/1.png'
     },
     {
       id: 2,
       fullName: 'سارا محمدی',
-      level: 7,
-      joinDate: '1402/07/20',
-      subMembersCount: 25,
-      leaderboardRank: 1,
+      level: 0,
+      joinDate: '—',
+      subMembersCount: 0,
+      leaderboardRank: 0,
       avatar: '/images/avatars/2.png'
     },
     {
@@ -159,9 +159,9 @@ export const mockNetworkSubsetTree: NetworkSubsetTreeResponse = {
 }
 
 export const mockNetworkInvite: NetworkInvitePageResponse = {
-  referralCode: 'INVITE2024',
-  maxInvitesPerMonth: 15,
-  remainingInvites: 15,
+  referralCode: 'NIB55077306',
+  maxInvitesPerMonth: 20,
+  remainingInvites: 18,
   funds: [
     {
       id: '1',
@@ -246,10 +246,12 @@ export const mockNetworkInvite: NetworkInvitePageResponse = {
     }
   ],
   recentInvites: [
-    { id: 1, name: 'علی احمدی', date: '2 روز پیش', avatar: '/images/avatars/1.png' },
-    { id: 2, name: 'سارا محمدی', date: '5 روز پیش', avatar: '/images/avatars/2.png' },
-    { id: 3, name: 'رضا کریمی', date: '1 هفته پیش', avatar: '/images/avatars/3.png' },
-    { id: 4, name: 'زهرا رضایی', date: '2 هفته پیش', avatar: '/images/avatars/4.png' }
+    { id: 1, name: 'فریده زینالیان', date: '2 روز پیش', avatar: '/images/avatars/1.png' },
+    { id: 2, name: 'سعید نیکنام', date: '3 روز پیش', avatar: '/images/avatars/2.png' },
+    { id: 3, name: 'فریده زینالیان', date: '5 روز پیش', avatar: '/images/avatars/3.png' },
+    { id: 4, name: 'سعید نیکنام', date: '1 هفته پیش', avatar: '/images/avatars/4.png' },
+    { id: 5, name: 'علی احمدی', date: '2 هفته پیش', avatar: '/images/avatars/5.png' },
+    { id: 6, name: 'سارا محمدی', date: '3 هفته پیش', avatar: '/images/avatars/6.png' }
   ]
 }
 
@@ -257,6 +259,8 @@ export const mockNetworkReferrer: NetworkReferrerResponse = {
   hasSubsets: false,
   referrer: null
 }
+
+export const MOCK_VALID_REFERRER_CODES = ['NIB55077306', 'INVITE2024', 'MR2024'] as const
 
 export const mockSubmitReferrerResult: NetworkReferrerInfo = {
   firstName: 'محمد',

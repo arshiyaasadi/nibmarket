@@ -448,6 +448,15 @@ const MySubsetsPageContent = () => {
               columns={columns}
               pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
+              localeText={{
+                MuiTablePagination: {
+                  labelRowsPerPage: 'تعداد ردیف در صفحه:',
+                  labelDisplayedRows: ({ from, to, count }) =>
+                    `${from.toLocaleString('fa-IR')}-${to.toLocaleString('fa-IR')} از ${
+                      count !== -1 ? count.toLocaleString('fa-IR') : `بیش از ${to.toLocaleString('fa-IR')}`
+                    }`
+                }
+              }}
               slots={{ toolbar: CustomSearchToolbar }}
               onPaginationModelChange={setPaginationModel}
               rows={filteredData.length ? filteredData : tableRows}

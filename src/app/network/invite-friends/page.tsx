@@ -170,6 +170,14 @@ const InviteFriendsPageContent = () => {
     }
   }, [inviteHasData, inviteData.recentInvites, inviteData.remainingInvites, inviteData.maxInvitesPerMonth])
 
+  useEffect(() => {
+    setSelectedTemplate(null)
+  }, [selectedFund])
+
+  const dedupedRecentInvites = recentInvites.filter(
+    (invite, index, arr) => arr.findIndex(i => i.name === invite.name) === index
+  )
+
   const normalizeToEnglishDigits = (value: string) => {
     const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹']
     const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩']
@@ -278,13 +286,22 @@ const InviteFriendsPageContent = () => {
 
   const open = Boolean(anchorEl)
 
-  // Generate invite templates with fund name
+  // Generate invite templates — with or without fund selection
   const getInviteTemplates = (): string[] => {
-    const fundName = selectedFund?.name || 'صندوق'
+    if (selectedFund) {
+      const fundName = selectedFund.name
+
+      return [
+        `سلام .......... . گفتم بهت بگم؛ با صندوق ${fundName} می‌تونی بدون دردسر نوسان بازار، سود ثابت بگیری. به نظرم گزینه خوبیه. از لینک زیر میتونی عضو بشی`,
+        `سلام .......... . اگه پولت یه گوشه خوابه، صندوق ${fundName} انتخاب امنیه. سودش منظمه و خیالت راحته، ارزش بررسی داره. از لینک زیر میتونی عضو بشی`,
+        `سلام .......... . یه مدته صندوق ${fundName} گرفتم، سودش بد نیست و ریسکش کمه. از لینک زیر میتونی عضو بشی`
+      ]
+    }
+
     return [
-      `سلام .......... . گفتم بهت بگم؛ با صندوق ${fundName} می‌تونی بدون دردسر نوسان بازار، سود ثابت بگیری. به نظرم گزینه خوبیه. از لینک زیر میتونی عضو بشی`,
-      `سلام .......... . اگه پولت یه گوشه خوابه، صندوق ${fundName} انتخاب امنیه. سودش منظمه و خیالت راحته، ارزش بررسی داره. از لینک زیر میتونی عضو بشی`,
-      `سلام .......... . یه مدته صندوق ${fundName} گرفتم، سودش بد نیست و ریسکش کمه. از لینک زیر میتونی عضو بشی`
+      'سلام .......... . گفتم بهت بگم؛ می‌تونی بدون دردسر در سامانه نیب مارکت عضو بشی و توکن کسب کنی. از لینک زیر میتونی عضو بشی',
+      'سلام .......... . اگه دنبال راهی امن برای سرمایه‌گذاری هستی، سامانه نیب مارکت گزینه خوبیه. از لینک زیر میتونی عضو بشی',
+      'سلام .......... . من عضو سامانه نیب مارکت شدم و از امکاناتش راضیم. از لینک زیر میتونی عضو بشی'
     ]
   }
 
@@ -456,6 +473,7 @@ const InviteFriendsPageContent = () => {
               <Button
                 variant='outlined'
                 onClick={handleBack}
+                disabled={activeStep === 0}
                 startIcon={<Icon icon='mdi:arrow-right' />}
               >
                 بازگشت
@@ -817,7 +835,7 @@ const InviteFriendsPageContent = () => {
               </Box>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, opacity: inviteHasData ? 1 : 0.5 }}>
-                {recentInvites.map(user => (
+                {dedupedRecentInvites.map(user => (
                   <Box
                     key={user.id}
                     sx={{

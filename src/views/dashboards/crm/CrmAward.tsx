@@ -1,6 +1,9 @@
 // ** React Imports
 import { useState, MouseEvent } from 'react'
 
+// ** Next Imports
+import Link from 'next/link'
+
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -78,6 +81,12 @@ const CrmAward = () => {
 
   const open = Boolean(anchorEl)
 
+  const dedupedRecentInvites = hasData
+    ? recentInvites.filter(
+        (invite, index, arr) => arr.findIndex(i => i.name === invite.name) === index
+      )
+    : []
+
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <DashboardWidgetState
@@ -107,12 +116,15 @@ const CrmAward = () => {
               )
             </Typography>
             <Typography
+              component={Link}
+              href='/network/invite-friends'
               variant='body2'
               sx={{
                 color: 'primary.main',
                 cursor: 'pointer',
                 fontWeight: 500,
                 fontSize: '0.875rem',
+                textDecoration: 'none',
                 '&:hover': {
                   textDecoration: 'underline'
                 }
@@ -123,9 +135,9 @@ const CrmAward = () => {
           </Box>
 
           <Box sx={{ mb: 3 }}>
-            {Array.from({ length: hasData ? recentInvites.length : 3 }).map((_, index) => {
-              const row = hasData ? recentInvites[index] : { id: index, name: '', invitedAtLabel: '' }
-              const rowCount = hasData ? recentInvites.length : 3
+            {Array.from({ length: hasData ? dedupedRecentInvites.length : 3 }).map((_, index) => {
+              const row = hasData ? dedupedRecentInvites[index] : { id: index, name: '', invitedAtLabel: '' }
+              const rowCount = hasData ? dedupedRecentInvites.length : 3
 
               return (
                 <Box

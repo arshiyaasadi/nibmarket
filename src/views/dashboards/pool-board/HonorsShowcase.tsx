@@ -105,7 +105,7 @@ const HonorsShowcase = ({ honors }: HonorsShowcaseProps) => {
                 >
                   <Icon icon='mdi:star' fontSize={14} style={{ color: honor.color }} />
                   <Typography variant='caption' sx={{ fontWeight: 600, color: honor.color }}>
-                    مجموع امتیاز کسب شده: {honor.totalPoints.toLocaleString('fa-IR')}
+                    مجموع توکن کسب شده: {honor.totalPoints.toLocaleString('fa-IR')}
                   </Typography>
                 </Box>
               </HonorCard>

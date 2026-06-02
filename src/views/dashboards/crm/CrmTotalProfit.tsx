@@ -1,7 +1,4 @@
 // ** React Imports
-import { useState } from 'react'
-
-// ** Next Imports
 import Link from 'next/link'
 
 // ** MUI Imports
@@ -17,8 +14,10 @@ import { styled } from '@mui/material/styles'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
+// ** Third Party Components
+import toast from 'react-hot-toast'
+
 // ** Component Imports
-import WithdrawalModal from '../WithdrawalModal'
 import DashboardWidgetState from 'src/components/dashboard/DashboardWidgetState'
 import WidgetField from 'src/components/dashboard/WidgetField'
 
@@ -45,8 +44,11 @@ const TwinBadge = styled(Box)(() => ({
 const formatTwin = (value: number) => value.toLocaleString('fa-IR')
 
 const CrmTotalProfit = () => {
-  const [withdrawalModalOpen, setWithdrawalModalOpen] = useState<boolean>(false)
   const { data, loading, retrying, error, hasData, usedFallback, refetch } = useDashboardWallet()
+
+  const handleTransferClick = () => {
+    toast.error('توکن فریز است')
+  }
 
   return (
     <Card
@@ -223,7 +225,7 @@ const CrmTotalProfit = () => {
           <Button
             variant='contained'
             fullWidth
-            onClick={() => setWithdrawalModalOpen(true)}
+            onClick={handleTransferClick}
             sx={theme => ({
               mb: 4,
               py: 1.75,
@@ -273,12 +275,6 @@ const CrmTotalProfit = () => {
           </Box>
         </CardContent>
       </DashboardWidgetState>
-
-      <WithdrawalModal
-        open={withdrawalModalOpen}
-        onClose={() => setWithdrawalModalOpen(false)}
-        availableBalance={data.withdrawableBalance}
-      />
     </Card>
   )
 }

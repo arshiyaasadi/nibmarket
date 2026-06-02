@@ -1,4 +1,4 @@
-import { missionsData } from 'src/data/missions'
+import { incompleteMissions } from 'src/data/missions'
 import type {
   DailySubordinateGrowthResponse,
   DashboardInvitesResponse,
@@ -34,50 +34,50 @@ const DAILY_COUNTS = [
 export const mockDashboardRewards: DashboardRewardsResponse = {
   summaries: [
     {
-      title: 'کل پاداش بدست آمده',
-      stats: '0',
-      trendNumber: '+0%',
+      title: 'کل توکن بدست آمده',
+      stats: '45',
+      trendNumber: '+12%',
       trend: 'positive',
       color: 'primary',
       icon: 'mdi:trophy'
     },
     {
-      title: 'پاداش این ماه',
-      stats: '0',
-      trendNumber: '+0%',
+      title: 'توکن این ماه',
+      stats: '12',
+      trendNumber: '+5%',
       trend: 'positive',
       color: 'success',
       icon: 'mdi:calendar-month'
     },
     {
-      title: 'پاداش تجمیع شده استخر',
-      stats: '0',
-      trendNumber: '+0%',
+      title: 'توکن تجمیع شده استخر',
+      stats: '8',
+      trendNumber: '+2%',
       trend: 'positive',
       color: 'info',
       icon: 'mdi:water'
     }
   ],
-  missions: missionsData.slice(0, 3).map((mission, index) => ({
-    ...mission,
-    completed: index === 0
-  }))
+  missions: incompleteMissions.slice(0, 3)
 }
 
 export const mockDashboardWallet: TwinWalletBalance = {
-  totalBalance: 68000,
-  withdrawableBalance: 38000,
-  frozenBalance: 30000,
+  totalBalance: 45,
+  withdrawableBalance: 0,
+  frozenBalance: 45,
   currency: 'TWIN'
 }
 
 export const mockDashboardInvites: DashboardInvitesResponse = {
-  totalInvited: 24,
-  referralCode: 'INVITE2024',
+  totalInvited: 6,
+  referralCode: 'NIB55077306',
   recentInvites: [
-    { id: 1, name: 'علی احمدی', invitedAtLabel: '2 روز پیش' },
-    { id: 2, name: 'سارا محمدی', invitedAtLabel: '5 روز پیش' },
-    { id: 3, name: 'رضا کریمی', invitedAtLabel: '1 هفته پیش' }
+    { id: 1, name: 'فریده زینالیان', invitedAtLabel: '2 روز پیش' },
+    { id: 2, name: 'سعید نیکنام', invitedAtLabel: '3 روز پیش' },
+    { id: 3, name: 'فریده زینالیان', invitedAtLabel: '5 روز پیش' },
+    { id: 4, name: 'سعید نیکنام', invitedAtLabel: '1 هفته پیش' },
+    { id: 5, name: 'علی احمدی', invitedAtLabel: '2 هفته پیش' },
+    { id: 6, name: 'سارا محمدی', invitedAtLabel: '3 هفته پیش' }
   ]
 }
 
@@ -95,7 +95,7 @@ export const mockDashboardLeaderboard = (
 })
 
 export const mockDashboardMonthlyRewards: MonthlyRewardsChartResponse = {
-  seriesName: 'پاداش ماهانه',
+  seriesName: 'توکن ماهانه',
   unit: 'token',
   points: MONTHLY_AMOUNTS.map((amount, i) => ({
     month: (i + 1) as MonthlyRewardsChartResponse['points'][0]['month'],
@@ -126,7 +126,7 @@ export const mockDashboardDailyGrowthWithData: DailySubordinateGrowthResponse = 
 
 export const mockDashboardMonthlyRewardsTrend: MonthlyRewardsTrendResponse = {
   hasData: false,
-  seriesName: 'پاداش ماهانه',
+  seriesName: 'توکن ماهانه',
   unit: 'token',
   points: MONTHLY_AMOUNTS.map((amount, i) => ({
     month: i + 1,
@@ -137,7 +137,7 @@ export const mockDashboardMonthlyRewardsTrend: MonthlyRewardsTrendResponse = {
 
 export const mockDashboardMonthlyRewardsTrendWithData: MonthlyRewardsTrendResponse = {
   hasData: true,
-  seriesName: 'پاداش ماهانه',
+  seriesName: 'توکن ماهانه',
   unit: 'token',
   points: MONTHLY_AMOUNTS.map((amount, i) => ({
     month: i + 1,

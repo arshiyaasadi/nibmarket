@@ -91,7 +91,7 @@ const CrmMonthlyRewardsBar = () => {
   return (
     <Card>
       <CardHeader
-        title='پاداش ماهانه کسب شده'
+        title='توکن ماهانه کسب شده'
         titleTypographyProps={{ variant: 'h6', sx: { letterSpacing: '0.15px', fontWeight: 600 } }}
       />
       <DashboardWidgetState
@@ -101,7 +101,7 @@ const CrmMonthlyRewardsBar = () => {
         usedFallback={usedFallback}
         onRetry={refetch}
         skeletonHeight={300}
-        widgetTitle='پاداش ماهانه'
+        widgetTitle='توکن ماهانه'
       >
         {showEmptyState ? (
           <CardContent sx={{ p: 6 }}>

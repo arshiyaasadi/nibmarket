@@ -9,6 +9,7 @@ import dynamic from 'next/dynamic'
 
 // ** Hooks
 import { useAuth } from 'src/hooks/useAuth'
+import { normalizeUserRole } from 'src/configs/acl'
 
 // ** Component Import
 import Spinner from 'src/@core/components/spinner'
@@ -41,6 +42,13 @@ const CapitalDepositLayout = ({ children }: CapitalDepositLayoutProps) => {
       const hasUserData = window.localStorage.getItem('userData')
       if (!hasUserData) {
         router.replace(`/?returnUrl=${encodeURIComponent(pathname)}`)
+      }
+    }
+
+    if (!auth.loading && auth.user) {
+      const role = normalizeUserRole(auth.user.role)
+      if (role !== 'manager' && role !== 'admin') {
+        router.replace('/dashboard')
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

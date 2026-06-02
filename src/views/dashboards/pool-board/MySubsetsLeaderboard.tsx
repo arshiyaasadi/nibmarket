@@ -87,7 +87,7 @@ const MySubsetsLeaderboard = ({ entries }: MySubsetsLeaderboardProps) => {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Icon icon='mdi:star' fontSize={18} style={{ color: '#FFD700' }} />
                     <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                      مجموع امتیازات:
+                      مجموع توکن‌ها:
                     </Typography>
                     <Typography variant='body1' sx={{ fontWeight: 600, color: 'primary.main' }}>
                       {item.points.toLocaleString('fa-IR')}

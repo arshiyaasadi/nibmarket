@@ -50,7 +50,7 @@ const getMissionIcon = (id: number) => {
 
 const MissionsPageContent = () => {
   const { data, loading, retrying, error, hasData, usedFallback, refetch } = useLeaderboardMissions()
-  const missions = data.missions
+  const missions = data.missions.filter(m => !m.completed)
 
   const handleMissionClick = (mission: Mission) => {
     if (!mission.completed) {
@@ -74,7 +74,7 @@ const MissionsPageContent = () => {
           widgetTitle='ماموریت‌ها'
         >
           <CardHeader
-            title='جدول فعالیت هایی که فرد می تواند با تکمیل و انجام آن توکن بدست بیاورد'
+            title='جدول فعالیت‌هایی که می‌توانید با تکمیل و انجام آن توکن بیاورید'
             titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }}
           />
           <CardContent sx={{ opacity: hasData ? 1 : 0.5 }}>
@@ -116,7 +116,7 @@ const MissionsPageContent = () => {
                               style={{ color: mission.completed ? 'inherit' : undefined }}
                             />
                             <Typography variant='body2' sx={{ color: 'text.secondary', fontWeight: 500 }}>
-                              پاداش: {mission.reward}
+                              توکن: {mission.reward}
                             </Typography>
                           </Box>
                         </Box>

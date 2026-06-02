@@ -80,10 +80,12 @@ const CrmRewards = () => {
     }
   }
 
+  const incompleteMissions = missions.filter(m => !m.completed)
+
   return (
     <Card>
       <CardHeader
-        title='پاداش‌ها'
+        title='توکن‌ها'
         titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600, letterSpacing: '0.15px' } }}
       />
       <DashboardWidgetState
@@ -93,8 +95,8 @@ const CrmRewards = () => {
         usedFallback={usedFallback}
         onRetry={refetch}
         skeletonHeight={360}
-        widgetTitle='پاداش‌ها'
-        isEmpty={hasData && summaries.length === 0 && missions.length === 0}
+        widgetTitle='توکن‌ها'
+        isEmpty={hasData && summaries.length === 0 && incompleteMissions.length === 0}
       >
         <CardContent sx={{ p: 6 }}>
           <Grid container spacing={4}>
@@ -160,7 +162,7 @@ const CrmRewards = () => {
               ماموریت‌ها
             </Typography>
             <MissionsScrollContainer>
-              {missions.map((mission: Mission) => (
+              {incompleteMissions.map((mission: Mission) => (
                 <MissionCard key={mission.id} onClick={() => handleMissionClick(mission)}>
                   <CardContent sx={{ p: 4 }}>
                     <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3 }}>
@@ -213,7 +215,7 @@ const CrmRewards = () => {
                     <Divider sx={{ my: 2.5 }} />
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <Typography variant='body2' sx={{ color: 'text.secondary', fontSize: '0.8125rem' }}>
-                        پاداش:
+                        توکن:
                       </Typography>
                       <CustomChip
                         size='small'

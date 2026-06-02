@@ -84,10 +84,8 @@ const MyReferrerPageContent = () => {
               widgetTitle='معرف من'
             >
               {referrerInfo ? (
-                <>
-                  <CardHeader title='معرف من' titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }} />
-                  <CardContent sx={{ p: 6 }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                <CardContent sx={{ p: 6 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
                       <CustomAvatar
                         skin='light'
                         color='primary'
@@ -125,7 +123,6 @@ const MyReferrerPageContent = () => {
                       </Box>
                     </Box>
                   </CardContent>
-                </>
               ) : (
                 <>
                   <CardHeader
@@ -243,6 +240,34 @@ const MyReferrerPageContent = () => {
                     </Typography>
                     <Typography variant='body2' sx={{ color: 'text.secondary', lineHeight: 1.8 }}>
                       درصورتی که دارای زیرمجموعه باشید امکان ثبت کد معرف مقدور نمی‌باشد.
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Divider />
+
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minWidth: 32,
+                      height: 32,
+                      borderRadius: '50%',
+                      backgroundColor: 'warning.light',
+                      color: 'warning.main',
+                      mt: 0.5
+                    }}
+                  >
+                    <Icon icon='mdi:lock' fontSize={20} />
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant='body1' sx={{ fontWeight: 600, mb: 0.5 }}>
+                      تغییر معرف
+                    </Typography>
+                    <Typography variant='body2' sx={{ color: 'text.secondary', lineHeight: 1.8 }}>
+                      پس از ثبت معرف، امکان تغییر یا ویرایش آن وجود ندارد.
                     </Typography>
                   </Box>
                 </Box>
