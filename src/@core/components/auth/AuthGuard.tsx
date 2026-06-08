@@ -7,6 +7,7 @@ import { ReactNode, ReactElement, useEffect } from 'react'
 import { useRouter } from 'src/lib/next-router-shim'
 
 // ** Hooks Import
+import { redirectToPanelLogin } from 'src/configs/auth-redirect'
 import { useAuth } from 'src/hooks/useAuth'
 
 interface AuthGuardProps {
@@ -26,14 +27,7 @@ const AuthGuard = (props: AuthGuardProps) => {
       }
 
       if (auth.user === null && !window.localStorage.getItem('userData')) {
-        if (router.asPath !== '/') {
-          router.replace({
-            pathname: '/login',
-            query: { returnUrl: router.asPath }
-          })
-        } else {
-          router.replace('/login')
-        }
+        redirectToPanelLogin()
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -1,11 +1,13 @@
 export type NetworkSubsetRow = {
   id: number
+  firstName: string
+  lastName: string
   fullName: string
   level: number
   joinDate: string
   subMembersCount: number
   leaderboardRank: number
-  avatar: string
+  directParentUserId: number
 }
 
 export type NetworkSubsetsResponse = {
@@ -14,14 +16,16 @@ export type NetworkSubsetsResponse = {
 
 export type NetworkTreeNode = {
   id: string
-  name: string
-  family: string
-  balance: number | string
-  networks: NetworkTreeNode[]
+  firstName: string
+  lastName: string
+  fullName: string
+  level: number
+  children: NetworkTreeNode[]
 }
 
 export type NetworkSubsetTreeResponse = {
-  root: NetworkTreeNode
+  roots: NetworkTreeNode[]
+  truncated: boolean
 }
 
 export type NetworkFund = {

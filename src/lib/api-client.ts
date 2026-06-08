@@ -1,7 +1,10 @@
 import axios from 'axios'
 
 import { API_BACKEND_URL, API_VERSION_PREFIX, buildApiUrl, resolveApiBaseUrl } from 'src/configs/api'
+import { redirectToPanelLogin } from 'src/configs/auth-redirect'
 import { getAccessToken } from 'src/lib/auth-token'
+
+let handlingUnauthorized = false
 
 const DEBUG_API =
   process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEBUG_API === 'true'
@@ -59,6 +62,16 @@ apiClient.interceptors.response.use(
   error => {
     if (DEBUG_API && axios.isAxiosError(error) && error.config?.url) {
       console.error('[api-client] failed', buildApiUrl(error.config.url), error.code, error.message)
+    }
+
+    if (
+      axios.isAxiosError(error) &&
+      error.response?.status === 401 &&
+      typeof window !== 'undefined' &&
+      !handlingUnauthorized
+    ) {
+      handlingUnauthorized = true
+      redirectToPanelLogin()
     }
 
     return Promise.reject(error)

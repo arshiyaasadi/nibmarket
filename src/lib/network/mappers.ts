@@ -1,10 +1,10 @@
 import {
   mockNetworkInvite,
   mockNetworkReferrer,
-  mockNetworkSubsets,
-  mockNetworkSubsetTree
+  mockNetworkSubsets
 } from 'src/mocks/network'
 import { ensureArray, toNumber, toString } from 'src/lib/dashboard/normalize'
+import { buildNetworkTreeFromSubsetRows, limitNetworkTree } from 'src/lib/network/subset-tree-builder'
 import type {
   NetworkFund,
   NetworkInvitePageResponse,
@@ -13,8 +13,7 @@ import type {
   NetworkReferrerResponse,
   NetworkSubsetRow,
   NetworkSubsetsResponse,
-  NetworkSubsetTreeResponse,
-  NetworkTreeNode
+  NetworkSubsetTreeResponse
 } from 'src/types/api/network'
 
 function unwrapPayload(raw: unknown): unknown {
@@ -26,16 +25,34 @@ function unwrapPayload(raw: unknown): unknown {
   return raw
 }
 
-function mapTreeNode(item: Record<string, unknown>): NetworkTreeNode {
-  const rawChildren = ensureArray<Record<string, unknown>>(item.networks ?? item.children)
+function formatJoinDate(value: unknown): string {
+  const raw = toString(value, '')
+  if (!raw) return '—'
 
-  return {
-    id: toString(item.id, '0'),
-    name: toString(item.name, '—'),
-    family: toString(item.family, '—'),
-    balance: item.balance != null ? (typeof item.balance === 'number' ? item.balance : toString(item.balance)) : 0,
-    networks: rawChildren.map(mapTreeNode)
+  const parsed = new Date(raw)
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed.toLocaleDateString('fa-IR')
   }
+
+  return raw
+}
+
+function buildFullName(firstName: unknown, lastName: unknown, fallback = '—'): string {
+  const fullName = `${toString(firstName, '').trim()} ${toString(lastName, '').trim()}`.trim()
+
+  return fullName || fallback
+}
+
+function countDirectSubsets(rows: Record<string, unknown>[]): Map<number, number> {
+  const counts = new Map<number, number>()
+
+  for (const item of rows) {
+    const parentId = toNumber(item.directParentUserId, 0)
+    if (!parentId) continue
+    counts.set(parentId, (counts.get(parentId) ?? 0) + 1)
+  }
+
+  return counts
 }
 
 export function mapNetworkSubsets(raw: unknown): NetworkSubsetsResponse {
@@ -46,32 +63,43 @@ export function mapNetworkSubsets(raw: unknown): NetworkSubsetsResponse {
   const o = payload as Record<string, unknown>
   const rawRows = ensureArray<Record<string, unknown>>(o.rows ?? o.items ?? o.subsets)
 
-  if (rawRows.length === 0) return fallback
+  if (rawRows.length === 0) return { rows: [] }
 
-  const rows: NetworkSubsetRow[] = rawRows.map((item, index) => ({
-    id: toNumber(item.id, index + 1),
-    fullName: toString(item.fullName ?? item.name, fallback.rows[index]?.fullName ?? '—'),
-    level: toNumber(item.level, 0),
-    joinDate: toString(item.joinDate ?? item.membershipDate, '—'),
-    subMembersCount: toNumber(item.subMembersCount ?? item.subordinates, 0),
-    leaderboardRank: toNumber(item.leaderboardRank ?? item.rank, 0),
-    avatar: toString(item.avatar, `/images/avatars/${(index % 8) + 1}.png`)
-  }))
+  const childCounts = countDirectSubsets(rawRows)
+
+  const rows: NetworkSubsetRow[] = rawRows.map((item, index) => {
+    const id = toNumber(item.id, index + 1)
+    const firstName = toString(item.firstName, '')
+    const lastName = toString(item.lastName, '')
+
+    return {
+      id,
+      firstName,
+      lastName,
+      fullName: buildFullName(
+        firstName,
+        lastName,
+        toString(item.fullName ?? item.name, fallback.rows[index]?.fullName ?? '—')
+      ),
+      level: toNumber(item.upperLevel ?? item.level, 0),
+      joinDate: formatJoinDate(item.creationDate ?? item.joinDate ?? item.membershipDate),
+      subMembersCount: toNumber(item.subMembersCount ?? item.subordinates, childCounts.get(id) ?? 0),
+      leaderboardRank: toNumber(item.leaderboardRank ?? item.rank, 0),
+      directParentUserId: toNumber(item.directParentUserId, 0)
+    }
+  })
 
   return { rows }
 }
 
+/** Build org chart from the same GET /api/network/subsets payload. */
 export function mapNetworkSubsetTree(raw: unknown): NetworkSubsetTreeResponse {
-  const fallback = mockNetworkSubsetTree
-  const payload = unwrapPayload(raw)
-  if (!payload || typeof payload !== 'object') return fallback
+  const mapped = mapNetworkSubsets(raw)
+  const sourceRows = mapped.rows.length > 0 ? mapped.rows : mockNetworkSubsets.rows
+  const builtRoots = buildNetworkTreeFromSubsetRows(sourceRows)
+  const { roots, truncated } = limitNetworkTree(builtRoots)
 
-  const o = payload as Record<string, unknown>
-  const rootRaw = (o.root ?? o) as Record<string, unknown>
-
-  if (!rootRaw.id && !rootRaw.name) return fallback
-
-  return { root: mapTreeNode(rootRaw) }
+  return { roots, truncated }
 }
 
 export function mapNetworkInvite(raw: unknown): NetworkInvitePageResponse {

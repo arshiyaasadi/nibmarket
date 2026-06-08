@@ -2,161 +2,77 @@ import type {
   NetworkInvitePageResponse,
   NetworkReferrerInfo,
   NetworkReferrerResponse,
-  NetworkSubsetRow,
   NetworkSubsetsResponse,
-  NetworkSubsetTreeResponse,
-  NetworkTreeNode
+  NetworkSubsetTreeResponse
 } from 'src/types/api/network'
+import { buildNetworkTreeFromSubsetRows, limitNetworkTree } from 'src/lib/network/subset-tree-builder'
 
 export const mockNetworkSubsets: NetworkSubsetsResponse = {
   rows: [
     {
-      id: 1,
-      fullName: 'علی احمدی',
-      level: 0,
-      joinDate: '—',
+      id: 10051,
+      firstName: 'فریده',
+      lastName: 'زینالیان',
+      fullName: 'فریده زینالیان',
+      level: 3,
+      joinDate: '۱۴۰۲/۰۱/۲۲',
       subMembersCount: 0,
       leaderboardRank: 0,
-      avatar: '/images/avatars/1.png'
+      directParentUserId: 10050
     },
     {
-      id: 2,
-      fullName: 'سارا محمدی',
-      level: 0,
-      joinDate: '—',
-      subMembersCount: 0,
+      id: 10050,
+      firstName: 'بهرام',
+      lastName: 'حاجی هاشمی',
+      fullName: 'بهرام حاجی هاشمی',
+      level: 2,
+      joinDate: '۱۴۰۲/۰۱/۲۲',
+      subMembersCount: 2,
       leaderboardRank: 0,
-      avatar: '/images/avatars/2.png'
+      directParentUserId: 11
     },
     {
-      id: 3,
-      fullName: 'رضا کریمی',
-      level: 4,
-      joinDate: '1402/09/10',
-      subMembersCount: 8,
-      leaderboardRank: 15,
-      avatar: '/images/avatars/3.png'
+      id: 11,
+      firstName: 'امیر',
+      lastName: 'زارع کاریزی',
+      fullName: 'امیر زارع کاریزی',
+      level: 1,
+      joinDate: '۱۴۰۱/۱۱/۰۹',
+      subMembersCount: 1,
+      leaderboardRank: 0,
+      directParentUserId: 123606
     },
     {
       id: 4,
-      fullName: 'زهرا رضایی',
-      level: 6,
-      joinDate: '1402/06/05',
-      subMembersCount: 18,
-      leaderboardRank: 5,
-      avatar: '/images/avatars/4.png'
-    },
-    {
-      id: 5,
-      fullName: 'محمد حسینی',
+      firstName: 'سعید',
+      lastName: 'نیکنام',
+      fullName: 'سعید نیکنام',
       level: 3,
-      joinDate: '1402/09/25',
-      subMembersCount: 5,
-      leaderboardRank: 28,
-      avatar: '/images/avatars/5.png'
+      joinDate: '۱۴۰۱/۱۱/۰۵',
+      subMembersCount: 0,
+      leaderboardRank: 0,
+      directParentUserId: 10050
     },
     {
-      id: 6,
-      fullName: 'فاطمه علیزاده',
-      level: 8,
-      joinDate: '1402/05/12',
-      subMembersCount: 32,
-      leaderboardRank: 2,
-      avatar: '/images/avatars/6.png'
-    },
-    {
-      id: 7,
-      fullName: 'حسن رضوی',
-      level: 2,
-      joinDate: '1402/10/01',
-      subMembersCount: 3,
-      leaderboardRank: 42,
-      avatar: '/images/avatars/7.png'
-    },
-    {
-      id: 8,
-      fullName: 'مریم کاظمی',
-      level: 5,
-      joinDate: '1402/08/18',
-      subMembersCount: 14,
-      leaderboardRank: 10,
-      avatar: '/images/avatars/8.png'
+      id: 1,
+      firstName: 'محمد',
+      lastName: 'نباتی',
+      fullName: 'محمد نباتی',
+      level: 1,
+      joinDate: '۱۴۰۱/۱۱/۰۴',
+      subMembersCount: 0,
+      leaderboardRank: 0,
+      directParentUserId: 123606
     }
   ]
 }
 
-const mockTreeRoot: NetworkTreeNode = {
-  id: '1',
-  name: 'علی',
-  family: 'احمدی',
-  balance: 5000000,
-  networks: [
-    {
-      id: '2',
-      name: 'محمد',
-      family: 'رضایی',
-      balance: 3000000,
-      networks: [
-        {
-          id: '4',
-          name: 'حسن',
-          family: 'کریمی',
-          balance: 1500000,
-          networks: []
-        },
-        {
-          id: '5',
-          name: 'سارا',
-          family: 'رضایی',
-          balance: 1100000,
-          networks: []
-        }
-      ]
-    },
-    {
-      id: '3',
-      name: 'رضا',
-      family: 'محمدی',
-      balance: 2500000,
-      networks: [
-        {
-          id: '13',
-          name: 'الهام',
-          family: 'صبوری',
-          balance: 1200000,
-          networks: [
-            {
-              id: '14',
-              name: 'نگین',
-              family: 'صبوری',
-              balance: 510000,
-              networks: [
-                {
-                  id: '15',
-                  name: 'سارا',
-                  family: 'رضایی',
-                  balance: 1100000,
-                  networks: []
-                },
-                {
-                  id: '16',
-                  name: 'سارا',
-                  family: 'رضایی',
-                  balance: 1100000,
-                  networks: []
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
+export const mockNetworkSubsetTree: NetworkSubsetTreeResponse = (() => {
+  const roots = buildNetworkTreeFromSubsetRows(mockNetworkSubsets.rows)
+  const { roots: limited, truncated } = limitNetworkTree(roots)
 
-export const mockNetworkSubsetTree: NetworkSubsetTreeResponse = {
-  root: mockTreeRoot
-}
+  return { roots: limited, truncated }
+})()
 
 export const mockNetworkInvite: NetworkInvitePageResponse = {
   referralCode: 'NIB55077306',

@@ -72,6 +72,7 @@
     "react-i18next": "12.2.0",
     "react-leaflet": "^5.0.0",
     "react-leaflet-cluster": "^4.0.0",
+    "react-organizational-chart": "^2.2.1",
     "react-perfect-scrollbar": "1.5.8",
     "react-popper": "2.3.0",
     "react-redux": "8.0.5",

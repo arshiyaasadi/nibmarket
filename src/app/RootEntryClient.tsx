@@ -5,11 +5,11 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-import Link from 'next/link'
 
 import BlankLayout from 'src/@core/layouts/BlankLayout'
 import Spinner from 'src/@core/components/spinner'
 import { useAuth } from 'src/hooks/useAuth'
+import { redirectToPanelLogin } from 'src/configs/auth-redirect'
 import { formatApiErrorMessage } from 'src/lib/api-errors'
 import { clearStaleSession } from 'src/lib/auth-exchange'
 import { getNibAuthCookieToken, stripBearerPrefix } from 'src/lib/auth-token'
@@ -53,7 +53,7 @@ export default function RootEntryClient({ serverNibAuthToken }: Props) {
 
     const nibToken = resolveNibAuthToken(serverNibAuthToken)
     if (!nibToken) {
-      router.replace('/login')
+      redirectToPanelLogin()
 
       return
     }
@@ -81,8 +81,12 @@ export default function RootEntryClient({ serverNibAuthToken }: Props) {
           <Typography variant='body2' color='text.secondary' sx={{ maxWidth: 420 }}>
             {error}
           </Typography>
-          <Button component={Link} href='/login' variant='outlined' size='small'>
-            ورود دستی
+          <Button
+            variant='outlined'
+            size='small'
+            onClick={() => redirectToPanelLogin()}
+          >
+            ورود از پنل
           </Button>
         </Box>
       </BlankLayout>

@@ -24,7 +24,6 @@ import { TreeView } from 'src/utils/treeview-wrapper'
 import Icon from 'src/@core/components/icon'
 
 // ** Custom Components
-import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** Hooks
 import { useSettings } from 'src/@core/hooks/useSettings'
@@ -32,9 +31,6 @@ import { useNetworkSubsets } from 'src/hooks/network/useNetworkSubsets'
 
 // ** Components
 import DashboardWidgetState from 'src/components/dashboard/DashboardWidgetState'
-
-// ** Utils Import
-import { getInitials } from 'src/@core/utils/get-initials'
 
 // ** Types
 interface SubsetNode {
@@ -52,7 +48,6 @@ interface TableRowType {
   joinDate: string
   subMembersCount: number
   leaderboardRank: number
-  avatar: string
 }
 
 type StyledTreeItemProps = TreeItemProps & {
@@ -151,25 +146,6 @@ const CustomSearchToolbar = (props: CustomSearchToolbarProps) => {
   )
 }
 
-// ** Render Client Avatar
-const renderClient = (params: GridRenderCellParams) => {
-  const { row } = params
-
-  if (row.avatar) {
-    return <CustomAvatar src={row.avatar} sx={{ ml: 3, width: '1.875rem', height: '1.875rem' }} />
-  } else {
-    return (
-      <CustomAvatar
-        skin='light'
-        color='primary'
-        sx={{ ml: 3, fontSize: '.8rem', width: '1.875rem', height: '1.875rem' }}
-      >
-        {getInitials(row.fullName ? row.fullName : 'کاربر')}
-      </CustomAvatar>
-    )
-  }
-}
-
 // ** Table columns (order tuned for RTL layout)
 const columns: GridColDef[] = [
   {
@@ -182,8 +158,8 @@ const columns: GridColDef[] = [
     renderCell: (params: GridRenderCellParams) => (
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
         <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 600 }}>
-        #{params.row.leaderboardRank}
-      </Typography>
+          {params.row.leaderboardRank > 0 ? `#${params.row.leaderboardRank}` : '—'}
+        </Typography>
       </Box>
     )
   },
@@ -239,18 +215,13 @@ const columns: GridColDef[] = [
     headerName: 'نام و نام خانوادگی',
     headerAlign: 'center',
     align: 'center',
-    renderCell: (params: GridRenderCellParams) => {
-      const { row } = params
-
-      return (
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
-          {renderClient(params)}
-          <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontWeight: 600, ml: 2 }}>
-            {row.fullName}
-          </Typography>
-        </Box>
-      )
-    }
+    renderCell: (params: GridRenderCellParams) => (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+        <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontWeight: 600 }}>
+          {params.row.fullName}
+        </Typography>
+      </Box>
+    )
   }
 ]
 

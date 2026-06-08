@@ -9,6 +9,7 @@ import axios from 'axios'
 
 // ** Config
 import authConfig from 'src/configs/auth'
+import { redirectToPanelLogin } from 'src/configs/auth-redirect'
 import { normalizeUserRole } from 'src/configs/acl'
 
 // ** Auth
@@ -203,7 +204,7 @@ const AuthProvider = ({ children }: Props) => {
   const handleLogout = () => {
     clearAuthSession()
     setUser(null)
-    router.push('/')
+    redirectToPanelLogin()
   }
 
   const values = {
