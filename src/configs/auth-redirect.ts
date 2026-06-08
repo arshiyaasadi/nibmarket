@@ -1,9 +1,9 @@
-import { buildPanelLoginUrl } from 'src/configs/referral-link'
 import { clearEntryToken, clearSessionTokens } from 'src/lib/auth-token'
 
 /** External Nib panel SSO login — used when session is missing or expired. */
 export const PANEL_LOGIN_URL =
-  process.env.NEXT_PUBLIC_PANEL_LOGIN_URL?.trim() || buildPanelLoginUrl()
+  process.env.NEXT_PUBLIC_PANEL_LOGIN_URL?.trim() ||
+  'https://panel.nibdev.com/login/?callback_service=mlm'
 
 export function clearAuthTokens(): void {
   clearSessionTokens()

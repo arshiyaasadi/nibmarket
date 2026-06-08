@@ -137,7 +137,7 @@ export default function ManualTokenLogin({ showSsoBypassHint = false }: ManualTo
                 label='توکن ورود (nib_auth)'
                 value={token}
                 onChange={event => setToken(event.target.value)}
-                placeholder='مقدار کوکی nib_auth از panel.nibmarket.com یا لینک /login/token/...'
+                placeholder='مقدار کوکی nib_auth از panel.nibdev.com یا لینک /login/token/...'
                 sx={{ mb: 4 }}
               />
 
@@ -159,7 +159,7 @@ export default function ManualTokenLogin({ showSsoBypassHint = false }: ManualTo
 
             {showSsoBypassHint && (
               <Typography variant='caption' color='text.secondary' sx={{ display: 'block', mt: 4, textAlign: 'center' }}>
-                کوکی‌های پنل روی دامنهٔ panel.nibmarket.com هستند و به club.nibdev.com ارسال نمی‌شوند؛ در این حالت
+                کوکی‌های پنل روی دامنهٔ panel.nibdev.com هستند و ممکن است به club.nibdev.com ارسال نشوند؛ در این حالت
                 ورود دستی لازم است.
               </Typography>
             )}

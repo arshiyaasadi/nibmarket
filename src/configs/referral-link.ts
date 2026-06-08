@@ -1,6 +1,6 @@
-/** Nibmarket panel — SSO login and referral invite links. */
+/** Nib panel — SSO login and referral invite links. */
 export const PANEL_BASE_URL =
-  process.env.NEXT_PUBLIC_PANEL_BASE_URL?.trim() || 'https://panel.nibmarket.com'
+  process.env.NEXT_PUBLIC_PANEL_BASE_URL?.trim() || 'https://panel.nibdev.com'
 
 export const PANEL_CALLBACK_SERVICE = 'mlm'
 

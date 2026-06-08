@@ -5,7 +5,7 @@
 const trimTrailingSlash = (url: string) => url.replace(/\/$/, '')
 
 export const PANEL_BASE_URL =
-  process.env.NEXT_PUBLIC_PANEL_BASE_URL?.replace(/\/$/, '') || 'https://panel.nibmarket.com'
+  process.env.NEXT_PUBLIC_PANEL_BASE_URL?.replace(/\/$/, '') || 'https://panel.nibdev.com'
 
 export const PANEL_PROFILE_URL =
   process.env.NEXT_PUBLIC_PANEL_PROFILE_URL || `${PANEL_BASE_URL}/profile/`
