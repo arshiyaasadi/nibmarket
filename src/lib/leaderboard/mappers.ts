@@ -47,7 +47,7 @@ function mapLeaderboardList(raw: unknown, fallback: LeaderboardListResponse): Le
 
   const o = payload as Record<string, unknown>
   const rawEntries = ensureArray<Record<string, unknown>>(o.entries ?? o.rows ?? o.leaderboard ?? o.items)
-  if (rawEntries.length === 0) return fallback
+  if (rawEntries.length === 0) return { entries: [] }
 
   return {
     entries: rawEntries.map((item, i) => mapEntry(item, i, fallback.entries[i] ?? fallback.entries[0]))
@@ -87,7 +87,7 @@ export function mapLeaderboardHonors(raw: unknown): HonorsResponse {
 
   const o = payload as Record<string, unknown>
   const rawHonors = ensureArray<Record<string, unknown>>(o.honors ?? o.items)
-  if (rawHonors.length === 0) return fallback
+  if (rawHonors.length === 0) return { honors: [] }
 
   const honors: HonorItem[] = rawHonors.map((item, index) => {
     const fb = fallback.honors[index] ?? fallback.honors[0]

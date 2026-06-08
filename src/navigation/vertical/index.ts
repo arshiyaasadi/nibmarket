@@ -50,12 +50,6 @@ export const clientNavItems: VerticalNavItemsType = [
     subject: 'client-pages',
     children: [
       {
-        title: 'گزارش درامد ها',
-        path: '/reports/income',
-        action: 'read',
-        subject: 'client-pages'
-      },
-      {
         title: 'گزارش زیر مجموعه ها',
         path: '/reports/subsets',
         action: 'read',

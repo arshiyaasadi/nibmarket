@@ -1,7 +1,7 @@
 'use client'
 
 // ** React Imports
-import { Suspense } from 'react'
+import { Suspense, useState } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -22,12 +22,14 @@ import { useLeaderboardCurrentMonth } from 'src/hooks/leaderboard/useLeaderboard
 import { useLeaderboardMySubsets } from 'src/hooks/leaderboard/useLeaderboardMySubsets'
 import { useLeaderboardLastMonth } from 'src/hooks/leaderboard/useLeaderboardLastMonth'
 import { useLeaderboardHonors } from 'src/hooks/leaderboard/useLeaderboardHonors'
+import type { LeaderboardPeriod } from 'src/types/api/dashboard'
 
 const PoolBoardPageContent = () => {
+  const [lastMonthPeriod, setLastMonthPeriod] = useState<LeaderboardPeriod>('previous')
   const poolBalance = useLeaderboardPoolBalance()
   const currentMonth = useLeaderboardCurrentMonth()
   const mySubsets = useLeaderboardMySubsets()
-  const lastMonth = useLeaderboardLastMonth()
+  const lastMonth = useLeaderboardLastMonth(lastMonthPeriod)
   const honors = useLeaderboardHonors()
 
   return (
@@ -85,7 +87,11 @@ const PoolBoardPageContent = () => {
             skeletonHeight={320}
             widgetTitle='لیدر بورد ماه قبل'
           >
-            <LastMonthLeaderboard entries={lastMonth.data.entries} />
+            <LastMonthLeaderboard
+              entries={lastMonth.data.entries}
+              period={lastMonthPeriod}
+              onPeriodChange={setLastMonthPeriod}
+            />
           </DashboardWidgetState>
         </Grid>
         <Grid item xs={12}>

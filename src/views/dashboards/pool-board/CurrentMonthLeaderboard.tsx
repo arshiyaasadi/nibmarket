@@ -46,6 +46,11 @@ const CurrentMonthLeaderboard = ({ entries }: CurrentMonthLeaderboardProps) => {
         }
       />
       <CardContent sx={{ p: 6, flex: 1 }}>
+        {entries.length === 0 ? (
+          <Typography variant='body2' sx={{ color: 'text.secondary', textAlign: 'center', py: 6 }}>
+            داده‌ای برای ماه جاری موجود نیست.
+          </Typography>
+        ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {entries.map((item, index) => (
             <Box key={item.id}>
@@ -64,7 +69,7 @@ const CurrentMonthLeaderboard = ({ entries }: CurrentMonthLeaderboardProps) => {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Icon icon='mdi:account-multiple' fontSize={18} style={{ color: theme.palette.primary.main }} />
                     <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                      زیر مجموعه:
+                      تعداد زیرمجموعه
                     </Typography>
                     <Typography variant='body1' sx={{ fontWeight: 600 }}>
                       {item.subordinates}
@@ -75,7 +80,7 @@ const CurrentMonthLeaderboard = ({ entries }: CurrentMonthLeaderboardProps) => {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Icon icon='mdi:star' fontSize={18} style={{ color: '#FFD700' }} />
                     <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                      مجموع توکن‌ها:
+                      مجموع توکن‌ها
                     </Typography>
                     <Typography variant='body1' sx={{ fontWeight: 600, color: 'primary.main' }}>
                       {item.points.toLocaleString('fa-IR')}
@@ -87,6 +92,7 @@ const CurrentMonthLeaderboard = ({ entries }: CurrentMonthLeaderboardProps) => {
             </Box>
           ))}
         </Box>
+        )}
       </CardContent>
     </Card>
   )

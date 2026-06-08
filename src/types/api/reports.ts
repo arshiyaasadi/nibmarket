@@ -1,3 +1,4 @@
+/** Swagger: IncomeTransactionDto */
 export type IncomeTransactionType = 'فعالیت در سامانه' | 'توسعه شبکه' | 'پورسانت'
 
 export type IncomeTransaction = {
@@ -7,26 +8,12 @@ export type IncomeTransaction = {
   description: string
 }
 
+/** Swagger: ReportsIncomeResponse */
 export type ReportsIncomeResponse = {
   rows: IncomeTransaction[]
 }
 
-export type SubsetReportRow = {
-  id: string
-  rowNumber: number
-  fullName: string
-  joinDate: string
-  level: number
-  lastMonthAvgInvestment: number
-  lastMonthReward: number
-  currentMonthAvgInvestment: number
-  totalReward: number
-}
-
-export type ReportsSubsetsResponse = {
-  rows: SubsetReportRow[]
-}
-
+/** Swagger: WalletTransactionDto */
 export type WalletTransactionType = 'واریز' | 'برداشت'
 
 export type WalletTransaction = {
@@ -36,10 +23,17 @@ export type WalletTransaction = {
   description: string
 }
 
+/** Swagger: ReportsWalletResponse */
 export type ReportsWalletResponse = {
   rows: WalletTransaction[]
 }
 
+/** Swagger: ReportsSubsetsResponse — same transaction rows as wallet report */
+export type ReportsSubsetsResponse = {
+  rows: WalletTransaction[]
+}
+
+/** Swagger: CapitalDepositFundDto */
 export type CapitalDepositFund = {
   id: string
   name: string
@@ -50,6 +44,7 @@ export type CapitalDepositFund = {
   percentage: number
 }
 
+/** Swagger: CapitalDepositStatisticsDto */
 export type ReportsCapitalDepositStatistics = {
   totalInvestors: number
   totalCapital: number
@@ -57,6 +52,7 @@ export type ReportsCapitalDepositStatistics = {
   networkCapital: number
 }
 
+/** Swagger: ReportsCapitalDepositResponse */
 export type ReportsCapitalDepositResponse = {
   funds: CapitalDepositFund[]
   statistics: ReportsCapitalDepositStatistics
@@ -72,3 +68,5 @@ export type ReportsWalletQuery = {
   endDate?: string
   type?: string
 }
+
+export type ReportsSubsetsQuery = ReportsWalletQuery

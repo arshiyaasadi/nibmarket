@@ -5,6 +5,8 @@ import {
 } from 'src/mocks/network'
 import { ensureArray, toNumber, toString } from 'src/lib/dashboard/normalize'
 import { buildSubsetTreeFromRows } from 'src/lib/network/subset-tree-builder'
+import { mapReferrerInviteesFromPayload } from 'src/lib/network/referrer-invitees'
+import { INVITE_LIMITS } from 'src/configs/referral-link'
 import type {
   NetworkFund,
   NetworkInvitePageResponse,
@@ -142,8 +144,10 @@ export function mapNetworkInvite(raw: unknown): NetworkInvitePageResponse {
 
   return {
     referralCode: toString(o.referralCode ?? o.code, fallback.referralCode),
-    maxInvitesPerMonth: toNumber(o.maxInvitesPerMonth ?? o.maxInvites, fallback.maxInvitesPerMonth),
+    maxInvitesPerMonth: toNumber(o.maxInvitesPerMonth ?? o.maxInvites, INVITE_LIMITS.perMonth),
+    maxInvitesPerYear: toNumber(o.maxInvitesPerYear ?? o.maxInvitesYear, INVITE_LIMITS.perYear),
     remainingInvites: toNumber(o.remainingInvites ?? o.remaining, fallback.remainingInvites),
+    remainingInvitesYear: toNumber(o.remainingInvitesYear ?? o.remainingYear, INVITE_LIMITS.perYear),
     funds,
     recentInvites
   }
@@ -152,7 +156,11 @@ export function mapNetworkInvite(raw: unknown): NetworkInvitePageResponse {
 export function mapNetworkReferrer(raw: unknown): NetworkReferrerResponse {
   const fallback = mockNetworkReferrer
   const payload = unwrapPayload(raw)
-  if (!payload || typeof payload !== 'object') return fallback
+  const recentInvitees = mapReferrerInviteesFromPayload(payload)
+
+  if (!payload || typeof payload !== 'object') {
+    return { ...fallback, recentInvitees: recentInvitees.length > 0 ? recentInvitees : fallback.recentInvitees }
+  }
 
   const o = payload as Record<string, unknown>
   const refRaw = o.referrer ?? o.referrerInfo
@@ -169,7 +177,8 @@ export function mapNetworkReferrer(raw: unknown): NetworkReferrerResponse {
 
   return {
     hasSubsets: Boolean(o.hasSubsets ?? o.hasSubordinates),
-    referrer
+    referrer,
+    recentInvitees
   }
 }
 

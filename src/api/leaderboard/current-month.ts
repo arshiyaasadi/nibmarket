@@ -1,7 +1,5 @@
-import { apiClient } from 'src/lib/api-client'
+import { fetchDashboardLeaderboardRaw } from 'src/api/dashboard/leaderboard'
 
 export async function fetchLeaderboardCurrentMonthRaw(): Promise<unknown> {
-  const { data } = await apiClient.get('/api/leaderboard/current-month')
-
-  return data
+  return fetchDashboardLeaderboardRaw('current')
 }

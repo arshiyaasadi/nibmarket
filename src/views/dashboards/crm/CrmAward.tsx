@@ -28,6 +28,7 @@ import { useDashboardInvites } from 'src/hooks/dashboard/useDashboardInvites'
 import { useNetworkSubsets } from 'src/hooks/network/useNetworkSubsets'
 import DashboardWidgetState from 'src/components/dashboard/DashboardWidgetState'
 import WidgetField from 'src/components/dashboard/WidgetField'
+import { buildPanelReferralInviteUrl } from 'src/configs/referral-link'
 import { dedupeByName, mapSubsetsToInvitedPreviews } from 'src/lib/network/subset-previews'
 
 const CrmAward = () => {
@@ -91,7 +92,7 @@ const CrmAward = () => {
 
   const handleShare = (platform: string) => {
     const shareText = `کد معرف من: ${referralCode}`
-    const shareUrl = `${window.location.origin}?ref=${referralCode}`
+    const shareUrl = buildPanelReferralInviteUrl(referralCode)
 
     let url = ''
     switch (platform) {

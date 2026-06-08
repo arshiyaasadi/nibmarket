@@ -165,7 +165,7 @@ export function mapDashboardLeaderboard(raw: unknown, period: LeaderboardPeriod)
             growthData
           }
         })
-      : fallback.entries
+      : []
 
   return {
     period: (o.period === 'previous' ? 'previous' : period) as LeaderboardPeriod,

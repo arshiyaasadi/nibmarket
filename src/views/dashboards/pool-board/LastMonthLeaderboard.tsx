@@ -18,35 +18,39 @@ import { styled } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 
 import type { LeaderboardEntry } from 'src/types/api/leaderboard'
+import type { LeaderboardPeriod } from 'src/types/api/dashboard'
 
-// ** Styled Components
-const RankBadge = styled(Box)<{ rank: number }>(({ theme }) => {
-  return {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 32,
-    height: 32,
-    borderRadius: '50%',
-    backgroundColor: 'rgba(76, 78, 100, 0.08)',
-    color: theme.palette.primary.main,
-    fontWeight: 700,
-    fontSize: '0.875rem'
-  }
-})
+const RankBadge = styled(Box)<{ rank: number }>(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  minWidth: 32,
+  height: 32,
+  borderRadius: '50%',
+  backgroundColor: 'rgba(76, 78, 100, 0.08)',
+  color: theme.palette.primary.main,
+  fontWeight: 700,
+  fontSize: '0.875rem'
+}))
 
 type LastMonthLeaderboardProps = {
   entries: LeaderboardEntry[]
+  period?: LeaderboardPeriod
+  onPeriodChange?: (period: LeaderboardPeriod) => void
 }
 
-const LastMonthLeaderboard = ({ entries }: LastMonthLeaderboardProps) => {
-  // ** State
-  const [filter, setFilter] = useState<string>('all')
+const LastMonthLeaderboard = ({ entries, period, onPeriodChange }: LastMonthLeaderboardProps) => {
+  const [localPeriod, setLocalPeriod] = useState<LeaderboardPeriod>('previous')
+  const activePeriod = period ?? localPeriod
   const theme = useTheme()
 
-  // ** Handlers
   const handleFilterChange = (event: SelectChangeEvent) => {
-    setFilter(event.target.value)
+    const value = event.target.value as LeaderboardPeriod
+    if (onPeriodChange) {
+      onPeriodChange(value)
+    } else {
+      setLocalPeriod(value)
+    }
   }
 
   return (
@@ -56,11 +60,10 @@ const LastMonthLeaderboard = ({ entries }: LastMonthLeaderboardProps) => {
         titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600, letterSpacing: '0.15px' } }}
         action={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <FormControl size='small' sx={{ minWidth: 120 }}>
+            <FormControl size='small' sx={{ minWidth: 140 }}>
               <Select
-                value={filter}
+                value={activePeriod}
                 onChange={handleFilterChange}
-                displayEmpty
                 sx={{
                   '& .MuiSelect-select': {
                     py: 1,
@@ -68,10 +71,8 @@ const LastMonthLeaderboard = ({ entries }: LastMonthLeaderboardProps) => {
                   }
                 }}
               >
-                <MenuItem value='all'>همه</MenuItem>
-                <MenuItem value='top10'>۱۰ نفر اول</MenuItem>
-                <MenuItem value='top20'>۲۰ نفر اول</MenuItem>
-                <MenuItem value='top50'>۵۰ نفر اول</MenuItem>
+                <MenuItem value='current'>ماه جاری</MenuItem>
+                <MenuItem value='previous'>ماه گذشته</MenuItem>
               </Select>
             </FormControl>
             <Icon icon='mdi:calendar-clock' fontSize={20} style={{ color: theme.palette.text.secondary }} />
@@ -79,51 +80,50 @@ const LastMonthLeaderboard = ({ entries }: LastMonthLeaderboardProps) => {
         }
       />
       <CardContent sx={{ p: 6, flex: 1 }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {entries.map((item, index) => (
-            <Box key={item.id}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {/* Name and Rank */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <RankBadge rank={item.rank}>{item.rank}</RankBadge>
-                  <Typography variant='body1' sx={{ fontWeight: 600, flex: 1 }}>
-                    {item.name}
-                  </Typography>
-                </Box>
-
-                {/* Subordinates and Points */}
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 3, pr: 5 }}>
-                  {/* Subordinates */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Icon icon='mdi:account-multiple' fontSize={18} style={{ color: theme.palette.primary.main }} />
-                    <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                      زیر مجموعه:
-                    </Typography>
-                    <Typography variant='body1' sx={{ fontWeight: 600 }}>
-                      {item.subordinates}
+        {entries.length === 0 ? (
+          <Typography variant='body2' sx={{ color: 'text.secondary', textAlign: 'center', py: 6 }}>
+            داده‌ای برای این بازه زمانی موجود نیست.
+          </Typography>
+        ) : (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {entries.map((item, index) => (
+              <Box key={`${item.rank}-${item.name}`}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <RankBadge rank={item.rank}>{item.rank}</RankBadge>
+                    <Typography variant='body1' sx={{ fontWeight: 600, flex: 1 }}>
+                      {item.name}
                     </Typography>
                   </Box>
-
-                  {/* Total Points */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Icon icon='mdi:star' fontSize={18} style={{ color: '#FFD700' }} />
-                    <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                      مجموع توکن‌ها:
-                    </Typography>
-                    <Typography variant='body1' sx={{ fontWeight: 600, color: 'primary.main' }}>
-                      {item.points.toLocaleString('fa-IR')}
-                    </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 3, pr: 5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <Icon icon='mdi:account-multiple' fontSize={18} style={{ color: theme.palette.primary.main }} />
+                      <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                        تعداد زیرمجموعه
+                      </Typography>
+                      <Typography variant='body1' sx={{ fontWeight: 600 }}>
+                        {item.subordinates}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <Icon icon='mdi:star' fontSize={18} style={{ color: '#FFD700' }} />
+                      <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                        مجموع توکن‌ها
+                      </Typography>
+                      <Typography variant='body1' sx={{ fontWeight: 600, color: 'primary.main' }}>
+                        {item.points.toLocaleString('fa-IR')}
+                      </Typography>
+                    </Box>
                   </Box>
                 </Box>
+                {index < entries.length - 1 ? <Divider sx={{ mt: 3 }} /> : null}
               </Box>
-              {index < entries.length - 1 && <Divider sx={{ mt: 3 }} />}
-            </Box>
-          ))}
-        </Box>
+            ))}
+          </Box>
+        )}
       </CardContent>
     </Card>
   )
 }
 
 export default LastMonthLeaderboard
-

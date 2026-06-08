@@ -17,61 +17,11 @@ export const mockReportsIncome: ReportsIncomeResponse = {
 
 export const mockReportsSubsets: ReportsSubsetsResponse = {
   rows: [
-    {
-      id: '1',
-      rowNumber: 1,
-      fullName: 'علی احمدی',
-      joinDate: '۱۴۰۳/۰۱/۱۵',
-      level: 5,
-      lastMonthAvgInvestment: 5000000,
-      lastMonthReward: 250000,
-      currentMonthAvgInvestment: 6000000,
-      totalReward: 1200000
-    },
-    {
-      id: '2',
-      rowNumber: 2,
-      fullName: 'سارا محمدی',
-      joinDate: '۱۴۰۳/۰۲/۱۰',
-      level: 7,
-      lastMonthAvgInvestment: 8000000,
-      lastMonthReward: 400000,
-      currentMonthAvgInvestment: 9000000,
-      totalReward: 2000000
-    },
-    {
-      id: '3',
-      rowNumber: 3,
-      fullName: 'رضا کریمی',
-      joinDate: '۱۴۰۳/۰۳/۰۵',
-      level: 4,
-      lastMonthAvgInvestment: 3000000,
-      lastMonthReward: 150000,
-      currentMonthAvgInvestment: 3500000,
-      totalReward: 800000
-    },
-    {
-      id: '4',
-      rowNumber: 4,
-      fullName: 'زهرا رضایی',
-      joinDate: '۱۴۰۳/۰۴/۱۲',
-      level: 6,
-      lastMonthAvgInvestment: 7000000,
-      lastMonthReward: 350000,
-      currentMonthAvgInvestment: 7500000,
-      totalReward: 1500000
-    },
-    {
-      id: '5',
-      rowNumber: 5,
-      fullName: 'محمد حسینی',
-      joinDate: '۱۴۰۳/۰۵/۲۰',
-      level: 3,
-      lastMonthAvgInvestment: 2000000,
-      lastMonthReward: 100000,
-      currentMonthAvgInvestment: 2500000,
-      totalReward: 500000
-    }
+    { id: '1', date: '۱۴۰۴/۱۲/۰۶', type: 'واریز', description: 'معرفی فرد جدید — ۵ امتیاز' },
+    { id: '2', date: '۱۴۰۴/۱۲/۰۵', type: 'واریز', description: 'احراز هویت — ۱۰ امتیاز' },
+    { id: '3', date: '۱۴۰۴/۱۲/۰۴', type: 'واریز', description: 'ثبت‌نام در سامانه — ۱۰ امتیاز' },
+    { id: '4', date: '۱۴۰۴/۱۲/۰۳', type: 'برداشت', description: 'برداشت ۵ توکن برای خرید پکیج' },
+    { id: '5', date: '۱۴۰۴/۱۲/۰۲', type: 'واریز', description: 'معرفی فرد جدید — ۵ امتیاز' }
   ]
 }
 

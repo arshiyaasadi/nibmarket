@@ -49,69 +49,93 @@ const HonorsShowcase = ({ honors }: HonorsShowcaseProps) => {
         }
       />
       <CardContent sx={{ p: 6, flex: 1 }}>
-        <Grid container spacing={3}>
-          {honors.map((honor) => (
-            <Grid item xs={6} sm={4} key={honor.id}>
-              <HonorCard>
-                <CustomAvatar
-                  skin='light'
-                  sx={{
-                    width: 64,
-                    height: 64,
-                    mb: 2,
-                    backgroundColor: `${honor.color}20`,
-                    color: honor.color
-                  }}
-                >
-                  <Icon icon={honor.icon} fontSize={32} />
-                </CustomAvatar>
-                <Typography variant='body1' sx={{ fontWeight: 600, mb: 1, textAlign: 'center' }}>
-                  {honor.title}
-                </Typography>
-                <Typography variant='caption' sx={{ color: 'text.secondary', textAlign: 'center', mb: 2 }}>
-                  {honor.description}
-                </Typography>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.5,
-                    mb: 1.5,
-                    px: 2,
-                    py: 0.5,
-                    borderRadius: 1,
-                    backgroundColor: `${honor.color}15`,
-                    border: `1px solid ${honor.color}30`
-                  }}
-                >
-                  <Icon icon='mdi:numeric' fontSize={14} style={{ color: honor.color }} />
-                  <Typography variant='caption' sx={{ fontWeight: 600, color: honor.color }}>
-                    {honor.count}
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.5,
-                    px: 2,
-                    py: 0.5,
-                    borderRadius: 1,
-                    backgroundColor: `${honor.color}20`,
-                    border: `1px solid ${honor.color}40`,
-                    width: '100%',
-                    justifyContent: 'center'
-                  }}
-                >
-                  <Icon icon='mdi:star' fontSize={14} style={{ color: honor.color }} />
-                  <Typography variant='caption' sx={{ fontWeight: 600, color: honor.color }}>
-                    مجموع توکن کسب شده: {honor.totalPoints.toLocaleString('fa-IR')}
-                  </Typography>
-                </Box>
-              </HonorCard>
-            </Grid>
-          ))}
-        </Grid>
+        {honors.length === 0 ? (
+          <Typography variant='body2' sx={{ color: 'text.secondary', textAlign: 'center', py: 6 }}>
+            هنوز افتخاری ثبت نشده است.
+          </Typography>
+        ) : (
+          <Grid container spacing={3}>
+            {honors.map(honor => {
+              const earned = honor.count > 0 || honor.totalPoints > 0
+
+              return (
+                <Grid item xs={6} sm={4} key={honor.id}>
+                  <HonorCard
+                    style={{
+                      opacity: earned ? 1 : 0.72,
+                      borderStyle: earned ? 'solid' : 'dashed'
+                    }}
+                  >
+                    <CustomAvatar
+                      skin='light'
+                      sx={{
+                        width: 64,
+                        height: 64,
+                        mb: 2,
+                        backgroundColor: earned ? `${honor.color}20` : 'action.hover',
+                        color: earned ? honor.color : 'text.disabled'
+                      }}
+                    >
+                      <Icon icon={honor.icon} fontSize={32} />
+                    </CustomAvatar>
+                    <Typography variant='body1' sx={{ fontWeight: 600, mb: 1, textAlign: 'center' }}>
+                      {honor.title}
+                    </Typography>
+                    <Typography variant='caption' sx={{ color: 'text.secondary', textAlign: 'center', mb: 2 }}>
+                      {honor.description}
+                    </Typography>
+                    <Box
+                      sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        mb: 1.5,
+                        px: 2,
+                        py: 0.5,
+                        borderRadius: 1,
+                        backgroundColor: earned ? `${honor.color}15` : 'action.hover',
+                        border: `1px solid ${earned ? `${honor.color}30` : 'divider'}`
+                      }}
+                    >
+                      <Icon
+                        icon={earned ? 'mdi:check-circle' : 'mdi:lock-outline'}
+                        fontSize={14}
+                        style={{ color: earned ? honor.color : undefined }}
+                      />
+                      <Typography
+                        variant='caption'
+                        sx={{ fontWeight: 600, color: earned ? honor.color : 'text.secondary' }}
+                      >
+                        {earned ? `${honor.count} بار کسب شده` : 'هنوز کسب نشده'}
+                      </Typography>
+                    </Box>
+                    {earned ? (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                          px: 2,
+                          py: 0.5,
+                          borderRadius: 1,
+                          backgroundColor: `${honor.color}20`,
+                          border: `1px solid ${honor.color}40`,
+                          width: '100%',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <Icon icon='mdi:star' fontSize={14} style={{ color: honor.color }} />
+                        <Typography variant='caption' sx={{ fontWeight: 600, color: honor.color }}>
+                          {honor.totalPoints.toLocaleString('fa-IR')} توکن
+                        </Typography>
+                      </Box>
+                    ) : null}
+                  </HonorCard>
+                </Grid>
+              )
+            })}
+          </Grid>
+        )}
       </CardContent>
     </Card>
   )

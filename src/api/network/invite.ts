@@ -23,6 +23,8 @@ export function mapSendInviteResponse(raw: unknown): SendNetworkInviteResponse {
   return {
     success: o.success !== false,
     remainingInvites: typeof o.remainingInvites === 'number' ? o.remainingInvites : 0,
+    remainingInvitesYear:
+      typeof o.remainingInvitesYear === 'number' ? o.remainingInvitesYear : undefined,
     referralLink: typeof o.referralLink === 'string' ? o.referralLink : undefined
   }
 }

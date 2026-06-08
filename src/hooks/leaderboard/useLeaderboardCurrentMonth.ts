@@ -2,7 +2,7 @@
 
 import { fetchLeaderboardCurrentMonthRaw } from 'src/api/leaderboard/current-month'
 import { useApiResource } from 'src/hooks/useApiResource'
-import { mapLeaderboardCurrentMonth } from 'src/lib/leaderboard/mappers'
+import { mapDashboardLeaderboardToPoolEntries } from 'src/lib/leaderboard/dashboard-leaderboard-adapter'
 import { mockLeaderboardCurrentMonth } from 'src/mocks/leaderboard'
 
 export function useLeaderboardCurrentMonth() {
@@ -10,6 +10,6 @@ export function useLeaderboardCurrentMonth() {
     slug: 'leaderboard-current-month',
     mockData: mockLeaderboardCurrentMonth,
     fetcher: fetchLeaderboardCurrentMonthRaw,
-    mapResponse: mapLeaderboardCurrentMonth
+    mapResponse: raw => mapDashboardLeaderboardToPoolEntries(raw, 'current')
   })
 }

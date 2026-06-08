@@ -4,6 +4,7 @@
 import { Suspense, useMemo, useState, useEffect, MouseEvent } from 'react'
 
 // ** Next Import
+import Image from 'next/image'
 import Link from 'next/link'
 
 // ** MUI Imports
@@ -39,9 +40,10 @@ import Icon from 'src/@core/components/icon'
 import useClipboard from 'src/@core/hooks/useClipboard'
 import { useSettings } from 'src/@core/hooks/useSettings'
 import { useNetworkInvite } from 'src/hooks/network/useNetworkInvite'
-import { useNetworkSubsets } from 'src/hooks/network/useNetworkSubsets'
+import { useNetworkReferrer } from 'src/hooks/network/useNetworkReferrer'
 import { useSendNetworkInvite } from 'src/hooks/network/useNetworkMutations'
-import { dedupeByName, mapSubsetsToRecentInvites } from 'src/lib/network/subset-previews'
+import { dedupeByName } from 'src/lib/network/subset-previews'
+import { buildPanelReferralInviteUrl, INVITE_LIMITS } from 'src/configs/referral-link'
 
 // ** Components
 import DashboardWidgetState from 'src/components/dashboard/DashboardWidgetState'
@@ -55,10 +57,10 @@ import StepperWrapper from 'src/@core/styles/mui/stepper'
 // ** Config Import
 import themeConfig from 'src/configs/themeConfig'
 
-// ** Type Definitions
-import type { NetworkFund } from 'src/types/api/network'
+// ** Data
+import { inviteFunds, type InviteFundOption } from 'src/data/funds'
 
-export type FundData = NetworkFund
+export type FundData = InviteFundOption
 
 // Wizard steps
 const steps = [
@@ -145,28 +147,31 @@ const InviteFriendsPageContent = () => {
     refetch: refetchInvite
   } = useNetworkInvite()
   const {
-    data: subsetsData,
-    loading: subsetsLoading,
-    retrying: subsetsRetrying,
-    error: subsetsError,
-    hasData: subsetsHasData,
-    usedFallback: subsetsUsedFallback,
-    refetch: refetchSubsets
-  } = useNetworkSubsets()
+    data: referrerData,
+    loading: referrerLoading,
+    retrying: referrerRetrying,
+    error: referrerError,
+    hasData: referrerHasData,
+    usedFallback: referrerUsedFallback,
+    refetch: refetchReferrer
+  } = useNetworkReferrer()
   const { send: sendInvite, submitting: isSendingInvite, error: sendInviteError, clearError: clearSendError } =
     useSendNetworkInvite()
 
-  const funds = inviteData.funds
   const referralCode = inviteData.referralCode
-  const maxInvitesPerMonth = inviteData.maxInvitesPerMonth
+  const maxInvitesPerMonth = inviteHasData ? inviteData.maxInvitesPerMonth : INVITE_LIMITS.perMonth
+  const maxInvitesPerYear = inviteHasData ? inviteData.maxInvitesPerYear : INVITE_LIMITS.perYear
 
   // ** States
   const [activeStep, setActiveStep] = useState(0)
-  const [selectedFund, setSelectedFund] = useState<NetworkFund | null>(null)
+  const [selectedFund, setSelectedFund] = useState<InviteFundOption | null>(null)
   const [inviteName, setInviteName] = useState('')
   const [inviteMobile, setInviteMobile] = useState('')
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
   const [remainingInvites, setRemainingInvites] = useState(inviteData.remainingInvites)
+  const [remainingInvitesYear, setRemainingInvitesYear] = useState(
+    inviteData.remainingInvitesYear ?? inviteData.maxInvitesPerYear
+  )
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [referralLink, setReferralLink] = useState('')
 
@@ -174,19 +179,28 @@ const InviteFriendsPageContent = () => {
     if (!inviteHasData) return
     if (isApiMode()) {
       setRemainingInvites(inviteData.remainingInvites)
+      setRemainingInvitesYear(inviteData.remainingInvitesYear ?? inviteData.maxInvitesPerYear)
     } else {
       setRemainingInvites(getRemainingInvites(inviteData.maxInvitesPerMonth))
+      setRemainingInvitesYear(inviteData.remainingInvitesYear ?? inviteData.maxInvitesPerYear)
     }
-  }, [inviteHasData, inviteData.remainingInvites, inviteData.maxInvitesPerMonth])
+  }, [
+    inviteHasData,
+    inviteData.remainingInvites,
+    inviteData.remainingInvitesYear,
+    inviteData.maxInvitesPerMonth,
+    inviteData.maxInvitesPerYear
+  ])
+
+  const canSendInvite = remainingInvites > 0 && remainingInvitesYear > 0
 
   useEffect(() => {
     setSelectedTemplate(null)
   }, [selectedFund])
 
   const dedupedRecentInvites = useMemo(
-    () =>
-      subsetsHasData ? dedupeByName(mapSubsetsToRecentInvites(subsetsData.rows)) : [],
-    [subsetsData.rows, subsetsHasData]
+    () => (referrerHasData ? dedupeByName(referrerData.recentInvitees) : []),
+    [referrerData.recentInvitees, referrerHasData]
   )
 
   const normalizeToEnglishDigits = (value: string) => {
@@ -221,31 +235,10 @@ const InviteFriendsPageContent = () => {
     }
   })
 
-  // ** Helper function to get base URL
-  const getBaseUrl = (): string => {
-    if (typeof window === 'undefined') return ''
-    
-    // First check environment variable
-    const envUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_HOST_URL
-    if (envUrl) {
-      // Remove trailing slash if exists
-      return envUrl.replace(/\/$/, '')
-    }
-    
-    // Fallback to window.location.origin (auto-detect)
-    return window.location.origin
-  }
-
-  // ** Set referral link on client side with fund ID
   useEffect(() => {
-    if (typeof window !== 'undefined' && selectedFund) {
-      const baseUrl = getBaseUrl()
-      setReferralLink(`${baseUrl}/invite?code=${referralCode}&fund=${selectedFund.id}`)
-    } else if (typeof window !== 'undefined') {
-      const baseUrl = getBaseUrl()
-      setReferralLink(`${baseUrl}/invite?code=${referralCode}`)
-    }
-  }, [selectedFund])
+    if (!referralCode) return
+    setReferralLink(buildPanelReferralInviteUrl(referralCode))
+  }, [referralCode])
 
   // ** Handlers
   const handleShareClick = (event: MouseEvent<HTMLButtonElement>) => {
@@ -269,7 +262,7 @@ const InviteFriendsPageContent = () => {
   const handleShare = (platform: string) => {
     const fundText = selectedFund ? ` برای صندوق ${selectedFund.name}` : ''
     const shareText = `کد معرف من: ${referralCode}\nبا استفاده از این کد معرف${fundText}، به ${themeConfig.templateName} بپیوندید!`
-    const shareUrl = referralLink || `${getBaseUrl()}/invite?code=${referralCode}`
+    const shareUrl = referralLink || buildPanelReferralInviteUrl(referralCode)
 
     let url = ''
     switch (platform) {
@@ -362,6 +355,14 @@ const InviteFriendsPageContent = () => {
       return
     }
 
+    if (remainingInvitesYear <= 0) {
+      toast.error(
+        `شما حداکثر ${maxInvitesPerYear} پیام در سال می‌توانید ارسال کنید.`
+      )
+
+      return
+    }
+
     clearSendError()
     const result = await sendInvite({
       inviteeName: inviteName.trim(),
@@ -373,8 +374,14 @@ const InviteFriendsPageContent = () => {
     if (result?.success) {
       if (isApiMode()) {
         setRemainingInvites(result.remainingInvites)
+        if (typeof result.remainingInvitesYear === 'number') {
+          setRemainingInvitesYear(result.remainingInvitesYear)
+        } else {
+          setRemainingInvitesYear(prev => Math.max(0, prev - 1))
+        }
       } else {
         setRemainingInvites(decrementRemainingInvites(maxInvitesPerMonth))
+        setRemainingInvitesYear(prev => Math.max(0, prev - 1))
       }
       toast.success('دعوت‌نامه با موفقیت ارسال شد')
       setActiveStep(3)
@@ -510,7 +517,10 @@ const InviteFriendsPageContent = () => {
             </Typography>
             <Box sx={{ maxHeight: '600px', overflowY: 'auto', pr: 1 }}>
               <Grid container spacing={3}>
-              {funds.map(fund => (
+              {inviteFunds.map(fund => {
+                const isSelected = selectedFund?.id === fund.id
+
+                return (
                 <Grid item xs={6} lg={4} key={fund.id}>
                   <Card
                     onClick={() => setSelectedFund(fund)}
@@ -519,12 +529,11 @@ const InviteFriendsPageContent = () => {
                       cursor: 'pointer',
                       height: '110px',
                       display: 'flex',
-                      flexDirection: 'column',
                       transition: 'all 0.2s ease',
-                      border: selectedFund?.id === fund.id 
-                        ? `2px solid ${theme.palette.primary.main}` 
+                      border: isSelected
+                        ? `2px solid ${theme.palette.primary.main}`
                         : `1px solid ${theme.palette.divider}`,
-                      backgroundColor: selectedFund?.id === fund.id
+                      backgroundColor: isSelected
                         ? theme.palette.action.selected
                         : theme.palette.background.paper,
                       '&:hover': {
@@ -533,33 +542,42 @@ const InviteFriendsPageContent = () => {
                       }
                     })}
                   >
-                    <CardContent sx={{ p: 2, flex: 1, display: 'flex', flexDirection: 'column' }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                        <Typography variant='subtitle2' sx={{ fontWeight: 600, fontSize: '0.8125rem', lineHeight: 1.3 }}>
+                    <CardContent
+                      sx={{
+                        p: 2,
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1.5,
+                        '&:last-child': { pb: 2 }
+                      }}
+                    >
+                      <Box sx={{ width: 44, height: 44, flexShrink: 0, position: 'relative' }}>
+                        <Image
+                          src={fund.image}
+                          alt=''
+                          fill
+                          sizes='44px'
+                          style={{ objectFit: 'contain' }}
+                        />
+                      </Box>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography
+                          variant='subtitle2'
+                          sx={{ fontWeight: 600, fontSize: '0.8125rem', lineHeight: 1.3 }}
+                          noWrap
+                        >
                           {fund.name}
                         </Typography>
-                        {selectedFund?.id === fund.id && (
-                          <Icon icon='mdi:check-circle' fontSize={18} color='primary' />
-                        )}
-                      </Box>
-                      <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                        {fund.symbol && (
-                          <Typography variant='caption' sx={{ 
-                            color: 'primary.main', 
-                            fontWeight: 600,
-                            fontSize: '0.7rem'
-                          }}>
-                            {fund.symbol}
-                          </Typography>
-                        )}
-                        <Typography variant='caption' sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+                        <Typography variant='caption' sx={{ color: 'text.secondary', fontSize: '0.7rem' }} noWrap>
                           {fund.category}
                         </Typography>
                       </Box>
+                      {isSelected ? <Icon icon='mdi:check-circle' fontSize={18} color='primary' /> : null}
                     </CardContent>
                   </Card>
                 </Grid>
-              ))}
+              )})}
             </Grid>
             </Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
@@ -671,10 +689,14 @@ const InviteFriendsPageContent = () => {
               <Button
                 variant='contained'
                 onClick={handleSendInvite}
-                disabled={!isStep3Valid || isSendingInvite || remainingInvites <= 0 || !inviteMobile.trim()}
+                disabled={!isStep3Valid || isSendingInvite || !canSendInvite || !inviteMobile.trim()}
                 endIcon={<Icon icon='mdi:send' />}
               >
-                {isSendingInvite ? 'در حال ارسال...' : remainingInvites <= 0 ? 'محدودیت ماهانه تمام شده' : 'ارسال دعوت‌نامه'}
+                {isSendingInvite
+                  ? 'در حال ارسال...'
+                  : !canSendInvite
+                    ? 'سقف ارسال پیام تمام شده'
+                    : 'ارسال دعوت‌نامه'}
               </Button>
             </Box>
           </Box>
@@ -752,16 +774,19 @@ const InviteFriendsPageContent = () => {
                   <Typography
                     variant='body2'
                     sx={{
-                      color: remainingInvites > 0 ? 'text.secondary' : 'error.main',
+                      color: canSendInvite ? 'text.secondary' : 'error.main',
                       fontWeight: 500,
                       fontSize: '0.8125rem',
                       letterSpacing: '0.01em'
                     }}
                   >
-                    {remainingInvites.toLocaleString('fa-IR')}/{maxInvitesPerMonth.toLocaleString('fa-IR')}
+                    ماه: {remainingInvites.toLocaleString('fa-IR')}/
+                    {maxInvitesPerMonth.toLocaleString('fa-IR')} · سال:{' '}
+                    {remainingInvitesYear.toLocaleString('fa-IR')}/
+                    {maxInvitesPerYear.toLocaleString('fa-IR')}
                   </Typography>
                   <Tooltip
-                    title='در هر ماه ۱۵ پیام قابل ارسال است و با شروع ماه جدید، تعداد پیام‌های باقیمانده به ۱۵ بازمی‌گردد'
+                    title={`سقف ارسال پیام: ${maxInvitesPerMonth.toLocaleString('fa-IR')} در ماه و ${maxInvitesPerYear.toLocaleString('fa-IR')} در سال`}
                     arrow
                     placement='top'
                   >
@@ -814,11 +839,11 @@ const InviteFriendsPageContent = () => {
         <Grid item xs={12}>
           <Card>
             <DashboardWidgetState
-              loading={subsetsLoading}
-              retrying={subsetsRetrying}
-              error={subsetsError}
-              usedFallback={subsetsUsedFallback}
-              onRetry={refetchSubsets}
+              loading={referrerLoading}
+              retrying={referrerRetrying}
+              error={referrerError}
+              usedFallback={referrerUsedFallback}
+              onRetry={refetchReferrer}
               skeletonHeight={360}
               widgetTitle='دعوت شدگان اخیر'
             >
@@ -845,7 +870,7 @@ const InviteFriendsPageContent = () => {
                 </Typography>
               </Box>
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, opacity: subsetsHasData ? 1 : 0.5 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, opacity: referrerHasData ? 1 : 0.5 }}>
                 {dedupedRecentInvites.map(user => (
                   <Box
                     key={user.id}

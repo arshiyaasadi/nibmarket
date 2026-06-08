@@ -13,7 +13,6 @@ import type {
   ReportsIncomeResponse,
   ReportsSubsetsResponse,
   ReportsWalletResponse,
-  SubsetReportRow,
   WalletTransaction,
   WalletTransactionType
 } from 'src/types/api/reports'
@@ -29,6 +28,20 @@ function unwrapPayload(raw: unknown): unknown {
 
 const INCOME_TYPES: IncomeTransactionType[] = ['فعالیت در سامانه', 'توسعه شبکه', 'پورسانت']
 const WALLET_TYPES: WalletTransactionType[] = ['واریز', 'برداشت']
+
+function normalizeWalletType(raw: unknown, fallback: WalletTransactionType = 'واریز'): WalletTransactionType {
+  const value = toString(raw, '').trim().toLowerCase()
+
+  if (value === 'deposit' || value === 'واریز' || value === 'credit') return 'واریز'
+  if (value === 'withdraw' || value === 'withdrawal' || value === 'برداشت' || value === 'debit') {
+    return 'برداشت'
+  }
+  if (WALLET_TYPES.includes(value as WalletTransactionType)) {
+    return value as WalletTransactionType
+  }
+
+  return fallback
+}
 
 function mapIncomeRow(item: Record<string, unknown>, index: number, fallback: IncomeTransaction): IncomeTransaction {
   const rawType = toString(item.type, fallback.type)
@@ -51,67 +64,48 @@ export function mapReportsIncome(raw: unknown): ReportsIncomeResponse {
 
   const o = payload as Record<string, unknown>
   const rawRows = ensureArray<Record<string, unknown>>(o.rows ?? o.items ?? o.transactions)
-  if (rawRows.length === 0) return fallback
+  if (rawRows.length === 0) return { rows: [] }
 
   return {
     rows: rawRows.map((item, i) => mapIncomeRow(item, i, fallback.rows[i] ?? fallback.rows[0]))
   }
 }
 
-export function mapReportsSubsets(raw: unknown): ReportsSubsetsResponse {
-  const fallback = mockReportsSubsets
+function mapWalletRow(item: Record<string, unknown>, index: number): WalletTransaction {
+  return {
+    id: toString(item.id, String(index + 1)),
+    date: toString(item.date, '—'),
+    type: normalizeWalletType(item.type),
+    description: toString(item.description, '—')
+  }
+}
+
+export function mapWalletTransactionRows(raw: unknown): WalletTransaction[] {
   const payload = unwrapPayload(raw)
-  if (!payload || typeof payload !== 'object') return fallback
+  if (!payload || typeof payload !== 'object') return []
 
   const o = payload as Record<string, unknown>
-  const rawRows = ensureArray<Record<string, unknown>>(o.rows ?? o.items ?? o.reports)
-  if (rawRows.length === 0) return fallback
+  const rawRows = ensureArray<Record<string, unknown>>(o.rows ?? o.items ?? o.transactions)
 
-  const rows: SubsetReportRow[] = rawRows.map((item, index) => {
-    const fb = fallback.rows[index] ?? fallback.rows[0]
+  return rawRows.map((item, i) => mapWalletRow(item, i))
+}
 
-    return {
-      id: toString(item.id, fb.id),
-      rowNumber: toNumber(item.rowNumber ?? item.row, index + 1),
-      fullName: toString(item.fullName ?? item.name, fb.fullName),
-      joinDate: toString(item.joinDate, fb.joinDate),
-      level: toNumber(item.level, fb.level),
-      lastMonthAvgInvestment: toNumber(item.lastMonthAvgInvestment, fb.lastMonthAvgInvestment),
-      lastMonthReward: toNumber(item.lastMonthReward, fb.lastMonthReward),
-      currentMonthAvgInvestment: toNumber(item.currentMonthAvgInvestment, fb.currentMonthAvgInvestment),
-      totalReward: toNumber(item.totalReward, fb.totalReward)
-    }
-  })
+export function mapReportsWallet(raw: unknown): ReportsWalletResponse {
+  const payload = unwrapPayload(raw)
+  if (!payload || typeof payload !== 'object') return mockReportsWallet
+
+  const rows = mapWalletTransactionRows(payload)
 
   return { rows }
 }
 
-function mapWalletRow(item: Record<string, unknown>, index: number, fallback: WalletTransaction): WalletTransaction {
-  const rawType = toString(item.type, fallback.type)
-  const type = WALLET_TYPES.includes(rawType as WalletTransactionType)
-    ? (rawType as WalletTransactionType)
-    : fallback.type
-
-  return {
-    id: toString(item.id, String(index + 1)),
-    date: toString(item.date, fallback.date),
-    type,
-    description: toString(item.description, fallback.description)
-  }
-}
-
-export function mapReportsWallet(raw: unknown): ReportsWalletResponse {
-  const fallback = mockReportsWallet
+export function mapReportsSubsets(raw: unknown): ReportsSubsetsResponse {
   const payload = unwrapPayload(raw)
-  if (!payload || typeof payload !== 'object') return fallback
+  if (!payload || typeof payload !== 'object') return mockReportsSubsets
 
-  const o = payload as Record<string, unknown>
-  const rawRows = ensureArray<Record<string, unknown>>(o.rows ?? o.items ?? o.transactions)
-  if (rawRows.length === 0) return fallback
+  const rows = mapWalletTransactionRows(payload)
 
-  return {
-    rows: rawRows.map((item, i) => mapWalletRow(item, i, fallback.rows[i] ?? fallback.rows[0]))
-  }
+  return { rows }
 }
 
 function mapFund(item: Record<string, unknown>, index: number, fallback: CapitalDepositFund): CapitalDepositFund {

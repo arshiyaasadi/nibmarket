@@ -58,7 +58,9 @@ export type NetworkRecentInvite = {
 export type NetworkInvitePageResponse = {
   referralCode: string
   maxInvitesPerMonth: number
+  maxInvitesPerYear: number
   remainingInvites: number
+  remainingInvitesYear?: number
   funds: NetworkFund[]
   recentInvites: NetworkRecentInvite[]
 }
@@ -73,6 +75,7 @@ export type SendNetworkInviteRequest = {
 export type SendNetworkInviteResponse = {
   success: boolean
   remainingInvites: number
+  remainingInvitesYear?: number
   referralLink?: string
 }
 
@@ -85,6 +88,7 @@ export type NetworkReferrerInfo = {
 export type NetworkReferrerResponse = {
   hasSubsets: boolean
   referrer: NetworkReferrerInfo | null
+  recentInvitees: NetworkRecentInvite[]
 }
 
 export type SubmitReferrerRequest = {

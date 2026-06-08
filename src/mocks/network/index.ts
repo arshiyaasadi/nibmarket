@@ -82,7 +82,9 @@ export const mockNetworkSubsetTree: NetworkSubsetTreeResponse = (() => {
 export const mockNetworkInvite: NetworkInvitePageResponse = {
   referralCode: 'NIB55077306',
   maxInvitesPerMonth: 20,
+  maxInvitesPerYear: 100,
   remainingInvites: 18,
+  remainingInvitesYear: 95,
   funds: [
     {
       id: '1',
@@ -178,7 +180,11 @@ export const mockNetworkInvite: NetworkInvitePageResponse = {
 
 export const mockNetworkReferrer: NetworkReferrerResponse = {
   hasSubsets: false,
-  referrer: null
+  referrer: null,
+  recentInvitees: [
+    { id: 10051, name: 'فریده زینالیان', date: '۲ روز پیش', avatar: '/images/avatars/1.png' },
+    { id: 10050, name: 'بهرام حاجی هاشمی', date: '۵ روز پیش', avatar: '/images/avatars/2.png' }
+  ]
 }
 
 export const MOCK_VALID_REFERRER_CODES = ['NIB55077306', 'INVITE2024', 'MR2024'] as const

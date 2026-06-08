@@ -132,5 +132,9 @@ export function shouldUseApiForEndpoint(slug: ApiEndpointSlug): boolean {
     return isEndpointEnabled('network-subsets')
   }
 
+  if (slug === 'leaderboard-current-month' || slug === 'leaderboard-last-month') {
+    return isEndpointEnabled('dashboard-leaderboard') || isEndpointEnabled(slug)
+  }
+
   return isEndpointEnabled(slug)
 }
