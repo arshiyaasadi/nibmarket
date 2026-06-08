@@ -50,7 +50,7 @@ const getMissionIcon = (id: number) => {
 
 const MissionsPageContent = () => {
   const { data, loading, retrying, error, hasData, usedFallback, refetch } = useLeaderboardMissions()
-  const missions = data.missions.filter(m => !m.completed)
+  const missions = data.missions
 
   const handleMissionClick = (mission: Mission) => {
     if (!mission.completed) {

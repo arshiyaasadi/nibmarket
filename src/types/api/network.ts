@@ -5,6 +5,8 @@ export type NetworkSubsetRow = {
   fullName: string
   level: number
   joinDate: string
+  /** ISO date from API `creationDate` — used for relative-time labels */
+  joinedAt: string
   subMembersCount: number
   leaderboardRank: number
   directParentUserId: number
@@ -21,6 +23,14 @@ export type NetworkTreeNode = {
   fullName: string
   level: number
   children: NetworkTreeNode[]
+  /** Current logged-in user — highlighted at tree root */
+  isSelf?: boolean
+}
+
+export type NetworkTreeCurrentUser = {
+  id: number
+  firstName: string
+  lastName: string
 }
 
 export type NetworkSubsetTreeResponse = {

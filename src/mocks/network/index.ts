@@ -16,6 +16,7 @@ export const mockNetworkSubsets: NetworkSubsetsResponse = {
       fullName: 'فریده زینالیان',
       level: 3,
       joinDate: '۱۴۰۲/۰۱/۲۲',
+      joinedAt: '2023-03-13T06:21:44.483295Z',
       subMembersCount: 0,
       leaderboardRank: 0,
       directParentUserId: 10050
@@ -27,6 +28,7 @@ export const mockNetworkSubsets: NetworkSubsetsResponse = {
       fullName: 'بهرام حاجی هاشمی',
       level: 2,
       joinDate: '۱۴۰۲/۰۱/۲۲',
+      joinedAt: '2023-03-13T06:21:32.334092Z',
       subMembersCount: 2,
       leaderboardRank: 0,
       directParentUserId: 11
@@ -38,6 +40,7 @@ export const mockNetworkSubsets: NetworkSubsetsResponse = {
       fullName: 'امیر زارع کاریزی',
       level: 1,
       joinDate: '۱۴۰۱/۱۱/۰۹',
+      joinedAt: '2023-01-29T14:12:03.81867Z',
       subMembersCount: 1,
       leaderboardRank: 0,
       directParentUserId: 123606
@@ -49,6 +52,7 @@ export const mockNetworkSubsets: NetworkSubsetsResponse = {
       fullName: 'سعید نیکنام',
       level: 3,
       joinDate: '۱۴۰۱/۱۱/۰۵',
+      joinedAt: '2023-01-25T07:55:56.189047Z',
       subMembersCount: 0,
       leaderboardRank: 0,
       directParentUserId: 10050
@@ -60,6 +64,7 @@ export const mockNetworkSubsets: NetworkSubsetsResponse = {
       fullName: 'محمد نباتی',
       level: 1,
       joinDate: '۱۴۰۱/۱۱/۰۴',
+      joinedAt: '2023-01-24T14:33:08.792183Z',
       subMembersCount: 0,
       leaderboardRank: 0,
       directParentUserId: 123606

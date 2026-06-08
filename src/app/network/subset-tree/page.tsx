@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense } from 'react'
+import { Suspense, useMemo } from 'react'
 
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
@@ -8,11 +8,31 @@ import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 
 import DashboardWidgetState from 'src/components/dashboard/DashboardWidgetState'
+import { useCurrentUser } from 'src/hooks/layout/useCurrentUser'
 import { useNetworkSubsetTree } from 'src/hooks/network/useNetworkSubsetTree'
+import { wrapWithCurrentUserRoot } from 'src/lib/network/subset-tree-builder'
 import NetworkOrgChart from 'src/views/network/NetworkOrgChart'
+
+const CHART_MIN_HEIGHT = 480
 
 const SubsetTreePageContent = () => {
   const { data, loading, retrying, error, usedFallback, refetch } = useNetworkSubsetTree()
+  const { data: currentUser, loading: userLoading } = useCurrentUser()
+
+  const treeRoot = useMemo(() => {
+    const user =
+      currentUser?.id != null
+        ? {
+            id: currentUser.id,
+            firstName: currentUser.firstName ?? '',
+            lastName: currentUser.lastName ?? ''
+          }
+        : null
+
+    return wrapWithCurrentUserRoot(data.roots, user)
+  }, [data.roots, currentUser])
+
+  const isLoading = loading || userLoading
 
   return (
     <Box>
@@ -21,16 +41,23 @@ const SubsetTreePageContent = () => {
       </Typography>
       <Card>
         <DashboardWidgetState
-          loading={loading}
+          loading={isLoading}
           retrying={retrying}
           error={error}
           usedFallback={usedFallback}
           onRetry={refetch}
-          skeletonHeight={420}
+          skeletonHeight={CHART_MIN_HEIGHT}
           widgetTitle='درخت زیر مجموعه'
         >
-          <CardContent sx={{ p: theme => `${theme.spacing(5)} !important` }}>
-            <NetworkOrgChart roots={data.roots} truncated={data.truncated} />
+          <CardContent
+            sx={{
+              p: theme => `${theme.spacing(5)} !important`,
+              width: '100%',
+              minHeight: CHART_MIN_HEIGHT,
+              boxSizing: 'border-box'
+            }}
+          >
+            <NetworkOrgChart root={treeRoot} truncated={data.truncated} minHeight={CHART_MIN_HEIGHT - 40} />
           </CardContent>
         </DashboardWidgetState>
       </Card>

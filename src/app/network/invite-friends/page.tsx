@@ -1,7 +1,7 @@
 'use client'
 
 // ** React Imports
-import { Suspense, useState, useEffect, MouseEvent } from 'react'
+import { Suspense, useMemo, useState, useEffect, MouseEvent } from 'react'
 
 // ** Next Import
 import Link from 'next/link'
@@ -39,7 +39,9 @@ import Icon from 'src/@core/components/icon'
 import useClipboard from 'src/@core/hooks/useClipboard'
 import { useSettings } from 'src/@core/hooks/useSettings'
 import { useNetworkInvite } from 'src/hooks/network/useNetworkInvite'
+import { useNetworkSubsets } from 'src/hooks/network/useNetworkSubsets'
 import { useSendNetworkInvite } from 'src/hooks/network/useNetworkMutations'
+import { dedupeByName, mapSubsetsToRecentInvites } from 'src/lib/network/subset-previews'
 
 // ** Components
 import DashboardWidgetState from 'src/components/dashboard/DashboardWidgetState'
@@ -142,6 +144,15 @@ const InviteFriendsPageContent = () => {
     usedFallback: inviteUsedFallback,
     refetch: refetchInvite
   } = useNetworkInvite()
+  const {
+    data: subsetsData,
+    loading: subsetsLoading,
+    retrying: subsetsRetrying,
+    error: subsetsError,
+    hasData: subsetsHasData,
+    usedFallback: subsetsUsedFallback,
+    refetch: refetchSubsets
+  } = useNetworkSubsets()
   const { send: sendInvite, submitting: isSendingInvite, error: sendInviteError, clearError: clearSendError } =
     useSendNetworkInvite()
 
@@ -156,26 +167,26 @@ const InviteFriendsPageContent = () => {
   const [inviteMobile, setInviteMobile] = useState('')
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
   const [remainingInvites, setRemainingInvites] = useState(inviteData.remainingInvites)
-  const [recentInvites, setRecentInvites] = useState(inviteData.recentInvites)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [referralLink, setReferralLink] = useState('')
 
   useEffect(() => {
     if (!inviteHasData) return
-    setRecentInvites(inviteData.recentInvites)
     if (isApiMode()) {
       setRemainingInvites(inviteData.remainingInvites)
     } else {
       setRemainingInvites(getRemainingInvites(inviteData.maxInvitesPerMonth))
     }
-  }, [inviteHasData, inviteData.recentInvites, inviteData.remainingInvites, inviteData.maxInvitesPerMonth])
+  }, [inviteHasData, inviteData.remainingInvites, inviteData.maxInvitesPerMonth])
 
   useEffect(() => {
     setSelectedTemplate(null)
   }, [selectedFund])
 
-  const dedupedRecentInvites = recentInvites.filter(
-    (invite, index, arr) => arr.findIndex(i => i.name === invite.name) === index
+  const dedupedRecentInvites = useMemo(
+    () =>
+      subsetsHasData ? dedupeByName(mapSubsetsToRecentInvites(subsetsData.rows)) : [],
+    [subsetsData.rows, subsetsHasData]
   )
 
   const normalizeToEnglishDigits = (value: string) => {
@@ -803,11 +814,11 @@ const InviteFriendsPageContent = () => {
         <Grid item xs={12}>
           <Card>
             <DashboardWidgetState
-              loading={inviteLoading}
-              retrying={inviteRetrying}
-              error={inviteError}
-              usedFallback={inviteUsedFallback}
-              onRetry={refetchInvite}
+              loading={subsetsLoading}
+              retrying={subsetsRetrying}
+              error={subsetsError}
+              usedFallback={subsetsUsedFallback}
+              onRetry={refetchSubsets}
               skeletonHeight={360}
               widgetTitle='دعوت شدگان اخیر'
             >
@@ -834,7 +845,7 @@ const InviteFriendsPageContent = () => {
                 </Typography>
               </Box>
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, opacity: inviteHasData ? 1 : 0.5 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, opacity: subsetsHasData ? 1 : 0.5 }}>
                 {dedupedRecentInvites.map(user => (
                   <Box
                     key={user.id}

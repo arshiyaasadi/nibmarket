@@ -4,7 +4,7 @@ import {
   mockNetworkSubsets
 } from 'src/mocks/network'
 import { ensureArray, toNumber, toString } from 'src/lib/dashboard/normalize'
-import { buildNetworkTreeFromSubsetRows, limitNetworkTree } from 'src/lib/network/subset-tree-builder'
+import { buildSubsetTreeFromRows } from 'src/lib/network/subset-tree-builder'
 import type {
   NetworkFund,
   NetworkInvitePageResponse,
@@ -72,6 +72,13 @@ export function mapNetworkSubsets(raw: unknown): NetworkSubsetsResponse {
     const firstName = toString(item.firstName, '')
     const lastName = toString(item.lastName, '')
 
+    const joinedAtRaw = toString(item.creationDate ?? item.joinDate ?? item.membershipDate, '')
+    const joinedAtParsed = joinedAtRaw ? new Date(joinedAtRaw) : null
+    const joinedAt =
+      joinedAtParsed && !Number.isNaN(joinedAtParsed.getTime())
+        ? joinedAtParsed.toISOString()
+        : fallback.rows[index]?.joinedAt ?? ''
+
     return {
       id,
       firstName,
@@ -83,6 +90,7 @@ export function mapNetworkSubsets(raw: unknown): NetworkSubsetsResponse {
       ),
       level: toNumber(item.upperLevel ?? item.level, 0),
       joinDate: formatJoinDate(item.creationDate ?? item.joinDate ?? item.membershipDate),
+      joinedAt,
       subMembersCount: toNumber(item.subMembersCount ?? item.subordinates, childCounts.get(id) ?? 0),
       leaderboardRank: toNumber(item.leaderboardRank ?? item.rank, 0),
       directParentUserId: toNumber(item.directParentUserId, 0)
@@ -96,10 +104,8 @@ export function mapNetworkSubsets(raw: unknown): NetworkSubsetsResponse {
 export function mapNetworkSubsetTree(raw: unknown): NetworkSubsetTreeResponse {
   const mapped = mapNetworkSubsets(raw)
   const sourceRows = mapped.rows.length > 0 ? mapped.rows : mockNetworkSubsets.rows
-  const builtRoots = buildNetworkTreeFromSubsetRows(sourceRows)
-  const { roots, truncated } = limitNetworkTree(builtRoots)
 
-  return { roots, truncated }
+  return buildSubsetTreeFromRows(sourceRows)
 }
 
 export function mapNetworkInvite(raw: unknown): NetworkInvitePageResponse {

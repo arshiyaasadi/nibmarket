@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, MouseEvent } from 'react'
+import { useMemo, useState, MouseEvent } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -25,15 +25,51 @@ import Icon from 'src/@core/components/icon'
 import useClipboard from 'src/@core/hooks/useClipboard'
 import { useSettings } from 'src/@core/hooks/useSettings'
 import { useDashboardInvites } from 'src/hooks/dashboard/useDashboardInvites'
+import { useNetworkSubsets } from 'src/hooks/network/useNetworkSubsets'
 import DashboardWidgetState from 'src/components/dashboard/DashboardWidgetState'
 import WidgetField from 'src/components/dashboard/WidgetField'
+import { dedupeByName, mapSubsetsToInvitedPreviews } from 'src/lib/network/subset-previews'
 
 const CrmAward = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const theme = useTheme()
   const { settings } = useSettings()
-  const { data, loading, retrying, error, hasData, usedFallback, refetch } = useDashboardInvites()
-  const { totalInvited, referralCode, recentInvites } = data
+  const {
+    data: invitesData,
+    loading: invitesLoading,
+    retrying: invitesRetrying,
+    error: invitesError,
+    hasData: invitesHasData,
+    usedFallback: invitesUsedFallback,
+    refetch: refetchInvites
+  } = useDashboardInvites()
+  const {
+    data: subsetsData,
+    loading: subsetsLoading,
+    retrying: subsetsRetrying,
+    error: subsetsError,
+    hasData: subsetsHasData,
+    usedFallback: subsetsUsedFallback,
+    refetch: refetchSubsets
+  } = useNetworkSubsets()
+
+  const { referralCode } = invitesData
+  const totalInvited = subsetsHasData ? subsetsData.rows.length : 0
+  const recentInvites = useMemo(
+    () => (subsetsHasData ? dedupeByName(mapSubsetsToInvitedPreviews(subsetsData.rows)) : []),
+    [subsetsData.rows, subsetsHasData]
+  )
+
+  const loading = invitesLoading || subsetsLoading
+  const retrying = invitesRetrying || subsetsRetrying
+  const error = subsetsError ?? invitesError
+  const usedFallback = subsetsUsedFallback || invitesUsedFallback
+  const hasData = subsetsHasData && invitesHasData
+
+  const refetch = () => {
+    refetchSubsets()
+    refetchInvites()
+  }
 
   const clipboard = useClipboard({
     onSuccess: () => {
@@ -81,11 +117,7 @@ const CrmAward = () => {
 
   const open = Boolean(anchorEl)
 
-  const dedupedRecentInvites = hasData
-    ? recentInvites.filter(
-        (invite, index, arr) => arr.findIndex(i => i.name === invite.name) === index
-      )
-    : []
+  const dedupedRecentInvites = hasData ? recentInvites : []
 
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>

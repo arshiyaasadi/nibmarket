@@ -1,4 +1,9 @@
-import type { NetworkSubsetRow, NetworkTreeNode } from 'src/types/api/network'
+import type {
+  NetworkSubsetRow,
+  NetworkSubsetTreeResponse,
+  NetworkTreeCurrentUser,
+  NetworkTreeNode
+} from 'src/types/api/network'
 
 /** Max nodes rendered in the org chart (performance + readability). */
 export const NETWORK_TREE_MAX_NODES = 80
@@ -81,4 +86,49 @@ export function limitNetworkTree(
   }
 
   return { roots: limited, truncated }
+}
+
+function buildFullName(firstName: string, lastName: string, fallback = 'شما'): string {
+  const fullName = `${firstName.trim()} ${lastName.trim()}`.trim()
+
+  return fullName || fallback
+}
+
+/** Put the authenticated user on top; API rows are only subordinates. */
+export function wrapWithCurrentUserRoot(
+  forestRoots: NetworkTreeNode[],
+  currentUser: NetworkTreeCurrentUser | null
+): NetworkTreeNode | null {
+  if (forestRoots.length === 0 && !currentUser) return null
+
+  if (!currentUser) {
+    if (forestRoots.length === 1) return forestRoots[0]
+
+    return {
+      id: 'network-root',
+      firstName: '',
+      lastName: '',
+      fullName: 'شبکه من',
+      level: 0,
+      children: forestRoots
+    }
+  }
+
+  return {
+    id: String(currentUser.id),
+    firstName: currentUser.firstName,
+    lastName: currentUser.lastName,
+    fullName: buildFullName(currentUser.firstName, currentUser.lastName),
+    level: 0,
+    isSelf: true,
+    children: forestRoots
+  }
+}
+
+/** Same rows as GET /api/network/subsets (my-subsets page) → org chart roots. */
+export function buildSubsetTreeFromRows(rows: NetworkSubsetRow[]): NetworkSubsetTreeResponse {
+  const builtRoots = buildNetworkTreeFromSubsetRows(rows)
+  const { roots, truncated } = limitNetworkTree(builtRoots)
+
+  return { roots, truncated }
 }

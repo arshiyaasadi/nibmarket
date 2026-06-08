@@ -60,7 +60,12 @@ apiClient.interceptors.request.use(config => {
 apiClient.interceptors.response.use(
   response => response,
   error => {
-    if (DEBUG_API && axios.isAxiosError(error) && error.config?.url) {
+    if (
+      DEBUG_API &&
+      axios.isAxiosError(error) &&
+      error.config?.url &&
+      error.response?.status !== 404
+    ) {
       console.error('[api-client] failed', buildApiUrl(error.config.url), error.code, error.message)
     }
 

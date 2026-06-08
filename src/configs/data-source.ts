@@ -128,5 +128,9 @@ export function isEndpointEnabled(slug: ApiEndpointSlug): boolean {
 }
 
 export function shouldUseApiForEndpoint(slug: ApiEndpointSlug): boolean {
+  if (slug === 'network-subset-tree') {
+    return isEndpointEnabled('network-subsets')
+  }
+
   return isEndpointEnabled(slug)
 }

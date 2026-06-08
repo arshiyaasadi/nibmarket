@@ -29,17 +29,30 @@ import DashboardWidgetState from 'src/components/dashboard/DashboardWidgetState'
 
 // ** Hooks
 import { useNetworkReferrer } from 'src/hooks/network/useNetworkReferrer'
+import { useNetworkSubsets } from 'src/hooks/network/useNetworkSubsets'
 import { useSubmitReferrerCode } from 'src/hooks/network/useNetworkMutations'
 import type { NetworkReferrerInfo } from 'src/types/api/network'
+
+// ** Config
+import { shouldUseApiForEndpoint } from 'src/configs/data-source'
 
 const MyReferrerPageContent = () => {
   const [referralCode, setReferralCode] = useState('')
   const [submittedReferrer, setSubmittedReferrer] = useState<NetworkReferrerInfo | null>(null)
 
   const { data, loading, retrying, error, hasData, usedFallback, refetch } = useNetworkReferrer()
+  const {
+    data: subsetsData,
+    hasData: subsetsHasData,
+    loading: subsetsLoading
+  } = useNetworkSubsets()
   const { submit, submitting, error: submitError, clearError } = useSubmitReferrerCode()
 
-  const hasSubsets = data.hasSubsets
+  const useSubsetsForHasSubsets = shouldUseApiForEndpoint('network-subsets')
+  const hasSubsets = useSubsetsForHasSubsets
+    ? subsetsHasData && subsetsData.rows.length > 0
+    : data.hasSubsets
+  const subsetsCheckPending = useSubsetsForHasSubsets && subsetsLoading && !subsetsHasData
   const referrerInfo = submittedReferrer ?? data.referrer
 
   useEffect(() => {
@@ -73,18 +86,27 @@ const MyReferrerPageContent = () => {
 
       <Grid container spacing={6}>
         <Grid item xs={12} md={6}>
-          <Card>
+          <Card sx={{ height: '100%', minHeight: 360, display: 'flex', flexDirection: 'column' }}>
             <DashboardWidgetState
               loading={loading}
               retrying={retrying}
               error={error}
               usedFallback={usedFallback}
               onRetry={refetch}
-              skeletonHeight={320}
+              skeletonHeight={360}
               widgetTitle='معرف من'
             >
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 320 }}>
               {referrerInfo ? (
-                <CardContent sx={{ p: 6 }}>
+                <CardContent
+                  sx={{
+                    flex: 1,
+                    p: 6,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center'
+                  }}
+                >
                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
                       <CustomAvatar
                         skin='light'
@@ -128,8 +150,17 @@ const MyReferrerPageContent = () => {
                   <CardHeader
                     title='وارد کردن کد معرف'
                     titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }}
+                    sx={{ pb: 0 }}
                   />
-                  <CardContent sx={{ p: 6 }}>
+                  <CardContent
+                    sx={{
+                      flex: 1,
+                      p: 6,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center'
+                    }}
+                  >
                     <form onSubmit={handleSubmit}>
                       <FormControl fullWidth sx={{ mb: 4 }}>
                         <InputLabel htmlFor='referral-code-input'>کد معرف</InputLabel>
@@ -139,7 +170,7 @@ const MyReferrerPageContent = () => {
                           value={referralCode}
                           onChange={e => setReferralCode(e.target.value)}
                           placeholder='کد معرف را وارد کنید'
-                          disabled={hasSubsets || !hasData}
+                          disabled={hasSubsets || subsetsCheckPending || !hasData}
                           sx={{
                             '& .MuiOutlinedInput-input': {
                               textAlign: 'center',
@@ -164,7 +195,7 @@ const MyReferrerPageContent = () => {
                         type='submit'
                         fullWidth
                         variant='contained'
-                        disabled={!referralCode.trim() || hasSubsets || submitting || !hasData}
+                        disabled={!referralCode.trim() || hasSubsets || subsetsCheckPending || submitting || !hasData}
                         sx={{ py: 1.5 }}
                       >
                         {submitting ? 'در حال ثبت...' : 'ثبت کد معرف'}
@@ -178,6 +209,7 @@ const MyReferrerPageContent = () => {
                   </CardContent>
                 </>
               )}
+              </Box>
             </DashboardWidgetState>
           </Card>
         </Grid>
