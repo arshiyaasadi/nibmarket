@@ -4,11 +4,11 @@
 import { ReactNode, ReactElement, useEffect } from 'react'
 
 // ** Next Import
-import { useRouter } from 'src/lib/next-router-shim'
+import { usePathname, useRouter } from 'next/navigation'
 
 // ** Hooks Import
-import { redirectToPanelLogin } from 'src/configs/auth-redirect'
 import { useAuth } from 'src/hooks/useAuth'
+import { hasSessionAccessToken } from 'src/lib/auth-exchange'
 
 interface AuthGuardProps {
   children: ReactNode
@@ -19,20 +19,15 @@ const AuthGuard = (props: AuthGuardProps) => {
   const { children, fallback } = props
   const auth = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
 
-  useEffect(
-    () => {
-      if (!router.isReady) {
-        return
-      }
+  useEffect(() => {
+    if (auth.loading) return
 
-      if (auth.user === null && !window.localStorage.getItem('userData')) {
-        redirectToPanelLogin()
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [router.route]
-  )
+    if (auth.user === null && !window.localStorage.getItem('userData') && !hasSessionAccessToken()) {
+      router.replace(`/login/token?returnUrl=${encodeURIComponent(pathname)}`)
+    }
+  }, [auth.loading, auth.user, pathname, router])
 
   if (auth.loading || auth.user === null) {
     return fallback

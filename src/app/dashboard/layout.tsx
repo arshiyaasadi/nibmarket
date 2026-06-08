@@ -46,7 +46,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     if (!auth.loading && auth.user === null) {
       const hasUserData = window.localStorage.getItem('userData')
       if (!hasUserData) {
-        router.replace(`/login?returnUrl=${encodeURIComponent(pathname)}`)
+        router.replace(`/?returnUrl=${encodeURIComponent(pathname)}`)
       }
     }
 

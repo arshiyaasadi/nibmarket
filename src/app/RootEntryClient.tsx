@@ -9,9 +9,10 @@ import Typography from '@mui/material/Typography'
 import BlankLayout from 'src/@core/layouts/BlankLayout'
 import Spinner from 'src/@core/components/spinner'
 import { useAuth } from 'src/hooks/useAuth'
+import Link from 'next/link'
 import { redirectToPanelLogin } from 'src/configs/auth-redirect'
 import { formatApiErrorMessage } from 'src/lib/api-errors'
-import { clearStaleSession } from 'src/lib/auth-exchange'
+import { clearStaleSession, hasSessionAccessToken } from 'src/lib/auth-exchange'
 import { getNibAuthCookieToken, stripBearerPrefix } from 'src/lib/auth-token'
 import getHomeRoute from 'src/layouts/components/acl/getHomeRoute'
 
@@ -53,6 +54,17 @@ export default function RootEntryClient({ serverNibAuthToken }: Props) {
 
     const nibToken = resolveNibAuthToken(serverNibAuthToken)
     if (!nibToken) {
+      if (hasSessionAccessToken()) {
+        const returnUrl = searchParams.get('returnUrl')
+        const destination =
+          returnUrl && returnUrl !== '/' && returnUrl.startsWith('/')
+            ? returnUrl
+            : '/dashboard'
+        router.replace(destination)
+
+        return
+      }
+
       redirectToPanelLogin()
 
       return
@@ -81,13 +93,14 @@ export default function RootEntryClient({ serverNibAuthToken }: Props) {
           <Typography variant='body2' color='text.secondary' sx={{ maxWidth: 420 }}>
             {error}
           </Typography>
-          <Button
-            variant='outlined'
-            size='small'
-            onClick={() => redirectToPanelLogin()}
-          >
-            ورود از پنل
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Button variant='outlined' size='small' onClick={() => redirectToPanelLogin()}>
+              ورود از پنل
+            </Button>
+            <Button component={Link} href='/login/token' variant='contained' size='small'>
+              ورود دستی با توکن
+            </Button>
+          </Box>
         </Box>
       </BlankLayout>
     )

@@ -26,7 +26,7 @@ export default function LoginTokenPage() {
 
   useEffect(() => {
     if (!token) {
-      router.replace('/')
+      router.replace('/login/token')
 
       return
     }
@@ -65,8 +65,8 @@ export default function LoginTokenPage() {
           <Typography variant='body2' color='text.secondary' sx={{ maxWidth: 420 }}>
             {error}
           </Typography>
-          <Button component={Link} href='/' variant='outlined' size='small'>
-            بازگشت
+          <Button component={Link} href='/login/token' variant='outlined' size='small'>
+            ورود دستی
           </Button>
         </Box>
       </BlankLayout>
