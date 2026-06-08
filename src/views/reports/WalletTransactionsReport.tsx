@@ -12,21 +12,12 @@ import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
-import TextField from '@mui/material/TextField'
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import Chip from '@mui/material/Chip'
 
 import DashboardWidgetState from 'src/components/dashboard/DashboardWidgetState'
+import JalaliDateField from 'src/components/forms/JalaliDateField'
 import type { WalletTransaction } from 'src/types/api/reports'
-
-function formatDateInput(value: string): string {
-  const digits = value.replace(/\D/g, '').slice(0, 8)
-
-  if (digits.length <= 4) return digits
-  if (digits.length <= 6) return `${digits.slice(0, 4)}/${digits.slice(4)}`
-
-  return `${digits.slice(0, 4)}/${digits.slice(4, 6)}/${digits.slice(6, 8)}`
-}
 
 const columns: GridColDef[] = [
   {
@@ -128,6 +119,14 @@ const WalletTransactionsReport = ({
     onTransactionTypeChange(event.target.value)
   }
 
+  const handleStartDateChange = (nextStartDate: string) => {
+    onStartDateChange(nextStartDate)
+
+    if (endDate && nextStartDate && endDate < nextStartDate) {
+      onEndDateChange('')
+    }
+  }
+
   return (
     <Box>
       <Typography variant='h4' sx={{ mb: 4 }}>
@@ -141,32 +140,17 @@ const WalletTransactionsReport = ({
           </Typography>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6} md={3}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <InputLabel sx={{ mb: 1.5, fontSize: '0.875rem', fontWeight: 500, color: 'text.primary' }}>
-                  از تاریخ
-                </InputLabel>
-                <TextField
-                  type='text'
-                  value={startDate}
-                  onChange={event => onStartDateChange(formatDateInput(event.target.value))}
-                  placeholder='yyyy/mm/dd'
-                  fullWidth
-                  inputProps={{ maxLength: 10, pattern: '[0-9/]*' }}
-                />
+              <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: '100%' }}>
+                <JalaliDateField label='از تاریخ' value={startDate} onChange={handleStartDateChange} />
               </Box>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <InputLabel sx={{ mb: 1.5, fontSize: '0.875rem', fontWeight: 500, color: 'text.primary' }}>
-                  تا تاریخ
-                </InputLabel>
-                <TextField
-                  type='text'
+              <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: '100%' }}>
+                <JalaliDateField
+                  label='تا تاریخ'
                   value={endDate}
-                  onChange={event => onEndDateChange(formatDateInput(event.target.value))}
-                  placeholder='yyyy/mm/dd'
-                  fullWidth
-                  inputProps={{ maxLength: 10, pattern: '[0-9/]*' }}
+                  onChange={onEndDateChange}
+                  minDate={startDate || undefined}
                 />
               </Box>
             </Grid>
