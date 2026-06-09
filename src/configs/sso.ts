@@ -30,17 +30,16 @@ export function getSsoCallbackUrl(options?: { referred?: boolean }): string {
 
 /**
  * Panel login URL with `callbackUrl` always as the last query parameter.
- * Referral signups use `callbackUrl=.../login/sso?referred`.
+ * `callbackUrl` is appended without encoding — the panel expects a readable absolute URL.
  */
 export function buildPanelSsoLoginUrl(referralCode?: string): string {
-  const url = new URL('/login/', PANEL_BASE_URL)
   const code = referralCode?.trim()
+  const callbackUrl = getSsoCallbackUrl({ referred: Boolean(code) })
+  const loginBase = `${PANEL_BASE_URL.replace(/\/$/, '')}/login/?`
 
   if (code) {
-    url.searchParams.set('referral_code', code)
+    return `${loginBase}referral_code=${encodeURIComponent(code)}&callbackUrl=${callbackUrl}`
   }
 
-  url.searchParams.set('callbackUrl', getSsoCallbackUrl({ referred: Boolean(code) }))
-
-  return url.toString()
+  return `${loginBase}callbackUrl=${callbackUrl}`
 }
