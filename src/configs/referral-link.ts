@@ -1,8 +1,7 @@
-/** Nib panel — SSO login and referral invite links. */
-export const PANEL_BASE_URL =
-  process.env.NEXT_PUBLIC_PANEL_BASE_URL?.trim() || 'https://panel.nibdev.com'
+import { buildPanelSsoLoginUrl, PANEL_BASE_URL } from 'src/configs/sso'
 
-export const PANEL_CALLBACK_SERVICE = 'mlm'
+/** Nib panel — SSO login and referral invite links. */
+export { PANEL_BASE_URL }
 
 export const INVITE_LIMITS = {
   perMonth: 20,
@@ -10,16 +9,10 @@ export const INVITE_LIMITS = {
 } as const
 
 export function buildPanelLoginUrl(referralCode?: string): string {
-  const url = new URL('/login/', PANEL_BASE_URL)
-  url.searchParams.set('callback_service', PANEL_CALLBACK_SERVICE)
-  if (referralCode?.trim()) {
-    url.searchParams.set('referral_code', referralCode.trim())
-  }
-
-  return url.toString()
+  return buildPanelSsoLoginUrl(referralCode)
 }
 
 /** Public invite link shared with friends (panel registration with referral code). */
 export function buildPanelReferralInviteUrl(referralCode: string): string {
-  return buildPanelLoginUrl(referralCode)
+  return buildPanelSsoLoginUrl(referralCode)
 }
