@@ -49,7 +49,7 @@ const HonorsShowcase = ({ honors }: HonorsShowcaseProps) => {
         }
       />
       <CardContent sx={{ p: 6, flex: 1 }}>
-        {honors.length === 0 ? (
+        {honors.length >= 0 ? (
           <Typography variant='body2' sx={{ color: 'text.secondary', textAlign: 'center', py: 6 }}>
             هنوز افتخاری ثبت نشده است.
           </Typography>
