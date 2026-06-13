@@ -5,10 +5,18 @@ import { useApiResource } from 'src/hooks/useApiResource'
 import { mapReportsWallet } from 'src/lib/reports/mappers'
 import { mockReportsWallet } from 'src/mocks/reports'
 
-export function useReportsWallet(startDate: string, endDate: string, transactionType: string) {
-  const typeParam =
-    transactionType === 'واریز' ? 'deposit' : transactionType === 'برداشت' ? 'withdraw' : 'all'
+function buildMissionIdParam(missionIds: number[]): string | undefined {
+  if (missionIds.length === 0) return undefined
 
+  return missionIds.join(',')
+}
+
+export function useReportsWallet(
+  startDate: string,
+  endDate: string,
+  missionType: string,
+  missionIds: number[]
+) {
   return useApiResource({
     slug: 'reports-wallet',
     mockData: mockReportsWallet,
@@ -16,9 +24,10 @@ export function useReportsWallet(startDate: string, endDate: string, transaction
       fetchReportsWalletRaw({
         startDate: startDate || undefined,
         endDate: endDate || undefined,
-        type: typeParam
+        type: missionType !== 'all' ? missionType : undefined,
+        missionId: buildMissionIdParam(missionIds)
       }),
     mapResponse: mapReportsWallet,
-    deps: [startDate, endDate, transactionType]
+    deps: [startDate, endDate, missionType, missionIds.join(',')]
   })
 }

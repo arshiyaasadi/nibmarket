@@ -15,24 +15,76 @@ export const mockReportsIncome: ReportsIncomeResponse = {
   ]
 }
 
-export const mockReportsSubsets: ReportsSubsetsResponse = {
+export const mockReportsWallet: ReportsWalletResponse = {
   rows: [
-    { id: '1', date: '۱۴۰۴/۱۲/۰۶', type: 'واریز', description: 'معرفی فرد جدید — ۵ امتیاز' },
-    { id: '2', date: '۱۴۰۴/۱۲/۰۵', type: 'واریز', description: 'احراز هویت — ۱۰ امتیاز' },
-    { id: '3', date: '۱۴۰۴/۱۲/۰۴', type: 'واریز', description: 'ثبت‌نام در سامانه — ۱۰ امتیاز' },
-    { id: '4', date: '۱۴۰۴/۱۲/۰۳', type: 'برداشت', description: 'برداشت ۵ توکن برای خرید پکیج' },
-    { id: '5', date: '۱۴۰۴/۱۲/۰۲', type: 'واریز', description: 'معرفی فرد جدید — ۵ امتیاز' }
+    {
+      id: '1',
+      date: '۱۴۰۴/۱۲/۰۶',
+      type: 'واریز',
+      missionId: 4,
+      missionCode: 'daily_login',
+      missionTitle: 'لاگین روزانه',
+      description: 'پاداش لاگین روزانه — ۱۰ توکن'
+    },
+    {
+      id: '2',
+      date: '۱۴۰۴/۱۲/۰۵',
+      type: 'واریز',
+      missionId: 3,
+      missionCode: 'new_referral',
+      missionTitle: 'معرفی فرد جدید',
+      description: 'پاداش معرفی فرد جدید — ۵ توکن'
+    },
+    {
+      id: '3',
+      date: '۱۴۰۴/۱۲/۰۴',
+      type: 'واریز',
+      missionId: 2,
+      missionCode: 'identity_verification',
+      missionTitle: 'احراز هویت',
+      description: 'پاداش احراز هویت — ۱۰ توکن'
+    },
+    {
+      id: '4',
+      date: '۱۴۰۴/۱۲/۰۳',
+      type: 'واریز',
+      missionId: 1,
+      missionCode: 'registration',
+      missionTitle: 'ثبت‌نام در سامانه',
+      description: 'پاداش ثبت‌نام — ۱۰ توکن'
+    },
+    {
+      id: '5',
+      date: '۱۴۰۴/۱۲/۰۲',
+      type: 'واریز',
+      missionId: 9,
+      missionCode: 'retention_share_layer1',
+      missionTitle: 'سهم رسوب — معرف مستقیم',
+      description: 'سهم رسوب لایه ۱ — ۱۵ توکن'
+    },
+    {
+      id: '6',
+      date: '۱۴۰۴/۱۲/۰۱',
+      type: 'واریز',
+      missionId: 10,
+      missionCode: 'retention_share_layer2',
+      missionTitle: 'سهم رسوب — معرف لایه ۲',
+      description: 'سهم رسوب لایه ۲ — ۸ توکن'
+    },
+    {
+      id: '7',
+      date: '۱۴۰۳/۱۱/۳۰',
+      type: 'واریز',
+      missionId: 11,
+      missionCode: 'retention_share_layer3',
+      missionTitle: 'سهم رسوب — معرف لایه ۳',
+      description: 'سهم رسوب لایه ۳ — ۶ توکن'
+    }
   ]
 }
 
-export const mockReportsWallet: ReportsWalletResponse = {
-  rows: [
-    { id: '1', date: '۱۴۰۴/۱۲/۰۶', type: 'واریز', description: 'واریز ۱۰ توکن بابت ورود به سامانه' },
-    { id: '2', date: '۱۴۰۴/۱۲/۰۵', type: 'برداشت', description: 'برداشت ۵ توکن برای خرید پکیج' },
-    { id: '3', date: '۱۴۰۴/۱۲/۰۴', type: 'واریز', description: 'واریز ۲۰ توکن بابت دعوت دوستان' },
-    { id: '4', date: '۱۴۰۴/۱۲/۰۳', type: 'واریز', description: 'واریز ۱۵ توکن بابت تکمیل ماموریت' },
-    { id: '5', date: '۱۴۰۴/۱۲/۰۲', type: 'برداشت', description: 'برداشت ۸ توکن برای ارتقای حساب' }
-  ]
+export const mockReportsSubsets: ReportsSubsetsResponse = {
+  rows: mockReportsWallet.rows.filter(row => row.missionId != null && row.missionId >= 9)
 }
 
 const capitalFunds = [

@@ -9,29 +9,35 @@ import WalletTransactionsReport from 'src/views/reports/WalletTransactionsReport
 const WalletReportsPageContent = () => {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [transactionType, setTransactionType] = useState('all')
+  const [missionType, setMissionType] = useState('all')
+  const [missionIds, setMissionIds] = useState<number[]>([])
 
   const { data, loading, retrying, error, hasData, usedFallback, refetch } = useReportsWallet(
     startDate,
     endDate,
-    transactionType
+    missionType,
+    missionIds
   )
 
   return (
     <WalletTransactionsReport
       pageTitle='گزارش کیف پول'
       widgetTitle='گزارش کیف پول'
+      mode='wallet'
       rows={data.rows}
       startDate={startDate}
       endDate={endDate}
-      transactionType={transactionType}
+      missionType={missionType}
+      missionIds={missionIds}
       onStartDateChange={setStartDate}
       onEndDateChange={setEndDate}
-      onTransactionTypeChange={setTransactionType}
+      onMissionTypeChange={setMissionType}
+      onMissionIdsChange={setMissionIds}
       onResetFilters={() => {
         setStartDate('')
         setEndDate('')
-        setTransactionType('all')
+        setMissionType('all')
+        setMissionIds([])
       }}
       filterOnClient={!shouldUseApiForEndpoint('reports-wallet')}
       loading={loading}

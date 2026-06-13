@@ -1,3 +1,4 @@
+import { getWalletMissionByCode, resolveWalletMissionTitle } from 'src/configs/wallet-missions'
 import { ensureArray, toNumber, toString } from 'src/lib/dashboard/normalize'
 import {
   mockReportsCapitalDeposit,
@@ -72,10 +73,31 @@ export function mapReportsIncome(raw: unknown): ReportsIncomeResponse {
 }
 
 function mapWalletRow(item: Record<string, unknown>, index: number): WalletTransaction {
+  const missionIdRaw = item.missionId ?? item.mission_id
+  let missionId: number | undefined
+  if (missionIdRaw != null && missionIdRaw !== '') {
+    const parsed = toNumber(missionIdRaw, Number.NaN)
+    if (Number.isFinite(parsed) && parsed > 0) missionId = parsed
+  }
+  const rawType = toString(item.type, '').trim()
+  const missionFromType = getWalletMissionByCode(rawType)
+  const missionCode = toString(item.missionCode ?? item.mission_code ?? (missionFromType ? rawType : ''), '').trim()
+  const normalizedType = missionFromType
+    ? 'واریز'
+    : normalizeWalletType(item.transactionType ?? item.direction ?? rawType)
+  const missionTitle = resolveWalletMissionTitle(
+    missionId,
+    missionCode,
+    missionFromType?.title ?? normalizedType
+  )
+
   return {
     id: toString(item.id, String(index + 1)),
     date: toString(item.date, '—'),
-    type: normalizeWalletType(item.type),
+    type: normalizedType,
+    missionId: Number.isFinite(missionId) ? missionId : undefined,
+    missionCode: missionCode || undefined,
+    missionTitle,
     description: toString(item.description, '—')
   }
 }

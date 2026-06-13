@@ -18,19 +18,19 @@ export const fundsData: FundCategory[] = [
     categoryTitle: 'صندوق‌های درآمد ثابت',
     items: [
       {
-        title: 'صندوق عطیه',
-        description: 'درآمد ثابت با بازدهی مطمئن و ریسک پایین',
+        title: 'آتيه نوين',
+        description: 'بازده ماهانه ۲.۴۶٪ | بازده سالانه ۳۴.۴۸٪',
         image: '/images/fund/atiyeh.png'
       },
       {
-        title: 'صندوق سپهر',
-        description: 'سرمایه‌گذاری امن با سود پایدار',
-        image: '/images/fund/sepehr.png'
+        title: 'ثابت یکم ایرانیان',
+        description: 'بازده ماهانه ۲.۱٪ | بازده سالانه ۲۹.۳۳٪',
+        image: '/images/fund/yekom.png'
       },
       {
-        title: 'صندوق نهال',
-        description: 'رشد آرام و مطمئن سرمایه شما',
-        image: '/images/fund/nahal.png'
+        title: 'فراز اندیش نوین',
+        description: 'بازده ماهانه ۲.۴۲٪ | بازده سالانه ۳۴.۴۸٪',
+        image: '/images/fund/faraz.png'
       }
     ]
   },
@@ -40,41 +40,41 @@ export const fundsData: FundCategory[] = [
     categoryTitle: 'صندوق‌های سهامی',
     items: [
       {
-        title: 'صندوق پیشرو',
-        description: 'پیشرو در بازار سهام با بازدهی برتر',
-        image: '/images/fund/pishro.png'
-      },
-      {
-        title: 'صندوق فراز',
-        description: 'فراتر از انتظارات، بالاتر از شاخص',
-        image: '/images/fund/faraz.png'
-      },
-      {
-        title: 'صندوق پالایش',
-        description: 'سرمایه‌گذاری هوشمند در بازار سرمایه',
-        image: '/images/fund/palayesh.png'
+        title: 'ميعاد ايرانيان',
+        description: 'بازده ماهانه ۳۰.۰۸٪ | بازده سالانه ۵۹.۰۶٪',
+        image: '/images/fund/miaad.png'
       }
     ]
   },
   {
     id: 3,
-    category: 'Gold',
-    categoryTitle: 'صندوق‌های طلا',
+    category: 'ETF',
+    categoryTitle: 'صندوق‌های ETF',
     items: [
       {
-        title: 'صندوق گلدیس',
-        description: 'امنیت طلا، بازدهی هوشمند',
-        image: '/images/fund/goldis.png'
+        title: 'نهال سرمايه ايرانيان',
+        description: 'بازده ماهانه ۲.۵۷٪ | بازده سالانه ۳۶٪',
+        image: '/images/fund/nahal.png'
       },
       {
-        title: 'صندوق آرمغان',
-        description: 'آرمغانی ارزشمند برای آینده شما',
+        title: 'ارمغان ایرانیان',
+        description: 'بازده ماهانه ۲.۹۳٪ | بازده سالانه ۳۷.۱۶٪',
         image: '/images/fund/armaghan.png'
       },
       {
-        title: 'صندوق زرین',
-        description: 'سرمایه‌گذاری در طلا با بازدهی بالا',
-        image: '/images/fund/zarin.png'
+        title: 'سپهر انديشه نوين',
+        description: 'بازده ماهانه ۱۹٪ | بازده سالانه ۵۵.۲٪',
+        image: '/images/fund/sepehr.png'
+      },
+      {
+        title: 'طلاي گلديس',
+        description: 'بازده ماهانه -۱۴.۵۸٪ | بازده سالانه ۱۴۲.۵۶٪',
+        image: '/images/fund/goldis.png'
+      },
+      {
+        title: 'پالایشی یکم',
+        description: 'بازده ماهانه ۴۴.۳۹٪ | بازده سالانه ۳۳.۰۸٪',
+        image: '/images/fund/palayesh.png'
       }
     ]
   }

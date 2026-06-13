@@ -1,29 +1,35 @@
 'use client'
 
-import { fetchReportsSubsetsRaw } from 'src/api/reports/subsets'
+import { RETENTION_MISSION_IDS } from 'src/configs/wallet-missions'
+import { fetchReportsWalletRaw } from 'src/api/reports/wallet'
 import { useApiResource } from 'src/hooks/useApiResource'
-import { mapReportsSubsets } from 'src/lib/reports/mappers'
+import { mapReportsWallet } from 'src/lib/reports/mappers'
 import { mockReportsSubsets } from 'src/mocks/reports'
 
-function toWalletTypeParam(transactionType: string): string | undefined {
-  if (transactionType === 'واریز') return 'deposit'
-  if (transactionType === 'برداشت') return 'withdraw'
-  if (transactionType === 'all') return 'all'
+function buildMissionIdParam(missionIds: number[]): string {
+  const effective =
+    missionIds.length > 0 ? missionIds : [...RETENTION_MISSION_IDS]
 
-  return undefined
+  return effective.join(',')
 }
 
-export function useReportsSubsets(startDate: string, endDate: string, transactionType: string) {
+export function useReportsSubsets(
+  startDate: string,
+  endDate: string,
+  missionType: string,
+  missionIds: number[]
+) {
   return useApiResource({
     slug: 'reports-subsets',
     mockData: mockReportsSubsets,
     fetcher: () =>
-      fetchReportsSubsetsRaw({
+      fetchReportsWalletRaw({
         startDate: startDate || undefined,
         endDate: endDate || undefined,
-        type: toWalletTypeParam(transactionType)
+        type: missionType !== 'all' ? missionType : undefined,
+        missionId: buildMissionIdParam(missionIds)
       }),
-    mapResponse: mapReportsSubsets,
-    deps: [startDate, endDate, transactionType]
+    mapResponse: mapReportsWallet,
+    deps: [startDate, endDate, missionType, missionIds.join(',')]
   })
 }

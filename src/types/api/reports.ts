@@ -20,6 +20,9 @@ export type WalletTransaction = {
   id: string
   date: string
   type: WalletTransactionType
+  missionId?: number
+  missionCode?: string
+  missionTitle?: string
   description: string
 }
 
@@ -66,7 +69,10 @@ export type ReportsIncomeQuery = {
 export type ReportsWalletQuery = {
   startDate?: string
   endDate?: string
+  /** Mission code, e.g. `registration` */
   type?: string
+  /** Comma-separated mission ids, e.g. `9,10,11` */
+  missionId?: string
 }
 
 export type ReportsSubsetsQuery = ReportsWalletQuery

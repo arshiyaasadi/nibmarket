@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from 'react'
 
+import { RETENTION_MISSION_IDS } from 'src/configs/wallet-missions'
 import { shouldUseApiForEndpoint } from 'src/configs/data-source'
 import { useReportsSubsets } from 'src/hooks/reports/useReportsSubsets'
 import WalletTransactionsReport from 'src/views/reports/WalletTransactionsReport'
@@ -9,29 +10,35 @@ import WalletTransactionsReport from 'src/views/reports/WalletTransactionsReport
 const SubsetsReportsPageContent = () => {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [transactionType, setTransactionType] = useState('all')
+  const [missionType, setMissionType] = useState('all')
+  const [missionIds, setMissionIds] = useState<number[]>([...RETENTION_MISSION_IDS])
 
   const { data, loading, retrying, error, hasData, usedFallback, refetch } = useReportsSubsets(
     startDate,
     endDate,
-    transactionType
+    missionType,
+    missionIds
   )
 
   return (
     <WalletTransactionsReport
       pageTitle='گزارش زیر مجموعه ها'
-      widgetTitle='گزارش زیرمجموعه‌ها'
+      widgetTitle='گزارش زیرمجموعه‌ها — رسوب'
+      mode='retention'
       rows={data.rows}
       startDate={startDate}
       endDate={endDate}
-      transactionType={transactionType}
+      missionType={missionType}
+      missionIds={missionIds}
       onStartDateChange={setStartDate}
       onEndDateChange={setEndDate}
-      onTransactionTypeChange={setTransactionType}
+      onMissionTypeChange={setMissionType}
+      onMissionIdsChange={setMissionIds}
       onResetFilters={() => {
         setStartDate('')
         setEndDate('')
-        setTransactionType('all')
+        setMissionType('all')
+        setMissionIds([...RETENTION_MISSION_IDS])
       }}
       filterOnClient={!shouldUseApiForEndpoint('reports-subsets')}
       loading={loading}
