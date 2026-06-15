@@ -311,7 +311,8 @@ const InviteFriendsPageContent = () => {
 
   const inviteTemplates = getInviteTemplates()
 
-  const isStep1Valid = inviteName.trim().length > 0 || inviteMobile.trim().length === 11
+  const isMobileValid = inviteMobile.length === 11 && inviteMobile.startsWith('09')
+  const isStep1Valid = inviteName.trim().length > 0 || isMobileValid
   const isStep2Valid = selectedFund !== null
   const isStep3Valid = selectedTemplate !== null
   
@@ -404,8 +405,12 @@ const InviteFriendsPageContent = () => {
                   fullWidth
                   label='نام و نام خانوادگی'
                   value={inviteName}
-                  onChange={e => setInviteName(e.target.value)}
+                  onChange={e => {
+                    const val = e.target.value
+                    if (val.length <= 30) setInviteName(val)
+                  }}
                   placeholder='مثال: علی احمدی'
+                  inputProps={{ maxLength: 30 }}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -418,11 +423,18 @@ const InviteFriendsPageContent = () => {
                       /[^0-9]/g,
                       ''
                     )
-                    setInviteMobile(normalized)
+                    if (normalized.length <= 11) setInviteMobile(normalized)
                   }}
                   placeholder='مثال: 09123456789'
-                  inputProps={{ maxLength: 11 }}
-                  helperText='شماره موبایل باید با 09 شروع شده و ۱۱ رقم باشد'
+                  inputProps={{ maxLength: 11, inputMode: 'numeric' }}
+                  error={inviteMobile.length > 0 && (inviteMobile.length !== 11 || !inviteMobile.startsWith('09'))}
+                  helperText={
+                    inviteMobile.length > 0 && !inviteMobile.startsWith('09')
+                      ? 'شماره موبایل باید با 09 شروع شود'
+                      : inviteMobile.length > 0 && inviteMobile.length !== 11
+                      ? 'شماره موبایل باید ۱۱ رقم باشد'
+                      : ' '
+                  }
                 />
               </Grid>
 

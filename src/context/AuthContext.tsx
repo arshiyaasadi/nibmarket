@@ -204,7 +204,7 @@ const AuthProvider = ({ children }: Props) => {
   const handleLogout = () => {
     clearAuthSession()
     setUser(null)
-    redirectToPanelLogin()
+    router.replace('/logged-out')
   }
 
   const values = {
