@@ -1,14 +1,23 @@
 'use client'
 
+import { useEffect } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import BlankLayout from 'src/@core/layouts/BlankLayout'
 import Icon from 'src/@core/components/icon'
-import { PANEL_LOGIN_URL } from 'src/configs/auth-redirect'
+import { PANEL_LOGIN_URL, clearAuthTokens } from 'src/configs/auth-redirect'
 import { PANEL_BASE_URL } from 'src/configs/sso'
+import { useAuth } from 'src/hooks/useAuth'
 
 const LoggedOutPage = () => {
+  const { setUser } = useAuth()
+
+  useEffect(() => {
+    clearAuthTokens()
+    setUser(null)
+  }, [setUser])
+
   const handleLoginAgain = () => {
     window.location.href = PANEL_LOGIN_URL
   }
