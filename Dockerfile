@@ -9,8 +9,8 @@ RUN apt-get update -y \
   && rm -rf /var/lib/apt/lists/*
 
 FROM base AS deps
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json package-lock.json .npmrc ./
+RUN npm ci --include=optional --no-audit --no-fund
 
 FROM base AS development
 COPY --from=deps /app/node_modules ./node_modules
