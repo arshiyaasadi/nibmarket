@@ -55,17 +55,11 @@ ssh "${SSH_HOST}" \
 set -euo pipefail
 
 echo "--- Entering project directory: ${PROJECT_DIR}"
+if [[ ! -d "${PROJECT_DIR}" ]]; then
+  echo "Error: project directory does not exist: ${PROJECT_DIR}"
+  exit 1
+fi
 cd "${PROJECT_DIR}"
-
-if [[ ! -f "${COMPOSE_FILE}" ]]; then
-  echo "Error: compose file not found: ${PROJECT_DIR}/${COMPOSE_FILE}"
-  exit 1
-fi
-
-if [[ ! -f ".env" ]]; then
-  echo "Error: .env not found on server. Copy .env.example and fill production values first."
-  exit 1
-fi
 
 # sudo git sees a different owner than the repo — allow this path explicitly
 GIT=(git -C "${PROJECT_DIR}" -c "safe.directory=${PROJECT_DIR}")
@@ -98,23 +92,51 @@ fi
 HOST_PATH="${ORIG_URL#*://}"
 HOST_PATH="${HOST_PATH#*@}"
 AUTH_URL="https://${GIT_USER_ENC}:${GIT_PASS_ENC}@${HOST_PATH}"
-BRANCH="$(git_sudo rev-parse --abbrev-ref HEAD)"
+BRANCH="${DEPLOY_BRANCH:-$(git_sudo rev-parse --abbrev-ref HEAD)}"
 
 echo "--- Syncing with remote (${BRANCH}, hard reset — server must match remote exactly)"
-# Recover from a previous failed pull/merge (e.g. conflict in docker-compose.yml)
 git_sudo merge --abort 2>/dev/null || true
 git_sudo fetch "${AUTH_URL}" "${BRANCH}"
 git_sudo reset --hard FETCH_HEAD
 
-export GIT_COMMIT="$(git_sudo rev-parse --short HEAD)"
+SYNCED_COMMIT="$(git_sudo rev-parse --short HEAD)"
+echo "--- Synced to commit: ${SYNCED_COMMIT}"
+
+# Resolve compose file after sync (prod alias may not exist on older checkouts)
+COMPOSE_PATH="${COMPOSE_FILE}"
+if [[ ! -f "${COMPOSE_PATH}" ]]; then
+  if [[ -f "docker-compose.yml" ]]; then
+    echo "Warning: ${COMPOSE_FILE} not found — falling back to docker-compose.yml"
+    COMPOSE_PATH="docker-compose.yml"
+  else
+    echo "Error: no compose file found in ${PROJECT_DIR} after git sync"
+    exit 1
+  fi
+fi
+
+if [[ ! -f ".env" ]]; then
+  if [[ ! -f ".env.example" ]]; then
+    echo "Error: neither .env nor .env.example found after git sync"
+    exit 1
+  fi
+  echo "--- .env missing — copying from .env.example"
+  echo "Warning: update production secrets in ${PROJECT_DIR}/.env if this is first deploy"
+  if cp .env.example .env 2>/dev/null; then
+    :
+  else
+    echo "${SUDO_PASS}" | sudo -S cp .env.example .env
+  fi
+fi
+
+export GIT_COMMIT="${SYNCED_COMMIT}"
 export GIT_COMMIT_FULL="$(git_sudo rev-parse HEAD)"
 export BUILD_TIME="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 
-echo "--- Building and starting containers (${COMPOSE_FILE})"
-echo "${SUDO_PASS}" | sudo -S docker compose -f "${COMPOSE_FILE}" up -d --build --remove-orphans
+echo "--- Building and starting containers (${COMPOSE_PATH})"
+echo "${SUDO_PASS}" | sudo -S docker compose -f "${COMPOSE_PATH}" up -d --build --remove-orphans
 
 echo "--- Container status"
-echo "${SUDO_PASS}" | sudo -S docker compose -f "${COMPOSE_FILE}" ps
+echo "${SUDO_PASS}" | sudo -S docker compose -f "${COMPOSE_PATH}" ps
 
 echo ">>> Deployment completed successfully."
 REMOTE_EOF
