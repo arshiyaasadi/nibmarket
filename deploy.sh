@@ -4,7 +4,7 @@
 # Performs the deployment on the remote server:
 #   1) SSH into the server (using your existing key)
 #   2) cd into the project directory
-#   3) git pull
+#   3) git fetch + reset --hard (no merge — avoids conflicts on server)
 #   4) bring containers up with docker compose (production)
 #
 # Required local files (next to this script):
@@ -45,7 +45,7 @@ fi
 
 echo ">>> Connecting to ${SSH_HOST} and running deployment..."
 
-ssh -t "${SSH_HOST}" \
+ssh "${SSH_HOST}" \
   GIT_USER="${GIT_USER}" \
   GIT_PASS="${GIT_PASS}" \
   SUDO_PASS="${SUDO_PASS}" \
@@ -67,6 +67,13 @@ if [[ ! -f ".env" ]]; then
   exit 1
 fi
 
+# sudo git sees a different owner than the repo — allow this path explicitly
+GIT=(git -C "${PROJECT_DIR}" -c "safe.directory=${PROJECT_DIR}")
+
+git_sudo() {
+  echo "${SUDO_PASS}" | sudo -S "${GIT[@]}" "$@"
+}
+
 urlencode() {
   local s="$1" out="" c
   for (( i=0; i<${#s}; i++ )); do
@@ -82,7 +89,7 @@ urlencode() {
 GIT_USER_ENC="$(urlencode "${GIT_USER}")"
 GIT_PASS_ENC="$(urlencode "${GIT_PASS}")"
 
-ORIG_URL="$(echo "${SUDO_PASS}" | sudo -S git config --get remote.origin.url 2>/dev/null || true)"
+ORIG_URL="$(git_sudo config --get remote.origin.url 2>/dev/null || true)"
 if [[ -z "${ORIG_URL}" ]]; then
   echo "Error: git remote.origin.url is not configured in ${PROJECT_DIR}"
   exit 1
@@ -91,13 +98,16 @@ fi
 HOST_PATH="${ORIG_URL#*://}"
 HOST_PATH="${HOST_PATH#*@}"
 AUTH_URL="https://${GIT_USER_ENC}:${GIT_PASS_ENC}@${HOST_PATH}"
-BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+BRANCH="$(git_sudo rev-parse --abbrev-ref HEAD)"
 
-echo "--- Running git pull (${BRANCH})"
-echo "${SUDO_PASS}" | sudo -S git pull "${AUTH_URL}" "${BRANCH}"
+echo "--- Syncing with remote (${BRANCH}, hard reset — server must match remote exactly)"
+# Recover from a previous failed pull/merge (e.g. conflict in docker-compose.yml)
+git_sudo merge --abort 2>/dev/null || true
+git_sudo fetch "${AUTH_URL}" "${BRANCH}"
+git_sudo reset --hard FETCH_HEAD
 
-export GIT_COMMIT="$(git rev-parse --short HEAD)"
-export GIT_COMMIT_FULL="$(git rev-parse HEAD)"
+export GIT_COMMIT="$(git_sudo rev-parse --short HEAD)"
+export GIT_COMMIT_FULL="$(git_sudo rev-parse HEAD)"
 export BUILD_TIME="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 
 echo "--- Building and starting containers (${COMPOSE_FILE})"
