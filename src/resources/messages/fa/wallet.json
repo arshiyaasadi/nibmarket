@@ -1,0 +1,75 @@
+{
+  "title": "کیف پول Twin",
+  "totalBalance": "موجودی کل",
+  "availableBalance": "موجودی قابل برداشت",
+  "frozenBalance": "موجودی فریز شده",
+  "tokenUnit": "Twin",
+
+  "actionBuy": "خرید",
+  "actionSell": "فروش",
+  "actionReceive": "دریافت",
+  "actionTransfer": "انتقال",
+
+  "buyTitle": "خرید Twin از نوین‌آ",
+  "buyDesc": "با خرید توکن Twin از اپلیکیشن نوین‌آ، علاوه بر سرمایه‌گذاری هوشمند، پاداش ویژه Twin دریافت کنید و جایگاه خود را در جدول رهبران ارتقاء دهید.",
+  "buyMissionLabel": "ماموریت ویژه",
+  "buyMissionDesc": "با اولین خرید از نوین‌آ ۱۵ توکن Twin دریافت کنید",
+  "buyCtaApp": "رفتن به اپ نوین‌آ",
+
+  "sellTitle": "فروش Twin در نوین‌آ",
+  "sellDesc": "توکن‌های Twin خود را از طریق اپلیکیشن نوین‌آ به بهترین قیمت بفروشید و از نقدینگی بالای بازار بهره‌مند شوید.",
+  "sellMissionDesc": "با اولین فروش در نوین‌آ ۱۰ توکن Twin پاداش بگیرید",
+  "sellCtaApp": "رفتن به اپ نوین‌آ",
+
+  "receiveTitle": "دریافت Twin",
+  "receiveAddress": "آدرس کیف پول",
+  "receiveCopy": "کپی آدرس",
+  "receiveCopied": "کپی شد!",
+  "receiveHint": "این آدرس را برای دریافت Twin به فرستنده بدهید",
+
+  "transferTitle": "انتقال Twin",
+  "transferAddress": "آدرس مقصد",
+  "transferAmount": "مقدار Twin",
+  "transferAddressPlaceholder": "آدرس کیف پول مقصد",
+  "transferAmountPlaceholder": "مقدار",
+  "transferConfirm": "تأیید انتقال",
+  "transferAvailable": "موجودی قابل برداشت",
+
+  "priceChartTitle": "قیمت Twin",
+  "priceChartTimeframe": "۳۰ روز اخیر",
+  "priceChange": "تغییر",
+
+  "txTitle": "تراکنش‌های کیف پول",
+  "txFilterAll": "همه",
+  "txFilterMission": "ماموریت",
+  "txFilterReferral": "معرفی",
+  "txFilterDeposit": "واریز",
+  "txFilterBuy": "خرید",
+  "txFilterSell": "فروش",
+  "txFilterTransferIn": "دریافت",
+  "txFilterTransferOut": "ارسال",
+
+  "txSearchPlaceholder": "جستجو با شناسه پرداخت",
+
+  "colId": "شناسه",
+  "colType": "نوع",
+  "colDesc": "توضیحات",
+  "colDate": "تاریخ",
+  "colRrn": "شناسه پرداخت",
+  "colAmount": "مبلغ (Twin)",
+
+  "typeMission": "ماموریت",
+  "typeReferral": "معرفی",
+  "typeDeposit": "واریز",
+  "typeBuy": "خرید",
+  "typeSell": "فروش",
+  "typeTransferIn": "دریافت",
+  "typeTransferOut": "ارسال",
+
+  "noTx": "تراکنشی یافت نشد",
+  "loadingMore": "در حال بارگذاری...",
+  "noMore": "همه تراکنش‌ها نمایش داده شدند",
+
+  "idCopyHint": "کلیک برای کپی",
+  "idCopied": "کپی شد!"
+}

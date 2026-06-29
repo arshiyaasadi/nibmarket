@@ -1,0 +1,70 @@
+{
+  "capital": {
+    "title": "واریز سرمایه",
+    "stats": "خلاصه سرمایه",
+    "funds": "صندوق‌های سرمایه‌گذاری",
+    "totalDeposited": "کل واریزی",
+    "activeDeposits": "سرمایه فعال",
+    "totalReturn": "سود کل",
+    "pendingReturn": "سود در انتظار",
+    "returnRate": "نرخ بازده",
+    "term": "مدت",
+    "months": "ماه",
+    "minAmount": "حداقل",
+    "maxAmount": "حداکثر"
+  },
+  "competition": {
+    "participate": "شرکت در مسابقه",
+    "records": "سوابق مسابقات",
+    "prizes": "جوایز و هدایا"
+  },
+  "leaderboard": {
+    "pool": "تابلوی استخر",
+    "missions": "ماموریت‌ها",
+    "totalPool": "کل استخر",
+    "myShare": "سهم من",
+    "sharePercent": "درصد سهم",
+    "rank": "رتبه",
+    "name": "نام",
+    "tokens": "توکن"
+  },
+  "network": {
+    "subsetsTitle": "زیرمجموعه‌های من",
+    "treeTitle": "درخت شبکه",
+    "inviteTitle": "دعوت از دوستان",
+    "referrerTitle": "معرف من",
+    "noReferrer": "معرفی ندارید",
+    "inviteCode": "کد دعوت",
+    "level": "سطح",
+    "joinDate": "تاریخ عضویت",
+    "subsets": "زیرمجموعه‌ها",
+    "directSubsets": "مستقیم"
+  },
+  "reports": {
+    "walletTitle": "کیف پول",
+    "incomeTitle": "گزارش درآمد",
+    "subsetsTitle": "گزارش زیرمجموعه‌ها",
+    "date": "تاریخ",
+    "type": "نوع",
+    "description": "توضیحات",
+    "amount": "مقدار",
+    "year": "سال",
+    "month": "ماه"
+  },
+  "notifications": {
+    "title": "اعلان‌ها",
+    "all": "همه",
+    "system": "سیستمی",
+    "network": "شبکه",
+    "promotion": "تبلیغاتی",
+    "noNotifications": "اعلانی وجود ندارد",
+    "loginActivity": "فعالیت‌های ورود"
+  },
+  "rules": {
+    "title": "قوانین و مقررات"
+  },
+  "support": {
+    "title": "پشتیبانی"
+  },
+  "comingSoon": "به زودی..."
+}

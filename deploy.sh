@@ -5,31 +5,43 @@
 #   1) SSH into the server (using your existing key)
 #   2) cd into the project directory
 #   3) git pull
-#   4) bring containers up with docker compose
+#   4) bring containers up with docker compose (production)
 #
-# The sudo password is read from sudo_pass.txt (you fill it in yourself).
+# Required local files (next to this script):
+#   sudo_pass.txt      — sudo password for the remote server
+#   git_credentials.txt — line 1: git username, line 2: git password/token
 
 set -euo pipefail
 
 # ---------- config ----------
-SSH_HOST="pod1.nibdev.com"
-PROJECT_DIR="/opt/MLM_Front"
+SSH_HOST="${DEPLOY_SSH_HOST:-pod1.nibdev.com}"
+PROJECT_DIR="${DEPLOY_PROJECT_DIR:-/opt/MLM_Front}"
+COMPOSE_FILE="${DEPLOY_COMPOSE_FILE:-docker-compose.prod.yml}"
 
-GIT_USER="a.asadi"
-GIT_PASS='As@!di876$%'
-
-# sudo password file (next to this script)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SUDO_PASS_FILE="${SCRIPT_DIR}/sudo_pass.txt"
+GIT_CREDENTIALS_FILE="${SCRIPT_DIR}/git_credentials.txt"
 # ----------------------------
 
 if [[ ! -s "${SUDO_PASS_FILE}" ]]; then
   echo "Error: sudo password file is empty or missing: ${SUDO_PASS_FILE}"
-  echo "Please put your sudo password inside it."
+  exit 1
+fi
+
+if [[ ! -s "${GIT_CREDENTIALS_FILE}" ]]; then
+  echo "Error: git credentials file is empty or missing: ${GIT_CREDENTIALS_FILE}"
+  echo "Format: line 1 = username, line 2 = password or personal access token"
   exit 1
 fi
 
 SUDO_PASS="$(cat "${SUDO_PASS_FILE}")"
+GIT_USER="$(sed -n '1p' "${GIT_CREDENTIALS_FILE}")"
+GIT_PASS="$(sed -n '2p' "${GIT_CREDENTIALS_FILE}")"
+
+if [[ -z "${GIT_USER}" || -z "${GIT_PASS}" ]]; then
+  echo "Error: git_credentials.txt must contain username on line 1 and password on line 2."
+  exit 1
+fi
 
 echo ">>> Connecting to ${SSH_HOST} and running deployment..."
 
@@ -38,13 +50,23 @@ ssh -t "${SSH_HOST}" \
   GIT_PASS="${GIT_PASS}" \
   SUDO_PASS="${SUDO_PASS}" \
   PROJECT_DIR="${PROJECT_DIR}" \
+  COMPOSE_FILE="${COMPOSE_FILE}" \
   'bash -s' <<'REMOTE_EOF'
 set -euo pipefail
 
 echo "--- Entering project directory: ${PROJECT_DIR}"
 cd "${PROJECT_DIR}"
 
-# URL-encode credentials (password contains special characters)
+if [[ ! -f "${COMPOSE_FILE}" ]]; then
+  echo "Error: compose file not found: ${PROJECT_DIR}/${COMPOSE_FILE}"
+  exit 1
+fi
+
+if [[ ! -f ".env" ]]; then
+  echo "Error: .env not found on server. Copy .env.example and fill production values first."
+  exit 1
+fi
+
 urlencode() {
   local s="$1" out="" c
   for (( i=0; i<${#s}; i++ )); do
@@ -60,19 +82,29 @@ urlencode() {
 GIT_USER_ENC="$(urlencode "${GIT_USER}")"
 GIT_PASS_ENC="$(urlencode "${GIT_PASS}")"
 
-# Read current remote URL, then inject credentials temporarily
-ORIG_URL="$(echo "${SUDO_PASS}" | sudo -S git config --get remote.origin.url 2>/dev/null)"
+ORIG_URL="$(echo "${SUDO_PASS}" | sudo -S git config --get remote.origin.url 2>/dev/null || true)"
+if [[ -z "${ORIG_URL}" ]]; then
+  echo "Error: git remote.origin.url is not configured in ${PROJECT_DIR}"
+  exit 1
+fi
 
-echo "--- Running git pull"
-# Extract host/path from the original URL (https assumed)
 HOST_PATH="${ORIG_URL#*://}"
-HOST_PATH="${HOST_PATH#*@}"   # strip any existing credentials
+HOST_PATH="${HOST_PATH#*@}"
 AUTH_URL="https://${GIT_USER_ENC}:${GIT_PASS_ENC}@${HOST_PATH}"
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 
-echo "${SUDO_PASS}" | sudo -S git pull "${AUTH_URL}"
+echo "--- Running git pull (${BRANCH})"
+echo "${SUDO_PASS}" | sudo -S git pull "${AUTH_URL}" "${BRANCH}"
 
-echo "--- Bringing containers up with docker compose"
-echo "${SUDO_PASS}" | sudo -S docker compose up -d --build
+export GIT_COMMIT="$(git rev-parse --short HEAD)"
+export GIT_COMMIT_FULL="$(git rev-parse HEAD)"
+export BUILD_TIME="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+echo "--- Building and starting containers (${COMPOSE_FILE})"
+echo "${SUDO_PASS}" | sudo -S docker compose -f "${COMPOSE_FILE}" up -d --build --remove-orphans
+
+echo "--- Container status"
+echo "${SUDO_PASS}" | sudo -S docker compose -f "${COMPOSE_FILE}" ps
 
 echo ">>> Deployment completed successfully."
 REMOTE_EOF

@@ -1,0 +1,633 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model users {
+  id                 String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  referral_code      String      @unique @db.VarChar(12)
+  email              String      @unique @db.VarChar(255)
+  mobile             String      @unique @db.VarChar(20)
+  password_hash      String      @db.VarChar(255)
+  status             user_status @default(pending_verification)
+  kyc_status         kyc_status  @default(none)
+  referrer_id        String?     @db.Uuid
+  email_verified_at  DateTime?   @db.Timestamptz(6)
+  mobile_verified_at DateTime?   @db.Timestamptz(6)
+  created_at         DateTime    @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime    @default(now()) @db.Timestamptz(6)
+  deleted_at         DateTime?   @db.Timestamptz(6)
+
+  @@index([referrer_id])
+  @@index([status])
+}
+
+model user_profiles {
+  user_id      String   @id @db.Uuid
+  first_name   String?  @db.VarChar(100)
+  last_name    String?  @db.VarChar(100)
+  avatar_url   String?  @db.VarChar(500)
+  bio          String?  @db.VarChar(500)
+  social_links Json?
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model external_account_links {
+  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id          String            @db.Uuid
+  platform         external_platform
+  external_user_id String            @db.VarChar(100)
+  external_email   String?           @db.VarChar(255)
+  status           link_status       @default(active)
+  linked_at        DateTime          @default(now()) @db.Timestamptz(6)
+  metadata         Json?
+  created_at       DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime          @default(now()) @db.Timestamptz(6)
+
+  @@unique([platform, external_user_id])
+  @@unique([user_id, platform])
+}
+
+model roles {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code        String   @unique @db.VarChar(50)
+  name        String   @db.VarChar(100)
+  permissions Json
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model user_roles {
+  user_id    String   @db.Uuid
+  role_id    String   @db.Uuid
+  granted_by String?  @db.Uuid
+  granted_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@id([user_id, role_id])
+}
+
+model referrals {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  referrer_id        String   @db.Uuid
+  referred_user_id   String   @unique @db.Uuid
+  referral_code_used String   @db.VarChar(12)
+  source             String?  @db.VarChar(100)
+  created_at         DateTime @default(now()) @db.Timestamptz(6)
+  invite_type        String   @default("regular") @db.VarChar(20)
+
+  @@index([referrer_id])
+}
+
+model vip_invite_codes {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  owner_id   String    @db.Uuid
+  code       String    @unique @db.VarChar(20)
+  used_by    String?   @db.Uuid
+  used_at    DateTime? @db.Timestamptz(6)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+}
+
+model invite_letters {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  referrer_id      String    @db.Uuid
+  first_name       String    @db.VarChar(100)
+  last_name        String    @db.VarChar(100)
+  mobile           String    @db.VarChar(15)
+  fund_id          String    @db.VarChar(50)
+  status           String    @default("pending") @db.VarChar(20)
+  referred_user_id String?   @db.Uuid
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([referrer_id])
+  @@index([referrer_id, created_at])
+}
+
+model network_closure {
+  ancestor_id   String   @db.Uuid
+  descendant_id String   @db.Uuid
+  depth         Int
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  @@id([ancestor_id, descendant_id])
+  @@index([descendant_id, depth])
+  @@index([ancestor_id, depth])
+}
+
+model wallets {
+  id                      String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  owner_type              wallet_owner_type
+  owner_id                String?           @db.Uuid
+  currency                String            @default("TWIN") @db.VarChar(10)
+  status                  wallet_status     @default(active)
+  external_wallet_address String?           @unique @db.VarChar(255)
+  created_at              DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime          @default(now()) @db.Timestamptz(6)
+
+  @@index([owner_type, owner_id])
+}
+
+model wallet_balances {
+  wallet_id  String   @id @db.Uuid
+  available  Decimal  @default(0) @db.Decimal(38, 18)
+  locked     Decimal  @default(0) @db.Decimal(38, 18)
+  pending    Decimal  @default(0) @db.Decimal(38, 18)
+  total      Decimal  @default(0) @db.Decimal(38, 18)
+  version    BigInt   @default(0)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model token_transactions {
+  id                 String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  wallet_id          String         @db.Uuid
+  type               token_tx_type
+  direction          tx_direction
+  balance_bucket     balance_bucket
+  amount             Decimal        @db.Decimal(38, 18)
+  balance_after      Decimal?       @db.Decimal(38, 18)
+  status             tx_status      @default(pending)
+  currency           String         @default("TWIN") @db.VarChar(10)
+  reference_type     String?        @db.VarChar(50)
+  reference_id       String?        @db.Uuid
+  counterparty_tx_id String?        @db.Uuid
+  idempotency_key    String?        @unique @db.VarChar(100)
+  external_tx_ref    String?        @db.VarChar(255)
+  metadata           Json?
+  created_at         DateTime       @default(now()) @db.Timestamptz(6)
+  settled_at         DateTime?      @db.Timestamptz(6)
+
+  @@index([wallet_id])
+  @@index([reference_type, reference_id])
+  @@index([status])
+  @@index([created_at])
+}
+
+model lock_policies {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code       String    @unique @db.VarChar(50)
+  name       String    @db.VarChar(100)
+  lock_type  lock_type
+  config     Json
+  active     Boolean   @default(true)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @db.Timestamptz(6)
+}
+
+model token_locks {
+  id                  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  wallet_id           String      @db.Uuid
+  lock_policy_id      String?     @db.Uuid
+  lock_type           lock_type
+  amount              Decimal     @db.Decimal(38, 18)
+  released_amount     Decimal     @default(0) @db.Decimal(38, 18)
+  status              lock_status @default(active)
+  reason              String?     @db.VarChar(255)
+  unlock_condition    Json?
+  unlock_at           DateTime?   @db.Timestamptz(6)
+  vesting_schedule_id String?     @db.Uuid
+  source_tx_id        String?     @db.Uuid
+  created_at          DateTime    @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime    @default(now()) @db.Timestamptz(6)
+
+  @@index([wallet_id])
+  @@index([status])
+  @@index([unlock_at])
+}
+
+model vesting_schedules {
+  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name               String        @db.VarChar(100)
+  total_amount       Decimal       @db.Decimal(38, 18)
+  start_at           DateTime      @db.Timestamptz(6)
+  cliff_at           DateTime?     @db.Timestamptz(6)
+  interval_unit      interval_unit
+  interval_count     Int           @default(1)
+  installments_count Int
+  created_at         DateTime      @default(now()) @db.Timestamptz(6)
+}
+
+model vesting_installments {
+  id                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vesting_schedule_id String             @db.Uuid
+  sequence            Int
+  release_at          DateTime           @db.Timestamptz(6)
+  amount              Decimal            @db.Decimal(38, 18)
+  status              installment_status @default(scheduled)
+  released_tx_id      String?            @db.Uuid
+
+  @@unique([vesting_schedule_id, sequence])
+  @@index([status, release_at])
+}
+
+model pools {
+  id         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code       String       @unique @db.VarChar(50)
+  name       String       @db.VarChar(100)
+  wallet_id  String       @unique @db.Uuid
+  purpose    pool_purpose @default(general)
+  status     pool_status  @default(active)
+  created_at DateTime     @default(now()) @db.Timestamptz(6)
+  updated_at DateTime     @default(now()) @db.Timestamptz(6)
+}
+
+model integration_sync_runs {
+  id               String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  source           String     @default("NIB_MARKET") @db.VarChar(50)
+  cursor_from      DateTime?  @db.Timestamptz(6)
+  cursor_to        DateTime?  @db.Timestamptz(6)
+  status           job_status @default(running)
+  records_fetched  Int        @default(0)
+  records_ingested Int        @default(0)
+  job_execution_id String?    @db.Uuid
+  started_at       DateTime   @default(now()) @db.Timestamptz(6)
+  finished_at      DateTime?  @db.Timestamptz(6)
+}
+
+model nib_market_transactions {
+  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  external_tx_id    String         @unique @db.VarChar(100)
+  external_user_id  String         @db.VarChar(100)
+  user_id           String?        @db.Uuid
+  tx_type           market_tx_type
+  fund_id           String?        @db.VarChar(100)
+  amount            Decimal        @db.Decimal(20, 4)
+  fee               Decimal        @default(0) @db.Decimal(20, 4)
+  currency          String         @default("IRR") @db.VarChar(10)
+  occurred_at       DateTime       @db.Timestamptz(6)
+  ingested_at       DateTime       @default(now()) @db.Timestamptz(6)
+  processing_status ingest_status  @default(pending)
+  processed_at      DateTime?      @db.Timestamptz(6)
+  sync_run_id       String?        @db.Uuid
+  raw_payload       Json?
+
+  @@index([user_id])
+  @@index([processing_status])
+  @@index([occurred_at])
+}
+
+model commission_rules {
+  id                    String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code                  String           @unique @db.VarChar(50)
+  name                  String           @db.VarChar(100)
+  level                 Int
+  rate_percent          Decimal          @db.Decimal(7, 4)
+  basis                 commission_basis
+  company_share_percent Decimal          @default(0) @db.Decimal(7, 4)
+  pool_share_percent    Decimal          @default(0) @db.Decimal(7, 4)
+  valid_from            DateTime         @db.Timestamptz(6)
+  valid_to              DateTime?        @db.Timestamptz(6)
+  active                Boolean          @default(true)
+  created_at            DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime         @default(now()) @db.Timestamptz(6)
+
+  @@index([level, active])
+  @@index([valid_from, valid_to])
+}
+
+model commission_runs {
+  id                        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  run_date                  DateTime   @db.Date
+  period_start              DateTime   @db.Timestamptz(6)
+  period_end                DateTime   @db.Timestamptz(6)
+  status                    job_status @default(pending)
+  total_source_transactions Int        @default(0)
+  total_entries             Int        @default(0)
+  total_commission_twin     Decimal    @default(0) @db.Decimal(38, 18)
+  total_pool_twin           Decimal    @default(0) @db.Decimal(38, 18)
+  is_reprocessing           Boolean    @default(false)
+  reprocess_of_run_id       String?    @db.Uuid
+  job_execution_id          String?    @db.Uuid
+  created_at                DateTime   @default(now()) @db.Timestamptz(6)
+
+  @@index([run_date])
+  @@index([status])
+}
+
+model sediment_sources {
+  id                        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  commission_run_id         String   @db.Uuid
+  nib_market_transaction_id String   @unique @db.Uuid
+  source_user_id            String   @db.Uuid
+  base_amount               Decimal  @db.Decimal(20, 4)
+  total_sediment            Decimal  @db.Decimal(20, 4)
+  company_share             Decimal  @default(0) @db.Decimal(20, 4)
+  pool_share                Decimal  @default(0) @db.Decimal(20, 4)
+  distributable_share       Decimal  @default(0) @db.Decimal(20, 4)
+  created_at                DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([commission_run_id])
+  @@index([source_user_id])
+}
+
+model commission_entries {
+  id                     String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  commission_run_id      String            @db.Uuid
+  sediment_source_id     String            @db.Uuid
+  beneficiary_user_id    String            @db.Uuid
+  source_user_id         String            @db.Uuid
+  level                  Int
+  commission_rule_id     String?           @db.Uuid
+  base_amount            Decimal           @db.Decimal(20, 4)
+  rate_percent           Decimal           @db.Decimal(7, 4)
+  commission_amount_fiat Decimal           @db.Decimal(20, 4)
+  exchange_rate          Decimal           @db.Decimal(20, 8)
+  commission_amount_twin Decimal           @db.Decimal(38, 18)
+  status                 commission_status @default(calculated)
+  wallet_transaction_id  String?           @db.Uuid
+  created_at             DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime          @default(now()) @db.Timestamptz(6)
+
+  @@index([commission_run_id])
+  @@index([beneficiary_user_id])
+  @@index([sediment_source_id])
+  @@index([status])
+  @@index([beneficiary_user_id, created_at(sort: Desc)], map: "idx_commission_entries_beneficiary_created_at")
+  @@index([beneficiary_user_id, status, created_at(sort: Desc)], map: "idx_commission_entries_beneficiary_status_created_at")
+}
+
+model missions {
+  id                       String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code                     String            @unique @db.VarChar(50)
+  title                    String            @db.VarChar(200)
+  description              String?
+  mission_type             mission_type
+  category                 String?           @db.VarChar(50)
+  status                   mission_status    @default(draft)
+  verification_mode        verification_mode @default(auto)
+  reward_type              reward_type       @default(twin)
+  reward_amount            Decimal           @default(0) @db.Decimal(38, 18)
+  reward_metadata          Json?
+  criteria                 Json
+  is_repeatable            Boolean           @default(false)
+  max_completions_per_user Int               @default(1)
+  max_total_completions    Int?
+  priority                 Int               @default(0)
+  start_at                 DateTime?         @db.Timestamptz(6)
+  end_at                   DateTime?         @db.Timestamptz(6)
+  created_by               String?           @db.Uuid
+  created_at               DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime          @default(now()) @db.Timestamptz(6)
+  deleted_at               DateTime?         @db.Timestamptz(6)
+
+  @@index([status])
+  @@index([mission_type])
+  @@index([start_at, end_at])
+}
+
+model user_missions {
+  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id               String              @db.Uuid
+  mission_id            String              @db.Uuid
+  status                user_mission_status @default(in_progress)
+  progress              Json?
+  completion_count      Int                 @default(0)
+  completed_at          DateTime?           @db.Timestamptz(6)
+  verified_by           String?             @db.Uuid
+  verified_at           DateTime?           @db.Timestamptz(6)
+  reward_transaction_id String?             @db.Uuid
+  rejection_reason      String?             @db.VarChar(255)
+  created_at            DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime            @default(now()) @db.Timestamptz(6)
+
+  @@index([user_id])
+  @@index([mission_id])
+  @@index([status])
+}
+
+model event_log {
+  id             BigInt      @id @default(autoincrement())
+  event_id       String      @unique @db.Uuid
+  event_type     String      @db.VarChar(100)
+  aggregate_type String      @db.VarChar(100)
+  aggregate_id   String      @db.Uuid
+  payload        Json
+  actor_type     actor_type?
+  actor_id       String?     @db.Uuid
+  correlation_id String?     @db.Uuid
+  causation_id   String?     @db.Uuid
+  occurred_at    DateTime    @default(now()) @db.Timestamptz(6)
+
+  @@index([aggregate_type, aggregate_id])
+  @@index([event_type])
+  @@index([correlation_id])
+  @@index([occurred_at])
+}
+
+model state_transition_log {
+  id          BigInt      @id @default(autoincrement())
+  entity_type String      @db.VarChar(100)
+  entity_id   String      @db.Uuid
+  from_state  String?     @db.VarChar(50)
+  to_state    String      @db.VarChar(50)
+  reason      String?     @db.VarChar(255)
+  actor_type  actor_type?
+  actor_id    String?     @db.Uuid
+  metadata    Json?
+  occurred_at DateTime    @default(now()) @db.Timestamptz(6)
+
+  @@index([entity_type, entity_id])
+  @@index([occurred_at])
+}
+
+model job_executions {
+  id                String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  job_name          String     @db.VarChar(100)
+  job_type          String?    @db.VarChar(50)
+  status            job_status @default(running)
+  trigger_type      String?    @db.VarChar(50)
+  triggered_by      String?    @db.Uuid
+  records_processed Int        @default(0)
+  error_count       Int        @default(0)
+  parameters        Json?
+  result            Json?
+  error_detail      String?
+  started_at        DateTime   @default(now()) @db.Timestamptz(6)
+  finished_at       DateTime?  @db.Timestamptz(6)
+
+  @@index([job_name, status])
+  @@index([started_at])
+}
+
+enum user_status {
+  pending_verification
+  active
+  suspended
+  closed
+}
+
+enum kyc_status {
+  none
+  pending
+  verified
+  rejected
+}
+
+enum external_platform {
+  NIB_MARKET
+  NOVIN_IB
+}
+
+enum link_status {
+  active
+  revoked
+}
+
+enum actor_type {
+  user
+  system
+  admin
+  job
+}
+
+enum wallet_owner_type {
+  USER
+  POOL
+  TREASURY
+  COMPANY
+}
+
+enum wallet_status {
+  active
+  frozen
+  closed
+}
+
+enum balance_bucket {
+  available
+  locked
+  pending
+}
+
+enum tx_direction {
+  credit
+  debit
+}
+
+enum token_tx_type {
+  mint
+  commission_reward
+  mission_reward
+  transfer_in
+  transfer_out
+  lock
+  unlock
+  pool_deposit
+  pool_withdrawal
+  adjustment
+}
+
+enum tx_status {
+  pending
+  settled
+  failed
+  reversed
+}
+
+enum lock_type {
+  event_lock
+  vesting
+  sell_cap
+  level_lock
+}
+
+enum lock_status {
+  active
+  partially_released
+  released
+  cancelled
+}
+
+enum installment_status {
+  scheduled
+  released
+  cancelled
+}
+
+enum interval_unit {
+  day
+  week
+  month
+}
+
+enum market_tx_type {
+  purchase
+  redeem
+}
+
+enum ingest_status {
+  pending
+  processed
+  skipped
+  error
+}
+
+enum job_status {
+  pending
+  running
+  completed
+  failed
+  cancelled
+}
+
+enum commission_basis {
+  aum
+  profit
+  fee
+  purchase_amount
+}
+
+enum commission_status {
+  calculated
+  credited
+  reversed
+  failed
+}
+
+enum pool_purpose {
+  marketing
+  rewards
+  general
+}
+
+enum pool_status {
+  active
+  paused
+  closed
+}
+
+enum mission_type {
+  referral_count
+  purchase
+  registration
+  fund_issue
+  custom
+}
+
+enum mission_status {
+  draft
+  active
+  paused
+  archived
+}
+
+enum verification_mode {
+  auto
+  manual
+}
+
+enum reward_type {
+  twin
+  badge
+  level_boost
+  custom
+}
+
+enum user_mission_status {
+  in_progress
+  pending_verification
+  completed
+  rejected
+  expired
+}
