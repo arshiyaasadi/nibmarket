@@ -1,4 +1,4 @@
-# Production: Next.js standalone build, run node server.js
+# Production: Next.js build, run npm start
 # Run: docker compose up --build -d
 # URL: http://localhost:3000
 
