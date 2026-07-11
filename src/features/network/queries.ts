@@ -1,16 +1,14 @@
 "use client";
 
+import { useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "@/hooks/use-session";
+import {
+  buildSubsetTreeFromSubsets,
+  wrapWithCurrentUserRoot,
+} from "@/lib/network/subset-tree-builder";
 import { NetworkService } from "./service";
 import type { InviteStatus, SendInviteRequest, InviteQuota } from "@/types/mlm";
-
-export function useNetworkTree() {
-  return useQuery({
-    queryKey: ["network", "tree"],
-    queryFn: () => NetworkService.getTree(),
-    staleTime: 120_000,
-  });
-}
 
 export function useNetworkSubsets() {
   return useQuery({
@@ -20,12 +18,25 @@ export function useNetworkSubsets() {
   });
 }
 
-export function useNetworkReferrer() {
-  return useQuery({
-    queryKey: ["network", "referrer"],
-    queryFn: () => NetworkService.getReferrer(),
-    staleTime: 300_000,
-  });
+/** Subset tree uses the same API as `/network/subsets`. */
+export function useNetworkSubsetTree() {
+  const { userId, fullName } = useSession();
+  const query = useNetworkSubsets();
+
+  const { root, truncated } = useMemo(() => {
+    const rows = query.data ?? [];
+    const { roots, truncated: isTruncated } = buildSubsetTreeFromSubsets(rows);
+
+    return {
+      root: wrapWithCurrentUserRoot(
+        roots,
+        userId ? { id: userId, fullName: fullName ?? "شما" } : null,
+      ),
+      truncated: isTruncated,
+    };
+  }, [query.data, userId, fullName]);
+
+  return { ...query, root, truncated, subsets: query.data ?? [] };
 }
 
 export function useSendInvite() {
@@ -39,7 +50,10 @@ export function useSendInvite() {
   });
 }
 
-export function useNetworkInvited(status: InviteStatus | "all" | "pending" | "registered", q: string) {
+export function useNetworkInvited(
+  status: InviteStatus | "all" | "pending" | "registered",
+  q: string,
+) {
   return useQuery({
     queryKey: ["network", "invited", status, q],
     queryFn: () => NetworkService.getInvited({ status, q }),
@@ -60,8 +74,6 @@ export function useSubmitReferrer() {
   return useMutation({
     mutationFn: (inviteCode: string) => NetworkService.submitReferrer(inviteCode),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["network", "tree"] });
-      qc.invalidateQueries({ queryKey: ["network", "referrer"] });
       qc.invalidateQueries({ queryKey: ["network", "subsets"] });
     },
   });

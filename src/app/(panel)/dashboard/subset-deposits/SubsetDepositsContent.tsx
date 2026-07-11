@@ -10,7 +10,7 @@ import {
   useCommissionLevelRules,
   useSubsetDepositTransactions,
 } from "@/features/subset-deposits/queries";
-import { cn } from "@/lib/utils";
+import { cn, formatDisplayDate, truncateIdentifier } from "@/lib/utils";
 import type { SubsetDepositStatus, SubsetDepositStatusFilter } from "@/types/mlm";
 
 const STATUS_FILTERS: { key: SubsetDepositStatusFilter; labelKey: string }[] = [
@@ -39,7 +39,9 @@ export function SubsetDepositsContent() {
       const params = new URLSearchParams(searchParams.toString());
       if (value === "all") params.delete("status");
       else params.set("status", value);
-      router.replace(`${ROUTES.SUBSET_DEPOSITS}${params.size ? `?${params}` : ""}`, { scroll: false });
+      router.replace(`${ROUTES.SUBSET_DEPOSITS}${params.size ? `?${params}` : ""}`, {
+        scroll: false,
+      });
     },
     [router, searchParams],
   );
@@ -77,40 +79,38 @@ export function SubsetDepositsContent() {
         <div className="flex min-h-0 flex-col lg:w-[55%]">
           <SubsetDepositsWidget showDetailLink={false} />
         </div>
-        <div className="flex min-h-0 flex-col rounded-2xl border border-border bg-surface p-5 lg:w-[45%]">
+        <div className="border-border bg-surface flex min-h-0 flex-col rounded-2xl border p-5 lg:w-[45%]">
           <div className="mb-4">
-            <h2 className="text-sm font-semibold text-foreground">{t("rulesTitle")}</h2>
-            <p className="mt-1 text-xs leading-6 text-muted">{t("rulesDescription")}</p>
+            <h2 className="text-foreground text-sm font-semibold">{t("rulesTitle")}</h2>
+            <p className="text-muted mt-1 text-xs leading-6">{t("rulesDescription")}</p>
           </div>
 
           <div className="grid gap-2 sm:grid-cols-2">
-            {loadingRules ? (
-              Array.from({ length: 5 }).map((_, index) => (
-                <div key={index} className="h-12 rounded-xl bg-surface-2 animate-pulse" />
-              ))
-            ) : (
-              rules.map((rule) => (
-                <div
-                  key={rule.level}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2"
-                >
-                  <span className="text-xs font-medium text-foreground">
-                    {t("levelGuide", { level: pn(rule.level) })}
-                  </span>
-                  <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">
-                    {t("rateValue", { rate: pn(rule.ratePercent) })}
-                  </span>
-                </div>
-              ))
-            )}
+            {loadingRules
+              ? Array.from({ length: 5 }).map((_, index) => (
+                  <div key={index} className="bg-surface-2 h-12 animate-pulse rounded-xl" />
+                ))
+              : rules.map((rule) => (
+                  <div
+                    key={rule.level}
+                    className="border-border bg-background flex items-center justify-between gap-3 rounded-xl border px-3 py-2"
+                  >
+                    <span className="text-foreground text-xs font-medium">
+                      {t("levelGuide", { level: pn(rule.level) })}
+                    </span>
+                    <span className="bg-primary/10 text-primary rounded-full px-2.5 py-1 text-xs font-bold">
+                      {t("rateValue", { rate: pn(rule.ratePercent) })}
+                    </span>
+                  </div>
+                ))}
           </div>
         </div>
       </div>
 
       <div className="flex flex-col gap-4">
-        <h2 className="text-base font-bold text-foreground">{t("txTitle")}</h2>
+        <h2 className="text-foreground text-base font-bold">{t("txTitle")}</h2>
 
-        <div className="flex flex-wrap items-center gap-1 self-start rounded-xl border border-border bg-surface p-1">
+        <div className="border-border bg-surface flex flex-wrap items-center gap-1 self-start rounded-xl border p-1">
           {STATUS_FILTERS.map(({ key, labelKey }) => (
             <button
               key={key}
@@ -118,7 +118,9 @@ export function SubsetDepositsContent() {
               onClick={() => updateStatus(key)}
               className={cn(
                 "rounded-lg px-3 py-1 text-xs font-medium transition-colors",
-                statusFilter === key ? "bg-primary text-white shadow-sm" : "text-muted hover:text-foreground",
+                statusFilter === key
+                  ? "bg-primary text-white shadow-sm"
+                  : "text-muted hover:text-foreground",
               )}
             >
               {t(labelKey)}
@@ -126,65 +128,75 @@ export function SubsetDepositsContent() {
           ))}
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-border bg-surface">
-          <div className="hidden sm:flex items-center gap-2 border-b border-border bg-surface-2 px-4 py-3">
-            <span className="w-[4.5rem] shrink-0 text-xs font-semibold text-muted">{t("colId")}</span>
-            <span className="w-14 shrink-0 text-xs font-semibold text-muted">{t("colLevel")}</span>
-            <span className="flex-1 text-xs font-semibold text-muted">{t("colDesc")}</span>
-            <span className="w-28 shrink-0 text-xs font-semibold text-muted">{t("colDate")}</span>
-            <span className="w-32 shrink-0 text-xs font-semibold text-muted">{t("colTxId")}</span>
-            <span className="w-24 shrink-0 text-end text-xs font-semibold text-muted">{t("colAmount")}</span>
-            <span className="w-24 shrink-0 text-xs font-semibold text-muted">{t("colStatus")}</span>
+        <div className="border-border bg-surface overflow-hidden rounded-2xl border">
+          <div className="border-border bg-surface-2 hidden items-center gap-2 border-b px-4 py-3 sm:flex">
+            <span className="text-muted w-[4.5rem] shrink-0 text-xs font-semibold">
+              {t("colId")}
+            </span>
+            <span className="text-muted w-14 shrink-0 text-xs font-semibold">{t("colLevel")}</span>
+            <span className="text-muted flex-1 text-xs font-semibold">{t("colDesc")}</span>
+            <span className="text-muted w-28 shrink-0 text-xs font-semibold">{t("colDate")}</span>
+            <span className="text-muted w-32 shrink-0 text-xs font-semibold">{t("colTxId")}</span>
+            <span className="text-muted w-24 shrink-0 text-end text-xs font-semibold">
+              {t("colAmount")}
+            </span>
+            <span className="text-muted w-24 shrink-0 text-xs font-semibold">{t("colStatus")}</span>
           </div>
 
-          <div className="divide-y divide-border">
+          <div className="divide-border divide-y">
             {loadingTx ? (
               Array.from({ length: 5 }).map((_, index) => (
-                <div key={index} className="px-4 py-3 flex flex-col gap-2">
-                  <div className="h-4 w-3/4 rounded bg-surface-2 animate-pulse" />
-                  <div className="h-3 w-1/2 rounded bg-surface-2 animate-pulse" />
+                <div key={index} className="flex flex-col gap-2 px-4 py-3">
+                  <div className="bg-surface-2 h-4 w-3/4 animate-pulse rounded" />
+                  <div className="bg-surface-2 h-3 w-1/2 animate-pulse rounded" />
                 </div>
               ))
             ) : txItems.length === 0 ? (
-              <div className="py-12 text-center text-sm text-muted">{t("noTx")}</div>
+              <div className="text-muted py-12 text-center text-sm">{t("noTx")}</div>
             ) : (
               txItems.map((tx) => (
-                <div key={tx.id} className="px-4 py-3 transition-colors hover:bg-surface-2">
+                <div key={tx.id} className="hover:bg-surface-2 px-4 py-3 transition-colors">
                   <div className="sm:hidden">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
+                          <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-[11px] font-bold">
                             {t("levelGuide", { level: pn(tx.level) })}
                           </span>
                           <StatusBadge status={tx.status} t={t} />
                         </div>
-                        <p className="mt-1 truncate text-sm font-medium text-foreground">{tx.description}</p>
+                        <p className="text-foreground mt-1 truncate text-sm font-medium">
+                          {tx.description}
+                        </p>
                       </div>
-                      <span className="shrink-0 whitespace-nowrap text-sm font-bold text-success tabular-nums">
+                      <span className="text-success shrink-0 text-sm font-bold whitespace-nowrap tabular-nums">
                         +{pn(tx.amount)}
                       </span>
                     </div>
-                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted">
+                    <div className="text-muted mt-2 flex flex-wrap items-center gap-3 text-xs">
                       <CopyableId value={tx.id} withHash t={t} />
-                      <span>{tx.date}</span>
+                      <span>{formatDisplayDate(tx.date)}</span>
                       {tx.externalTxId && <CopyableId value={tx.externalTxId} t={t} />}
                     </div>
                   </div>
 
                   <div className="hidden sm:flex sm:items-center sm:gap-2">
                     <CopyableId value={tx.id} withHash t={t} className="w-[4.5rem]" />
-                    <span className="w-14 shrink-0 text-xs font-semibold text-primary">
+                    <span className="text-primary w-14 shrink-0 text-xs font-semibold">
                       {t("levelGuide", { level: pn(tx.level) })}
                     </span>
-                    <span className="flex-1 truncate text-sm text-foreground">{tx.description}</span>
-                    <span className="w-28 shrink-0 text-sm text-muted">{tx.date}</span>
+                    <span className="text-foreground flex-1 truncate text-sm">
+                      {tx.description}
+                    </span>
+                    <span className="text-muted w-28 shrink-0 text-sm">
+                      {formatDisplayDate(tx.date)}
+                    </span>
                     {tx.externalTxId ? (
                       <CopyableId value={tx.externalTxId} t={t} className="w-32" />
                     ) : (
-                      <span className="w-32 shrink-0 text-xs text-muted">—</span>
+                      <span className="text-muted w-32 shrink-0 text-xs">—</span>
                     )}
-                    <span className="w-24 shrink-0 text-end text-sm font-bold text-success tabular-nums">
+                    <span className="text-success w-24 shrink-0 text-end text-sm font-bold tabular-nums">
                       +{pn(tx.amount)}
                     </span>
                     <span className="w-24 shrink-0">
@@ -198,20 +210,15 @@ export function SubsetDepositsContent() {
 
           <div ref={sentinelRef} className="h-1" />
           {isFetchingNextPage && (
-            <div className="py-3 text-center text-xs text-muted">{t("loadingMore")}</div>
+            <div className="text-muted py-3 text-center text-xs">{t("loadingMore")}</div>
           )}
           {!hasNextPage && txItems.length > 0 && (
-            <div className="py-3 text-center text-xs text-muted">{t("noMore")}</div>
+            <div className="text-muted py-3 text-center text-xs">{t("noMore")}</div>
           )}
         </div>
       </div>
     </div>
   );
-}
-
-function truncateIdentifier(value: string, head = 6, tail = 4): string {
-  if (value.length <= head + tail + 1) return value;
-  return `${value.slice(0, head)}…${value.slice(-tail)}`;
 }
 
 function CopyableId({
@@ -241,24 +248,18 @@ function CopyableId({
       onClick={copy}
       title={copied ? t("copied") : t("copyHint")}
       className={cn(
-        "inline-flex shrink-0 items-center gap-1 font-mono text-xs text-muted transition-colors hover:text-primary",
+        "text-muted hover:text-primary inline-flex shrink-0 items-center gap-1 font-mono text-xs transition-colors",
         className,
       )}
       dir="ltr"
     >
-      {copied ? <Check className="size-3 text-success" /> : <Copy className="size-3" />}
+      {copied ? <Check className="text-success size-3" /> : <Copy className="size-3" />}
       <span>{display}</span>
     </button>
   );
 }
 
-function StatusBadge({
-  status,
-  t,
-}: {
-  status: SubsetDepositStatus;
-  t: (key: string) => string;
-}) {
+function StatusBadge({ status, t }: { status: SubsetDepositStatus; t: (key: string) => string }) {
   const statusKey: Record<SubsetDepositStatus, string> = {
     calculated: "statusPending",
     credited: "statusCredited",

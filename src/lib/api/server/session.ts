@@ -49,10 +49,7 @@ export function createSignedToken(
 }
 
 export function createAccessToken(claims: Omit<AuthTokenClaims, "type" | "iat" | "exp">): string {
-  return createSignedToken(
-    { ...claims, type: "access" },
-    serverEnv.ACCESS_TOKEN_TTL_SECONDS,
-  );
+  return createSignedToken({ ...claims, type: "access" }, serverEnv.ACCESS_TOKEN_TTL_SECONDS);
 }
 
 export function createRefreshToken(claims: Omit<AuthTokenClaims, "type" | "iat" | "exp">): string {
@@ -63,10 +60,7 @@ export function createRefreshToken(claims: Omit<AuthTokenClaims, "type" | "iat" 
 }
 
 export function createRegistrationToken(mobile: string): string {
-  return createSignedToken(
-    { sub: mobile, mobile, type: "registration" },
-    10 * 60,
-  );
+  return createSignedToken({ sub: mobile, mobile, type: "registration" }, 10 * 60);
 }
 
 export function readSessionToken(req: Request): string | null {
@@ -79,7 +73,10 @@ export function readSessionToken(req: Request): string | null {
   return cookieHeader.match(/nib_token=([^;]+)/)?.[1] ?? null;
 }
 
-export function verifySignedToken(token: string | null, expectedType?: TokenType): AuthTokenClaims | null {
+export function verifySignedToken(
+  token: string | null,
+  expectedType?: TokenType,
+): AuthTokenClaims | null {
   if (!token) return null;
   try {
     const [header, payload, signature] = token.split(".");
@@ -96,7 +93,9 @@ export function verifySignedToken(token: string | null, expectedType?: TokenType
       return null;
     }
 
-    const claims = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as AuthTokenClaims;
+    const claims = JSON.parse(
+      Buffer.from(payload, "base64url").toString("utf8"),
+    ) as AuthTokenClaims;
     if (expectedType && claims.type !== expectedType) return null;
     if (claims.exp <= Math.floor(Date.now() / 1000)) return null;
     return claims;
@@ -124,6 +123,13 @@ export function badRequest(message: string): Response {
 
 export function notFound(message = "Not found"): Response {
   return NextResponse.json({ error: "not_found", message }, { status: 404 });
+}
+
+export const INTERNAL_SERVER_ERROR_MESSAGE =
+  "خطای سیستمی پیش آمده است. لطفاً در زمان دیگری مجدداً تلاش کنید.";
+
+export function internalServerError(message = INTERNAL_SERVER_ERROR_MESSAGE): Response {
+  return NextResponse.json({ error: "internal_server_error", message }, { status: 500 });
 }
 
 export function emptyPage<T>(items: T[] = [], page = 1, limit = 10) {

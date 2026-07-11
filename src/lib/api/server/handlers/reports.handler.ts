@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { getCurrentUserId, unauthorized } from "@/lib/api/server/session";
-import { getCapitalDepositStats, getIncomeReport, getSubsetReport } from "@/lib/db/repositories/report.repository";
+import {
+  getCapitalDepositStats,
+  getIncomeReport,
+  getSubsetReport,
+} from "@/lib/mock/repositories/report.repository";
 
 export async function reportsSubsetsHandler(req: Request): Promise<Response> {
   const userId = getCurrentUserId(req);

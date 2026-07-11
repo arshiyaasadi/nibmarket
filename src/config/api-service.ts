@@ -1,7 +1,7 @@
 import { serverEnv } from "@/config/env.server";
 import { BACKEND_API_VERSION as DEFAULT_BACKEND_VERSION } from "@/lib/api/endpoints";
 
-export type ApiServiceMode = "prisma" | "api";
+export type ApiServiceMode = "mock" | "api";
 
 export function getApiServiceMode(): ApiServiceMode {
   return serverEnv.API_SERVICE_MODE;
@@ -11,8 +11,8 @@ export function isApiServiceMode(): boolean {
   return getApiServiceMode() === "api";
 }
 
-export function isPrismaServiceMode(): boolean {
-  return getApiServiceMode() === "prisma";
+export function isMockServiceMode(): boolean {
+  return getApiServiceMode() === "mock";
 }
 
 function getBackendApiVersion(): string {

@@ -6,9 +6,16 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import {
-  LogOut, UserCircle, CheckCircle, XCircle, History, Pencil, X, Check, Link2,
+  LogOut,
+  UserCircle,
+  CheckCircle,
+  XCircle,
+  History,
+  Pencil,
+  X,
+  Check,
+  Link2,
 } from "lucide-react";
 import { Alert, Button, Input, Modal, ModalBody, Tabs } from "@/components/atoms";
 import { ThemeToggle } from "./ThemeToggle";
@@ -31,7 +38,6 @@ type ProfileDetails = {
 
 export function ProfileDropdown() {
   const t = useTranslations("auth");
-  const router = useRouter();
   const { fullName, role } = useSession();
 
   const [open, setOpen] = useState(false);
@@ -82,70 +88,62 @@ export function ProfileDropdown() {
 
   async function handleLogout() {
     await performLogout();
-    router.push("/login");
-    router.refresh();
   }
 
   return (
     <>
-      <div
-        ref={ref}
-        className="relative"
-        dir="rtl"
-        onMouseEnter={onEnter}
-        onMouseLeave={onLeave}
-      >
+      <div ref={ref} className="relative" dir="rtl" onMouseEnter={onEnter} onMouseLeave={onLeave}>
         <button
           type="button"
           aria-label={t("viewProfile")}
           onClick={() => openProfile("info")}
-          className="flex items-center justify-center rounded-lg p-pad-atom text-muted hover:bg-surface-2 hover:text-foreground transition-colors"
+          className="p-pad-atom text-muted hover:bg-surface-2 hover:text-foreground flex items-center justify-center rounded-lg transition-colors"
         >
           <UserCircle className="size-6" />
         </button>
 
         {open && (
-          <div className="absolute end-0 top-full mt-atom-md z-50 w-72 rounded-xl border border-border bg-surface shadow-lg overflow-hidden">
-            <div className="flex items-center gap-atom-md p-pad-mol border-b border-border">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                <UserCircle className="size-6 text-primary" />
+          <div className="mt-atom-md border-border bg-surface absolute end-0 top-full z-50 w-72 overflow-hidden rounded-xl border shadow-lg">
+            <div className="gap-atom-md p-pad-mol border-border flex items-center border-b">
+              <div className="bg-primary/10 flex size-10 shrink-0 items-center justify-center rounded-full">
+                <UserCircle className="text-primary size-6" />
               </div>
-              <div className="flex min-w-0 flex-col gap-pad-atom-xs">
-                <span className="truncate text-sm font-semibold text-foreground">{fullName}</span>
+              <div className="gap-pad-atom-xs flex min-w-0 flex-col">
+                <span className="text-foreground truncate text-sm font-semibold">{fullName}</span>
                 {role && role !== "client" && (
-                  <span className="text-xs text-muted">
+                  <span className="text-muted text-xs">
                     {role === "manager" ? t("roleManager") : t("roleAdmin")}
                   </span>
                 )}
               </div>
             </div>
 
-            <div className="flex items-center justify-between px-pad-mol py-pad-atom-md border-b border-border">
-              <span className="text-xs text-muted">{t("theme")}</span>
+            <div className="px-pad-mol py-pad-atom-md border-border flex items-center justify-between border-b">
+              <span className="text-muted text-xs">{t("theme")}</span>
               <ThemeToggle />
             </div>
 
-            <div className="flex flex-col p-pad-atom-md">
+            <div className="p-pad-atom-md flex flex-col">
               <button
                 type="button"
                 onClick={() => openProfile("info")}
-                className="flex items-center gap-atom-md rounded-lg px-pad-atom-md py-atom-md text-sm text-foreground hover:bg-surface-2 transition-colors text-right"
+                className="gap-atom-md px-pad-atom-md py-atom-md text-foreground hover:bg-surface-2 flex items-center rounded-lg text-right text-sm transition-colors"
               >
-                <UserCircle className="size-4 shrink-0 text-muted" />
+                <UserCircle className="text-muted size-4 shrink-0" />
                 {t("viewProfile")}
               </button>
               <button
                 type="button"
                 onClick={() => openProfile("sessions")}
-                className="flex items-center gap-atom-md rounded-lg px-pad-atom-md py-atom-md text-sm text-foreground hover:bg-surface-2 transition-colors text-right"
+                className="gap-atom-md px-pad-atom-md py-atom-md text-foreground hover:bg-surface-2 flex items-center rounded-lg text-right text-sm transition-colors"
               >
-                <History className="size-4 shrink-0 text-muted" />
+                <History className="text-muted size-4 shrink-0" />
                 {t("sessionsMenuItem")}
               </button>
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex items-center gap-atom-md rounded-lg px-pad-atom-md py-atom-md text-sm text-danger hover:bg-danger/5 transition-colors text-right"
+                className="gap-atom-md px-pad-atom-md py-atom-md text-danger hover:bg-danger/5 flex items-center rounded-lg text-right text-sm transition-colors"
               >
                 <LogOut className="size-4 shrink-0" />
                 {t("logout")}
@@ -173,7 +171,7 @@ export function ProfileDropdown() {
 
           {loadingProfile && !profileDetails ? (
             <div className="flex h-24 items-center justify-center">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <div className="border-primary h-5 w-5 animate-spin rounded-full border-2 border-t-transparent" />
             </div>
           ) : activeTab === "info" ? (
             <ProfileInfoTab
@@ -267,9 +265,7 @@ function ProfileInfoTab({
         )}
       </div>
 
-      {saved && (
-        <Alert variant="success">{t("profileSaved")}</Alert>
-      )}
+      {saved && <Alert variant="success">{t("profileSaved")}</Alert>}
 
       <div className="flex flex-col gap-3">
         <Input
@@ -278,21 +274,11 @@ function ProfileInfoTab({
           onChange={(e) => setDraftName(e.target.value)}
           disabled={!editing}
         />
-        <Input
-          label={t("profileMobile")}
-          value={mobile ?? ""}
-          disabled
-          dir="ltr"
-        />
-        <Input
-          label={t("profileEmail")}
-          value={email ?? ""}
-          disabled
-          dir="ltr"
-        />
+        <Input label={t("profileMobile")} value={mobile ?? ""} disabled dir="ltr" />
+        <Input label={t("profileEmail")} value={email ?? ""} disabled dir="ltr" />
         <Input
           label={t("profileBirthDate")}
-          value={editing ? draftBirth : (birthDate || "—")}
+          value={editing ? draftBirth : birthDate || "—"}
           onChange={(e) => setDraftBirth(normalizeSearchInput(e.target.value))}
           disabled={!editing}
           dir="ltr"
@@ -307,7 +293,7 @@ function ProfileInfoTab({
       </div>
 
       {!nibMarketLinked && (
-        <div className="flex flex-col gap-3 border-t border-border pt-4">
+        <div className="border-border flex flex-col gap-3 border-t pt-4">
           <Alert variant="info" title={t("profileCompleteTitle")}>
             {t("profileCompleteDesc")}
           </Alert>
@@ -324,28 +310,31 @@ function SessionsTab({ recentSessions }: { recentSessions: LoginActivity[] }) {
   const t = useTranslations("auth");
 
   if (recentSessions.length === 0) {
-    return (
-      <p className="py-6 text-center text-sm text-muted">{t("noSessions")}</p>
-    );
+    return <p className="text-muted py-6 text-center text-sm">{t("noSessions")}</p>;
   }
 
   return (
-    <ul className="max-h-72 divide-y divide-border overflow-y-auto">
+    <ul className="divide-border max-h-72 divide-y overflow-y-auto">
       {recentSessions.map((s) => (
         <li key={s.id} className="flex items-start gap-3 py-3">
-          {s.status === "success"
-            ? <CheckCircle className="mt-0.5 size-4 shrink-0 text-success" />
-            : <XCircle className="mt-0.5 size-4 shrink-0 text-danger" />
-          }
+          {s.status === "success" ? (
+            <CheckCircle className="text-success mt-0.5 size-4 shrink-0" />
+          ) : (
+            <XCircle className="text-danger mt-0.5 size-4 shrink-0" />
+          )}
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-foreground">{s.device}</p>
-            <p className="text-xs text-muted" dir="ltr">{s.ip}</p>
-            <p className="text-xs text-muted">{s.createdAt}</p>
+            <p className="text-foreground text-sm font-medium">{s.device}</p>
+            <p className="text-muted text-xs" dir="ltr">
+              {s.ip}
+            </p>
+            <p className="text-muted text-xs">{s.createdAt}</p>
           </div>
-          <span className={cn(
-            "shrink-0 text-xs",
-            s.status === "success" ? "text-success" : "text-danger",
-          )}>
+          <span
+            className={cn(
+              "shrink-0 text-xs",
+              s.status === "success" ? "text-success" : "text-danger",
+            )}
+          >
             {s.status === "success" ? "موفق" : "ناموفق"}
           </span>
         </li>

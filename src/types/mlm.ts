@@ -134,11 +134,7 @@ export interface CommissionLevelRule {
 }
 
 export type MissionActivityStatus =
-  | "in_progress"
-  | "pending_verification"
-  | "completed"
-  | "rejected"
-  | "expired";
+  "in_progress" | "pending_verification" | "completed" | "rejected" | "expired";
 
 export interface MissionActivity {
   id: string;
@@ -177,6 +173,7 @@ export interface NetworkTreeNode {
   children?: NetworkTreeNode[];
 }
 
+/** TODO(upline-referrer): برای نمایش نام/سطح معرف بالاسری — API اختصاصی بعداً اضافه شود */
 export interface ReferrerInfo {
   id: string;
   fullName: string;
@@ -187,11 +184,12 @@ export interface ReferrerInfo {
 
 export interface VipInviteCode {
   code: string;
-  usedBy: string | null;  // mobile of user who used it, or null
+  usedBy: string | null; // mobile of user who used it, or null
   usedAt: string | null;
 }
 
-export type InviteStatus = "pending_verification" | "active" | "suspended" | "closed" | "pending_invite";
+export type InviteStatus =
+  "pending_verification" | "active" | "suspended" | "closed" | "pending_invite";
 
 export interface InviteQuota {
   remaining: number;

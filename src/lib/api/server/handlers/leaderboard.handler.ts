@@ -6,9 +6,9 @@ import {
   getEmptyHonors,
   getLeaderboard,
   getPoolBalance,
-} from "@/lib/db/repositories/leaderboard.repository";
-import { getDashboardMissions } from "@/lib/db/repositories/mission.repository";
-import { getNetworkSubsets } from "@/lib/db/repositories/network.repository";
+} from "@/lib/mock/repositories/leaderboard.repository";
+import { getDashboardMissions } from "@/lib/mock/repositories/mission.repository";
+import { getNetworkSubsets } from "@/lib/mock/repositories/network.repository";
 
 export async function leaderboardPoolBalanceHandler(req: Request): Promise<Response> {
   const userId = getCurrentUserId(req);

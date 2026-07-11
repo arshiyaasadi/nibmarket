@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { getCurrentUserId, unauthorized } from "@/lib/api/server/session";
-import { getLeaderboard } from "@/lib/db/repositories/leaderboard.repository";
-import { getDashboardMissions } from "@/lib/db/repositories/mission.repository";
-import { getSubsetDeposits } from "@/lib/db/repositories/subset-deposits.repository";
-import { findUserById } from "@/lib/db/repositories/user.repository";
-import { getRewardCards, getWalletSummary } from "@/lib/db/repositories/wallet.repository";
+import { getLeaderboard } from "@/lib/mock/repositories/leaderboard.repository";
+import { getDashboardMissions } from "@/lib/mock/repositories/mission.repository";
+import { getSubsetDeposits } from "@/lib/mock/repositories/subset-deposits.repository";
+import { findUserById } from "@/lib/mock/repositories/user.repository";
+import { getRewardCards, getWalletSummary } from "@/lib/mock/repositories/wallet.repository";
 
 export async function dashboardRewardsHandler(req: Request): Promise<Response> {
   const userId = getCurrentUserId(req);

@@ -1,4 +1,5 @@
 import { buildBackendApiUrl } from "@/config/api-service";
+import { internalServerError } from "@/lib/api/server/session";
 
 const FORWARD_REQUEST_HEADERS = [
   "authorization",
@@ -55,7 +56,17 @@ export async function proxyRequestToBackend(
     init.body = await req.text();
   }
 
-  const backendResponse = await fetch(targetUrl, init);
+  let backendResponse: Response;
+  try {
+    backendResponse = await fetch(targetUrl, init);
+  } catch {
+    return internalServerError();
+  }
+
+  if (backendResponse.status >= 500) {
+    return internalServerError();
+  }
+
   const body = await backendResponse.arrayBuffer();
 
   return new Response(body, {
@@ -68,10 +79,7 @@ export async function proxyRequestToBackend(
 /**
  * Server-side GET helper for explicit service calls (non-proxy use cases).
  */
-export async function backendApiGet<T>(
-  path: string,
-  req: Request,
-): Promise<T> {
+export async function backendApiGet<T>(path: string, req: Request): Promise<T> {
   const url = new URL(req.url);
   const targetUrl = `${buildBackendApiUrl(path)}${url.search}`;
   const headers = pickForwardHeaders(req);
@@ -79,9 +87,7 @@ export async function backendApiGet<T>(
   const response = await fetch(targetUrl, { method: "GET", headers });
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(
-      `Backend API ${path} failed (${response.status}): ${JSON.stringify(error)}`,
-    );
+    throw new Error(`Backend API ${path} failed (${response.status}): ${JSON.stringify(error)}`);
   }
   return response.json() as Promise<T>;
 }

@@ -10,7 +10,6 @@ import { NetworkTreeWidget } from "@/components/organisms/network/NetworkTreeWid
 import { InviteModal } from "@/components/organisms/network/InviteModal";
 import { MissionsBonusBanner } from "@/components/molecules/MissionsBonusBanner";
 import { SubsetDepositsWidget } from "@/components/molecules/SubsetDepositsWidget";
-import { VipWelcomeBanner } from "@/components/ui/VipWelcomeBanner";
 import { ROUTES } from "@/config/routes";
 import { cn } from "@/lib/utils";
 
@@ -40,21 +39,21 @@ function MissionsWidget({ onInvite }: { onInvite?: () => void }) {
   const progressPct = missions.length > 0 ? (completedCount / missions.length) * 100 : 0;
 
   return (
-    <div className="flex h-full flex-col gap-4 rounded-2xl border border-border bg-surface p-5">
+    <div className="border-border bg-surface flex h-full flex-col gap-4 rounded-2xl border p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h2 className="text-sm font-semibold text-foreground">{t("title")}</h2>
+            <h2 className="text-foreground text-sm font-semibold">{t("title")}</h2>
             {!isLoading && missions.length > 0 && (
-              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
+              <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-[11px] font-bold">
                 {t("widgetProgress", { done: pn(completedCount), total: pn(missions.length) })}
               </span>
             )}
           </div>
           {!isLoading && missions.length > 0 && (
-            <div className="mt-2 h-1 overflow-hidden rounded-full bg-border">
+            <div className="bg-border mt-2 h-1 overflow-hidden rounded-full">
               <div
-                className="h-full rounded-full bg-primary transition-all duration-500"
+                className="bg-primary h-full rounded-full transition-all duration-500"
                 style={{ width: `${progressPct}%` }}
               />
             </div>
@@ -62,7 +61,7 @@ function MissionsWidget({ onInvite }: { onInvite?: () => void }) {
         </div>
         <Link
           href={ROUTES.MISSIONS}
-          className="flex shrink-0 items-center gap-1 text-xs text-primary hover:opacity-80"
+          className="text-primary flex shrink-0 items-center gap-1 text-xs hover:opacity-80"
         >
           {t("viewAll")}
           <ArrowLeft size={12} />
@@ -73,10 +72,10 @@ function MissionsWidget({ onInvite }: { onInvite?: () => void }) {
 
       {isLoading ? (
         <div className="flex h-28 items-center justify-center">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <div className="border-primary h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
         </div>
       ) : (
-        <ul className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-0.5 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <ul className="-mx-1 flex snap-x snap-mandatory [scrollbar-width:none] gap-3 overflow-x-auto px-1 pb-0.5 [&::-webkit-scrollbar]:hidden">
           {sorted.map((m) => {
             const reward = m.doubleBonus && !m.completed ? m.reward * 2 : m.reward;
             return (
@@ -87,12 +86,12 @@ function MissionsWidget({ onInvite }: { onInvite?: () => void }) {
                     m.completed
                       ? "border-border/80 bg-background/50 opacity-70"
                       : m.doubleBonus
-                        ? "border-primary/30 bg-gradient-to-b from-primary/10 to-surface shadow-sm"
+                        ? "border-primary/30 from-primary/10 to-surface bg-gradient-to-b shadow-sm"
                         : "border-border bg-background hover:border-primary/20",
                   )}
                 >
                   {m.doubleBonus && !m.completed && (
-                    <span className="absolute -top-2 start-3 inline-flex items-center gap-0.5 rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">
+                    <span className="bg-primary absolute start-3 -top-2 inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">
                       <Zap className="size-2.5" />
                       ۲×
                     </span>
@@ -105,17 +104,17 @@ function MissionsWidget({ onInvite }: { onInvite?: () => void }) {
                     )}
                   >
                     {m.completed ? (
-                      <CircleCheck className="size-4 text-success" />
+                      <CircleCheck className="text-success size-4" />
                     ) : m.doubleBonus ? (
-                      <Sparkles className="size-4 text-primary" />
+                      <Sparkles className="text-primary size-4" />
                     ) : (
-                      <CircleCheck className="size-4 text-primary/40" />
+                      <CircleCheck className="text-primary/40 size-4" />
                     )}
                   </div>
 
                   <p
                     className={cn(
-                      "line-clamp-2 flex-1 text-xs font-medium leading-snug",
+                      "line-clamp-2 flex-1 text-xs leading-snug font-medium",
                       m.completed ? "text-muted line-through" : "text-foreground",
                     )}
                   >
@@ -126,12 +125,16 @@ function MissionsWidget({ onInvite }: { onInvite?: () => void }) {
                     <span
                       className={cn(
                         "text-sm font-bold tabular-nums",
-                        m.completed ? "text-muted" : m.doubleBonus ? "text-primary" : "text-foreground",
+                        m.completed
+                          ? "text-muted"
+                          : m.doubleBonus
+                            ? "text-primary"
+                            : "text-foreground",
                       )}
                     >
                       {pn(reward)}
                     </span>
-                    <span className="text-[11px] text-muted">Twin</span>
+                    <span className="text-muted text-[11px]">Twin</span>
                   </div>
                 </div>
               </li>
@@ -153,10 +156,13 @@ function PoolWidget() {
   const showRank = hasSubsets && pool?.myRank;
 
   return (
-    <div className="flex h-full flex-col gap-4 rounded-2xl border border-border bg-surface p-5">
+    <div className="border-border bg-surface flex h-full flex-col gap-4 rounded-2xl border p-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-foreground">تابلوی استخر</h2>
-        <Link href={ROUTES.LEADERBOARD.POOL} className="flex items-center gap-1 text-xs text-primary hover:opacity-80">
+        <h2 className="text-foreground text-sm font-semibold">تابلوی استخر</h2>
+        <Link
+          href={ROUTES.LEADERBOARD.POOL}
+          className="text-primary flex items-center gap-1 text-xs hover:opacity-80"
+        >
           جزئیات
           <ArrowLeft size={12} />
         </Link>
@@ -164,22 +170,22 @@ function PoolWidget() {
 
       {isLoading ? (
         <div className="flex h-32 items-center justify-center">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <div className="border-primary h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
         </div>
       ) : (
         <div className="flex flex-col gap-4">
           <div className="flex items-end justify-between gap-3">
             <div className="flex-1">
-              <p className="mb-1 text-xs text-muted">حجم Pool جاری</p>
-              <p className="text-3xl font-black text-foreground tabular-nums">
+              <p className="text-muted mb-1 text-xs">حجم Pool جاری</p>
+              <p className="text-foreground text-3xl font-black tabular-nums">
                 {pn(pool?.totalPool ?? 0)}
               </p>
-              <p className="mt-0.5 text-[11px] text-muted">Twin</p>
+              <p className="text-muted mt-0.5 text-[11px]">Twin</p>
             </div>
             {showRank && (
-              <div className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-end">
-                <p className="text-[11px] text-muted">رتبه من</p>
-                <p className="text-base font-bold text-primary tabular-nums" dir="ltr">
+              <div className="border-primary/20 bg-primary/5 rounded-lg border px-3 py-2 text-end">
+                <p className="text-muted text-[11px]">رتبه من</p>
+                <p className="text-primary text-base font-bold tabular-nums" dir="ltr">
                   #{pn(pool.myRank!)}
                 </p>
               </div>
@@ -188,27 +194,29 @@ function PoolWidget() {
 
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-2">
-            <div className="rounded-xl bg-background px-3 py-2 text-center">
-              <p className="text-xs font-semibold text-foreground">{pn(pool?.participantCount ?? 0)}</p>
-              <p className="mt-0.5 text-[11px] text-muted">شرکت‌کننده</p>
+            <div className="bg-background rounded-xl px-3 py-2 text-center">
+              <p className="text-foreground text-xs font-semibold">
+                {pn(pool?.participantCount ?? 0)}
+              </p>
+              <p className="text-muted mt-0.5 text-[11px]">شرکت‌کننده</p>
             </div>
-            <div className="rounded-xl bg-background px-3 py-2 text-center">
+            <div className="bg-background rounded-xl px-3 py-2 text-center">
               <p className="text-xs font-semibold text-green-600 dark:text-green-400">
                 ▲ {pn(pool?.dailyChange ?? 0)}
               </p>
-              <p className="mt-0.5 text-[11px] text-muted">تغییر امروز</p>
+              <p className="text-muted mt-0.5 text-[11px]">تغییر امروز</p>
             </div>
-            <div className="rounded-xl bg-background px-3 py-2 text-center">
-              <p className="text-xs font-semibold text-foreground">{pn(pool?.topWinners ?? 0)}</p>
-              <p className="mt-0.5 text-[11px] text-muted">برنده برتر</p>
+            <div className="bg-background rounded-xl px-3 py-2 text-center">
+              <p className="text-foreground text-xs font-semibold">{pn(pool?.topWinners ?? 0)}</p>
+              <p className="text-muted mt-0.5 text-[11px]">برنده برتر</p>
             </div>
           </div>
 
           {/* Period */}
           {pool?.contextTitle && (
-            <div className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2">
-              <Trophy size={13} className="shrink-0 text-primary" />
-              <span className="text-xs text-foreground">{pool.contextTitle}</span>
+            <div className="border-primary/20 bg-primary/5 flex items-center gap-2 rounded-xl border px-3 py-2">
+              <Trophy size={13} className="text-primary shrink-0" />
+              <span className="text-foreground text-xs">{pool.contextTitle}</span>
             </div>
           )}
         </div>
@@ -225,8 +233,6 @@ export function DashboardContent() {
   return (
     <>
       <div className="flex flex-col gap-4">
-        <VipWelcomeBanner />
-
         <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
           <div className="min-w-0 flex-1">
             <MissionsWidget onInvite={() => setShowInviteModal(true)} />

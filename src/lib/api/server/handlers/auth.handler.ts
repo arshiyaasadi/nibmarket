@@ -9,8 +9,8 @@ import {
   logLoginSession,
   mobileExists,
   updatePassword,
-} from "@/lib/db/repositories/user.repository";
-import { completeRegistrationMissionIfNeeded } from "@/lib/db/repositories/mission.repository";
+} from "@/lib/mock/repositories/user.repository";
+import { completeRegistrationMissionIfNeeded } from "@/lib/mock/repositories/mission.repository";
 import {
   COOKIE_OPTS,
   REFRESH_COOKIE_OPTS,
@@ -60,9 +60,7 @@ function normalizeHash(hash: string) {
 
 function getRequestMeta(req: Request) {
   const forwarded = req.headers.get("x-forwarded-for");
-  const ip = forwarded?.split(",")[0]?.trim()
-    ?? req.headers.get("x-real-ip")
-    ?? "127.0.0.1";
+  const ip = forwarded?.split(",")[0]?.trim() ?? req.headers.get("x-real-ip") ?? "127.0.0.1";
   const userAgent = req.headers.get("user-agent") ?? "Unknown";
   return { ip, userAgent };
 }
@@ -243,7 +241,9 @@ export async function registerHandler(req: Request): Promise<Response> {
   const body = await req.json().catch(() => ({}));
   const mobile = normalizeMobile(String(body.mobile ?? ""));
   const password = String(body.password ?? "");
-  const referralCode = String(body.referralCode ?? body.inviteCode ?? "").trim().toUpperCase();
+  const referralCode = String(body.referralCode ?? body.inviteCode ?? "")
+    .trim()
+    .toUpperCase();
   const registrationToken = String(body.registrationToken ?? "");
   const code = normalizeOtp(String(body.code ?? ""));
 
@@ -284,5 +284,29 @@ export async function logoutHandler(_req: Request): Promise<Response> {
   res.cookies.delete("nib_token");
   res.cookies.delete("nib_role");
   res.cookies.delete("nib_refresh");
+  return res;
+}
+
+export async function sessionEstablishHandler(req: Request): Promise<Response> {
+  const body = (await req.json().catch(() => ({}))) as {
+    token?: unknown;
+    refreshToken?: unknown;
+    role?: unknown;
+  };
+
+  const token = String(body.token ?? "").trim();
+  const refreshToken = String(body.refreshToken ?? "").trim();
+  const role = String(body.role ?? "client");
+
+  if (!token || !refreshToken) {
+    return badRequest("token and refreshToken are required");
+  }
+
+  const safeRole = role === "manager" || role === "admin" || role === "client" ? role : "client";
+
+  const res = NextResponse.json({ ok: true });
+  res.cookies.set("nib_token", token, COOKIE_OPTS);
+  res.cookies.set("nib_refresh", refreshToken, REFRESH_COOKIE_OPTS);
+  res.cookies.set("nib_role", safeRole, COOKIE_OPTS);
   return res;
 }

@@ -3,7 +3,7 @@ import { getCurrentUserId, unauthorized } from "@/lib/api/server/session";
 import {
   getCommissionLevelRules,
   getSubsetDepositTransactions,
-} from "@/lib/db/repositories/subset-deposits.repository";
+} from "@/lib/mock/repositories/subset-deposits.repository";
 import type { SubsetDepositStatusFilter } from "@/types/mlm";
 
 function normalizeStatus(value: string | null): SubsetDepositStatusFilter {

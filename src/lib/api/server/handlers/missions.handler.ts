@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUserId, unauthorized } from "@/lib/api/server/session";
-import { getMissionActivity, getMissionsList } from "@/lib/db/repositories/mission.repository";
+import { getMissionActivity, getMissionsList } from "@/lib/mock/repositories/mission.repository";
 import type { MissionActivityStatus } from "@/types/mlm";
 
 export async function missionsListHandler(req: Request): Promise<Response> {

@@ -26,7 +26,6 @@ export const API_ENDPOINTS = {
   NETWORK: {
     SUBSETS: { method: "GET", path: "/network/subsets", auth: true },
     TREE: { method: "GET", path: "/network/tree", auth: true },
-    REFERRER: { method: "GET", path: "/network/referrer", auth: true },
     INVITED: { method: "GET", path: "/network/invited", auth: true },
     FUNDS: { method: "GET", path: "/network/funds", auth: true },
     INVITE_QUOTA: { method: "GET", path: "/network/invite-quota", auth: true },
@@ -51,7 +50,12 @@ export const API_ENDPOINTS = {
     CAPITAL: { method: "GET", path: "/reports/capital-deposit", auth: true },
   },
   SUBSET_DEPOSITS: {
-    TRANSACTIONS: { method: "GET", path: "/subset-deposits/transactions", auth: true, query: "?page=1" },
+    TRANSACTIONS: {
+      method: "GET",
+      path: "/subset-deposits/transactions",
+      auth: true,
+      query: "?page=1",
+    },
     RULES: { method: "GET", path: "/subset-deposits/rules", auth: true },
   },
   CAPITAL: {

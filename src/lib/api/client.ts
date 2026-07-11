@@ -1,11 +1,21 @@
 import { ApiException } from "@/types/api";
-import type { LoginActivity, UserRole } from "@/types/mlm";
 import { BFF_API_BASE } from "@/lib/api/endpoints";
+import { normalizeAuthSessionPayload, toAuthStorePayload } from "@/lib/auth/session-payload";
+import { useAuthSlice } from "@/store/slices/auth.slice";
 
 // همه درخواست‌ها به Next.js BFF می‌رود — نه مستقیم به backend
 const BFF_BASE = BFF_API_BASE;
 
 type RequestOptions = Omit<RequestInit, "body"> & { body?: unknown };
+
+function buildAuthHeaders(headers?: HeadersInit): HeadersInit {
+  const token = useAuthSlice.getState().token;
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...headers,
+  };
+}
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   return requestInternal<T>(path, options, true);
@@ -16,13 +26,11 @@ async function requestInternal<T>(
   options: RequestOptions = {},
   allowRefresh: boolean,
 ): Promise<T> {
-  const { body, ...rest } = options;
+  const { body, headers, ...rest } = options;
 
   const res = await fetch(`${BFF_BASE}${path}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...rest.headers,
-    },
+    credentials: "include",
+    headers: buildAuthHeaders(headers),
     ...rest,
     ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
   });
@@ -37,10 +45,7 @@ async function requestInternal<T>(
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => null);
-    throw new ApiException(
-      res.status,
-      errorData?.message ?? `${res.status} ${res.statusText}`,
-    );
+    throw new ApiException(res.status, errorData?.message ?? `${res.status} ${res.statusText}`);
   }
 
   return res.json() as Promise<T>;
@@ -48,53 +53,34 @@ async function requestInternal<T>(
 
 async function handleUnauthorized(path: string): Promise<void> {
   if (path.startsWith("/auth/") || typeof window === "undefined") return;
-  const [{ clearSessionLocally }, { redirectToPanelLogin }] = await Promise.all([
+
+  const currentPath = window.location.pathname;
+  if (currentPath.startsWith("/login")) return;
+
+  const [{ clearSessionLocally }, { redirectToLocalLogin }] = await Promise.all([
     import("@/lib/auth/session"),
     import("@/config/auth-redirect"),
   ]);
   clearSessionLocally();
-  redirectToPanelLogin(`${window.location.pathname}${window.location.search}`);
+  redirectToLocalLogin(`${window.location.pathname}${window.location.search}`);
 }
 
 async function refreshSession(): Promise<boolean> {
   const res = await fetch(`${BFF_BASE}/auth/refresh`, {
     method: "POST",
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
   });
   if (!res.ok) return false;
 
-  const data = await res.json().catch(() => null) as {
-    token?: string;
-    refreshToken?: string;
-    role?: string;
-    userId?: string;
-    fullName?: string;
-    mobile?: string;
-    email?: string;
-    inviteCode?: string;
-    referralCode?: string;
-    balance?: number;
-    recentSessions?: unknown[];
-  } | null;
+  const data = await res.json().catch(() => null);
+  const session = data ? normalizeAuthSessionPayload(data) : null;
 
-  if (data?.token && data.role && data.userId && data.fullName) {
-    const { useAuthSlice } = await import("@/store/slices/auth.slice");
-    const current = useAuthSlice.getState();
-    useAuthSlice.getState().setAuth({
-      token: data.token,
-      refreshToken: data.refreshToken ?? current.refreshToken ?? "",
-      role: data.role as UserRole,
-      userId: data.userId,
-      fullName: data.fullName,
-      mobile: data.mobile ?? undefined,
-      email: data.email ?? undefined,
-      inviteCode: data.inviteCode ?? data.referralCode ?? undefined,
-      balance: data.balance ?? undefined,
-      recentSessions: (data.recentSessions as LoginActivity[]) ?? undefined,
-    });
+  if (session?.token && session.userId) {
+    useAuthSlice.getState().setAuth(toAuthStorePayload(session));
   }
 
-  return true;
+  return Boolean(session?.token);
 }
 
 export const apiClient = {

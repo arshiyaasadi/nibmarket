@@ -15,9 +15,9 @@ interface OtpInputProps {
 }
 
 export function OtpInput({ value, onChange, disabled }: OtpInputProps) {
-  const refs = useRef<Array<HTMLInputElement | null>>(Array(6).fill(null));
+  const refs = useRef<Array<HTMLInputElement | null>>(Array(4).fill(null));
 
-  const digits = Array.from({ length: 6 }, (_, i) => value[i] ?? "");
+  const digits = Array.from({ length: 4 }, (_, i) => value[i] ?? "");
 
   function focusAt(index: number) {
     refs.current[index]?.focus();
@@ -50,17 +50,19 @@ export function OtpInput({ value, onChange, disabled }: OtpInputProps) {
   function handlePaste(e: React.ClipboardEvent) {
     e.preventDefault();
     const pasted = normalizeOtp(e.clipboardData.getData("text"));
-    const next = Array.from({ length: 6 }, (_, i) => pasted[i] ?? "").join("");
+    const next = Array.from({ length: 4 }, (_, i) => pasted[i] ?? "").join("");
     onChange(next);
     focusAt(Math.min(pasted.length, 5));
   }
 
   return (
-    <div className="flex items-center justify-center gap-atom-md" dir="ltr">
+    <div className="gap-atom-md flex items-center justify-center" dir="ltr">
       {digits.map((digit, i) => (
         <input
           key={i}
-          ref={(el) => { refs.current[i] = el; }}
+          ref={(el) => {
+            refs.current[i] = el;
+          }}
           type="text"
           inputMode="numeric"
           maxLength={1}
@@ -73,7 +75,7 @@ export function OtpInput({ value, onChange, disabled }: OtpInputProps) {
           className={cn(
             "size-11 rounded-lg border-2 text-center text-lg font-semibold tabular-nums caret-transparent",
             "border-border bg-surface text-foreground",
-            "transition-colors focus:border-primary focus:outline-none",
+            "focus:border-primary transition-colors focus:outline-none",
             "disabled:opacity-50",
             digit ? "border-primary bg-primary-50 text-primary" : "",
           )}

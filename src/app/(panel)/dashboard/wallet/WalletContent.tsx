@@ -4,10 +4,19 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
-  ShoppingCart, TrendingDown, Download, Send, X, Zap,
-  Copy, Check, ArrowUpRight, ArrowDownLeft, ExternalLink,
+  ShoppingCart,
+  TrendingDown,
+  Download,
+  Send,
+  X,
+  Zap,
+  Copy,
+  Check,
+  ArrowUpRight,
+  ArrowDownLeft,
+  ExternalLink,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatDisplayDate, truncateIdentifier } from "@/lib/utils";
 import { useWalletSummary, useWalletTransactions, useTokenPrice } from "@/features/wallet/queries";
 import { TokenPriceChart } from "@/components/molecules/TokenPriceChart";
 import type { WalletTxType } from "@/types/mlm";
@@ -21,12 +30,12 @@ type ModalType = "buy" | "sell" | "receive" | "transfer" | null;
 
 type TxFilter = WalletTxType | "all";
 const TX_FILTERS: { key: TxFilter; labelKey: string }[] = [
-  { key: "all",          labelKey: "txFilterAll" },
-  { key: "mission_reward",      labelKey: "txFilterMission" },
-  { key: "commission_reward",   labelKey: "txFilterReferral" },
-  { key: "mint",                labelKey: "txFilterDeposit" },
-  { key: "adjustment",          labelKey: "txFilterBuy" },
-  { key: "transfer_in",  labelKey: "txFilterTransferIn" },
+  { key: "all", labelKey: "txFilterAll" },
+  { key: "mission_reward", labelKey: "txFilterMission" },
+  { key: "commission_reward", labelKey: "txFilterReferral" },
+  { key: "mint", labelKey: "txFilterDeposit" },
+  { key: "adjustment", labelKey: "txFilterBuy" },
+  { key: "transfer_in", labelKey: "txFilterTransferIn" },
   { key: "transfer_out", labelKey: "txFilterTransferOut" },
 ];
 
@@ -40,7 +49,7 @@ export function WalletContent() {
 
   // URL-driven filters
   const typeFilter = (searchParams.get("type") as TxFilter) || "all";
-  const rrnSearch  = searchParams.get("rrn") || "";
+  const rrnSearch = searchParams.get("rrn") || "";
 
   const updateParam = useCallback(
     (key: string, value: string) => {
@@ -68,7 +77,9 @@ export function WalletContent() {
     const el = sentinelRef.current;
     if (!el) return;
     const obs = new IntersectionObserver(
-      (e) => { if (e[0].isIntersecting && hasNextPage && !isFetchingNextPage) fetchNextPage(); },
+      (e) => {
+        if (e[0].isIntersecting && hasNextPage && !isFetchingNextPage) fetchNextPage();
+      },
       { rootMargin: "120px" },
     );
     obs.observe(el);
@@ -79,35 +90,33 @@ export function WalletContent() {
 
   return (
     <div className="flex flex-col gap-6">
-
       {/* ── Row 1: Summary + Chart ── */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
-
         {/* Summary card */}
-        <div className="flex-1 rounded-2xl border border-border bg-surface p-5">
+        <div className="border-border bg-surface flex-1 rounded-2xl border p-5">
           {/* Balance */}
           <div className="mb-5 flex flex-col gap-1">
-            <span className="text-xs text-muted">{t("totalBalance")}</span>
+            <span className="text-muted text-xs">{t("totalBalance")}</span>
             {loadingSummary ? (
-              <div className="h-8 w-32 rounded-lg bg-surface-2 animate-pulse" />
+              <div className="bg-surface-2 h-8 w-32 animate-pulse rounded-lg" />
             ) : (
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold text-foreground tabular-nums">
+                <span className="text-foreground text-3xl font-bold tabular-nums">
                   {summary?.totalTokens.toLocaleString("fa-IR")}
                 </span>
-                <span className="text-sm text-muted">{t("tokenUnit")}</span>
+                <span className="text-muted text-sm">{t("tokenUnit")}</span>
               </div>
             )}
             <div className="mt-2 flex gap-4 text-xs">
               <span className="text-muted">
                 {t("availableBalance")}:{" "}
-                <span className="font-semibold text-primary">
+                <span className="text-primary font-semibold">
                   {summary?.availableTokens.toLocaleString("fa-IR")}
                 </span>
               </span>
               <span className="text-muted">
                 {t("frozenBalance")}:{" "}
-                <span className="font-semibold text-warning">
+                <span className="text-warning font-semibold">
                   {summary?.frozenTokens.toLocaleString("fa-IR")}
                 </span>
               </span>
@@ -118,47 +127,44 @@ export function WalletContent() {
           <div className="grid grid-cols-4 gap-2">
             {(
               [
-                { key: "buy",      icon: ShoppingCart, labelKey: "actionBuy" },
-                { key: "sell",     icon: TrendingDown, labelKey: "actionSell" },
-                { key: "receive",  icon: Download,     labelKey: "actionReceive" },
-                { key: "transfer", icon: Send,         labelKey: "actionTransfer" },
+                { key: "buy", icon: ShoppingCart, labelKey: "actionBuy" },
+                { key: "sell", icon: TrendingDown, labelKey: "actionSell" },
+                { key: "receive", icon: Download, labelKey: "actionReceive" },
+                { key: "transfer", icon: Send, labelKey: "actionTransfer" },
               ] as const
             ).map(({ key, icon: Icon, labelKey }) => (
               <button
                 key={key}
                 type="button"
                 onClick={() => setModal(key)}
-                className="flex flex-col items-center gap-1.5 rounded-xl border border-border bg-surface-2 px-2 py-3 text-center transition-colors hover:bg-primary/5 hover:border-primary/30"
+                className="border-border bg-surface-2 hover:bg-primary/5 hover:border-primary/30 flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-center transition-colors"
               >
-                <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-                  <Icon className="size-4 text-primary" />
+                <div className="bg-primary/10 flex size-9 items-center justify-center rounded-lg">
+                  <Icon className="text-primary size-4" />
                 </div>
-                <span className="text-xs font-medium text-foreground">{t(labelKey)}</span>
+                <span className="text-foreground text-xs font-medium">{t(labelKey)}</span>
               </button>
             ))}
           </div>
         </div>
 
         {/* Price chart */}
-        <div className="flex h-full flex-col rounded-2xl border border-border bg-surface p-5 lg:w-80">
+        <div className="border-border bg-surface flex h-full flex-col rounded-2xl border p-5 lg:w-80">
           <div className="mb-1 flex items-center justify-between">
-            <span className="text-sm font-semibold text-foreground">{t("priceChartTitle")}</span>
-            <span className="text-xs text-muted">{t("priceChartTimeframe")}</span>
+            <span className="text-foreground text-sm font-semibold">{t("priceChartTitle")}</span>
+            <span className="text-muted text-xs">{t("priceChartTimeframe")}</span>
           </div>
-          <TokenPriceChart
-            points={priceData ?? []}
-            isLoading={loadingPrice}
-          />
+          <TokenPriceChart points={priceData ?? []} isLoading={loadingPrice} />
         </div>
       </div>
 
       {/* ── Row 2: Transaction table ── */}
       <div className="flex flex-col gap-4">
-        <h2 className="text-base font-bold text-foreground">{t("txTitle")}</h2>
+        <h2 className="text-foreground text-base font-bold">{t("txTitle")}</h2>
 
         {/* Filters + search */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-1 rounded-xl border border-border bg-surface p-1">
+          <div className="border-border bg-surface flex flex-wrap items-center gap-1 rounded-xl border p-1">
             {TX_FILTERS.map(({ key, labelKey }) => (
               <button
                 key={key}
@@ -166,7 +172,9 @@ export function WalletContent() {
                 onClick={() => updateParam("type", key)}
                 className={cn(
                   "rounded-lg px-3 py-1 text-xs font-medium transition-colors",
-                  typeFilter === key ? "bg-primary text-white shadow-sm" : "text-muted hover:text-foreground",
+                  typeFilter === key
+                    ? "bg-primary text-white shadow-sm"
+                    : "text-muted hover:text-foreground",
                 )}
               >
                 {t(labelKey)}
@@ -178,53 +186,62 @@ export function WalletContent() {
             value={rrnSearch}
             onChange={(e) => updateParam("rrn", normalizeSearchInput(e.target.value))}
             placeholder={t("txSearchPlaceholder")}
-            className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-primary focus:outline-none sm:w-60"
+            className="border-border bg-surface text-foreground placeholder:text-muted focus:border-primary w-full rounded-xl border px-3 py-2 text-sm focus:outline-none sm:w-60"
             dir="rtl"
           />
         </div>
 
         {/* Transaction list */}
-        <div className="overflow-hidden rounded-2xl border border-border bg-surface">
+        <div className="border-border bg-surface overflow-hidden rounded-2xl border">
           {/* Desktop header */}
-          <div className="hidden sm:flex items-center gap-2 border-b border-border bg-surface-2 px-4 py-3">
-            <span className="w-[4.5rem] shrink-0 text-xs font-semibold text-muted">{t("colId")}</span>
-            <span className="w-20 shrink-0 text-xs font-semibold text-muted">{t("colType")}</span>
-            <span className="flex-1 text-xs font-semibold text-muted">{t("colDesc")}</span>
-            <span className="w-28 shrink-0 text-xs font-semibold text-muted">{t("colDate")}</span>
-            <span className="w-32 shrink-0 text-xs font-semibold text-muted">{t("colRrn")}</span>
-            <span className="w-24 shrink-0 text-end text-xs font-semibold text-muted">{t("colAmount")}</span>
+          <div className="border-border bg-surface-2 hidden items-center gap-2 border-b px-4 py-3 sm:flex">
+            <span className="text-muted w-[4.5rem] shrink-0 text-xs font-semibold">
+              {t("colId")}
+            </span>
+            <span className="text-muted w-20 shrink-0 text-xs font-semibold">{t("colType")}</span>
+            <span className="text-muted flex-1 text-xs font-semibold">{t("colDesc")}</span>
+            <span className="text-muted w-28 shrink-0 text-xs font-semibold">{t("colDate")}</span>
+            <span className="text-muted w-32 shrink-0 text-xs font-semibold">{t("colRrn")}</span>
+            <span className="text-muted w-24 shrink-0 text-end text-xs font-semibold">
+              {t("colAmount")}
+            </span>
           </div>
 
-          <div className="divide-y divide-border">
+          <div className="divide-border divide-y">
             {loadingTx ? (
               Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="px-4 py-3 flex flex-col gap-2">
-                  <div className="h-4 w-3/4 rounded bg-surface-2 animate-pulse" />
-                  <div className="h-3 w-1/2 rounded bg-surface-2 animate-pulse" />
+                <div key={i} className="flex flex-col gap-2 px-4 py-3">
+                  <div className="bg-surface-2 h-4 w-3/4 animate-pulse rounded" />
+                  <div className="bg-surface-2 h-3 w-1/2 animate-pulse rounded" />
                 </div>
               ))
             ) : txItems.length === 0 ? (
-              <div className="py-12 text-center text-sm text-muted">{t("noTx")}</div>
+              <div className="text-muted py-12 text-center text-sm">{t("noTx")}</div>
             ) : (
               txItems.map((tx) => (
-                <div key={tx.id} className="px-4 py-3 transition-colors hover:bg-surface-2">
+                <div key={tx.id} className="hover:bg-surface-2 px-4 py-3 transition-colors">
                   {/* Mobile */}
                   <div className="sm:hidden">
                     <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
+                      <div className="flex min-w-0 items-center gap-2">
                         <TxTypeBadge type={tx.type} t={t} />
-                        <span className="truncate text-sm font-medium text-foreground">{tx.description}</span>
+                        <span className="text-foreground truncate text-sm font-medium">
+                          {tx.description}
+                        </span>
                       </div>
-                      <span className={cn(
-                        "shrink-0 text-sm font-bold tabular-nums whitespace-nowrap",
-                        tx.amount > 0 ? "text-success" : "text-error",
-                      )}>
-                        {tx.amount > 0 ? "+" : ""}{tx.amount.toLocaleString("fa-IR")}
+                      <span
+                        className={cn(
+                          "shrink-0 text-sm font-bold whitespace-nowrap tabular-nums",
+                          tx.amount > 0 ? "text-success" : "text-error",
+                        )}
+                      >
+                        {tx.amount > 0 ? "+" : ""}
+                        {tx.amount.toLocaleString("fa-IR")}
                       </span>
                     </div>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-muted">
+                    <div className="text-muted mt-1.5 flex flex-wrap items-center gap-3 text-xs">
                       <CopyableId value={tx.id} withHash t={t} />
-                      <span>{tx.date}</span>
+                      <span>{formatDisplayDate(tx.date)}</span>
                       {tx.rrn && <CopyableId value={tx.rrn} t={t} />}
                     </div>
                   </div>
@@ -234,18 +251,25 @@ export function WalletContent() {
                     <div className="w-20 shrink-0">
                       <TxTypeBadge type={tx.type} t={t} />
                     </div>
-                    <span className="flex-1 truncate text-sm text-foreground">{tx.description}</span>
-                    <span className="w-28 shrink-0 text-sm text-muted">{tx.date}</span>
+                    <span className="text-foreground flex-1 truncate text-sm">
+                      {tx.description}
+                    </span>
+                    <span className="text-muted w-28 shrink-0 text-sm">
+                      {formatDisplayDate(tx.date)}
+                    </span>
                     {tx.rrn ? (
                       <CopyableId value={tx.rrn} t={t} className="w-32" />
                     ) : (
-                      <span className="w-32 shrink-0 text-xs text-muted">—</span>
+                      <span className="text-muted w-32 shrink-0 text-xs">—</span>
                     )}
-                    <span className={cn(
-                      "w-24 shrink-0 text-end text-sm font-bold tabular-nums",
-                      tx.amount > 0 ? "text-success" : "text-error",
-                    )}>
-                      {tx.amount > 0 ? "+" : ""}{tx.amount.toLocaleString("fa-IR")}
+                    <span
+                      className={cn(
+                        "w-24 shrink-0 text-end text-sm font-bold tabular-nums",
+                        tx.amount > 0 ? "text-success" : "text-error",
+                      )}
+                    >
+                      {tx.amount > 0 ? "+" : ""}
+                      {tx.amount.toLocaleString("fa-IR")}
                     </span>
                   </div>
                 </div>
@@ -255,29 +279,26 @@ export function WalletContent() {
 
           <div ref={sentinelRef} className="h-1" />
           {isFetchingNextPage && (
-            <div className="py-3 text-center text-xs text-muted">{t("loadingMore")}</div>
+            <div className="text-muted py-3 text-center text-xs">{t("loadingMore")}</div>
           )}
           {!hasNextPage && txItems.length > 0 && (
-            <div className="py-3 text-center text-xs text-muted">{t("noMore")}</div>
+            <div className="text-muted py-3 text-center text-xs">{t("noMore")}</div>
           )}
         </div>
       </div>
 
       {/* ── Modals ── */}
-      {modal === "buy"      && <BuyModal  onClose={() => setModal(null)} summary={summary} t={t} />}
-      {modal === "sell"     && <SellModal onClose={() => setModal(null)} summary={summary} t={t} />}
-      {modal === "receive"  && <ReceiveModal onClose={() => setModal(null)} t={t} />}
-      {modal === "transfer" && <TransferModal onClose={() => setModal(null)} summary={summary} t={t} />}
+      {modal === "buy" && <BuyModal onClose={() => setModal(null)} summary={summary} t={t} />}
+      {modal === "sell" && <SellModal onClose={() => setModal(null)} summary={summary} t={t} />}
+      {modal === "receive" && <ReceiveModal onClose={() => setModal(null)} t={t} />}
+      {modal === "transfer" && (
+        <TransferModal onClose={() => setModal(null)} summary={summary} t={t} />
+      )}
     </div>
   );
 }
 
 // ── CopyableId ─────────────────────────────────────────────────
-function truncateIdentifier(value: string, head = 6, tail = 4): string {
-  if (value.length <= head + tail + 1) return value;
-  return `${value.slice(0, head)}…${value.slice(-tail)}`;
-}
-
 function CopyableId({
   value,
   withHash = false,
@@ -344,10 +365,10 @@ function CopyableId({
       {showTip && !copied && (
         <span
           role="tooltip"
-          className="pointer-events-none absolute bottom-[calc(100%+6px)] start-0 z-30 max-w-[min(16rem,calc(100vw-2rem))] rounded-lg border border-border bg-foreground px-2.5 py-1.5 text-[11px] font-normal leading-snug text-background shadow-lg"
+          className="border-border bg-foreground text-background pointer-events-none absolute start-0 bottom-[calc(100%+6px)] z-30 max-w-[min(16rem,calc(100vw-2rem))] rounded-lg border px-2.5 py-1.5 text-[11px] leading-snug font-normal shadow-lg"
           dir="ltr"
         >
-          <span className="block break-all font-mono">{fullDisplay}</span>
+          <span className="block font-mono break-all">{fullDisplay}</span>
           <span className="mt-0.5 block text-[10px] opacity-75">{t("idCopyHint")}</span>
         </span>
       )}
@@ -358,20 +379,45 @@ function CopyableId({
 // ── TxTypeBadge ────────────────────────────────────────────────
 function TxTypeBadge({ type, t }: { type: WalletTxType; t: (k: string) => string }) {
   const map: Record<WalletTxType, { label: string; cls: string; icon: typeof ArrowDownLeft }> = {
-    mission_reward:    { label: t("typeMission"),     cls: "bg-primary/10 text-primary",   icon: Zap },
-    commission_reward: { label: t("typeReferral"),     cls: "bg-purple-500/10 text-purple-500", icon: ArrowDownLeft },
-    mint:              { label: t("typeDeposit"),      cls: "bg-success/10 text-success",   icon: ArrowDownLeft },
-    adjustment:        { label: t("typeBuy"),          cls: "bg-blue-500/10 text-blue-500", icon: ShoppingCart },
-    lock:              { label: t("typeSell"),         cls: "bg-warning/10 text-warning",   icon: TrendingDown },
-    unlock:            { label: t("typeDeposit"),      cls: "bg-success/10 text-success",   icon: ArrowDownLeft },
-    pool_deposit:      { label: t("typeDeposit"),      cls: "bg-success/10 text-success",   icon: ArrowDownLeft },
-    pool_withdrawal:   { label: t("typeSell"),         cls: "bg-warning/10 text-warning",   icon: TrendingDown },
-    transfer_in:       { label: t("typeTransferIn"),   cls: "bg-success/10 text-success",   icon: ArrowDownLeft },
-    transfer_out:      { label: t("typeTransferOut"),  cls: "bg-error/10 text-error",       icon: ArrowUpRight },
+    mission_reward: { label: t("typeMission"), cls: "bg-primary/10 text-primary", icon: Zap },
+    commission_reward: {
+      label: t("typeReferral"),
+      cls: "bg-purple-500/10 text-purple-500",
+      icon: ArrowDownLeft,
+    },
+    mint: { label: t("typeDeposit"), cls: "bg-success/10 text-success", icon: ArrowDownLeft },
+    adjustment: { label: t("typeBuy"), cls: "bg-blue-500/10 text-blue-500", icon: ShoppingCart },
+    lock: { label: t("typeSell"), cls: "bg-warning/10 text-warning", icon: TrendingDown },
+    unlock: { label: t("typeDeposit"), cls: "bg-success/10 text-success", icon: ArrowDownLeft },
+    pool_deposit: {
+      label: t("typeDeposit"),
+      cls: "bg-success/10 text-success",
+      icon: ArrowDownLeft,
+    },
+    pool_withdrawal: {
+      label: t("typeSell"),
+      cls: "bg-warning/10 text-warning",
+      icon: TrendingDown,
+    },
+    transfer_in: {
+      label: t("typeTransferIn"),
+      cls: "bg-success/10 text-success",
+      icon: ArrowDownLeft,
+    },
+    transfer_out: {
+      label: t("typeTransferOut"),
+      cls: "bg-error/10 text-error",
+      icon: ArrowUpRight,
+    },
   };
   const { label, cls, icon: Icon } = map[type] ?? map.adjustment;
   return (
-    <span className={cn("inline-flex shrink-0 items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-medium whitespace-nowrap", cls)}>
+    <span
+      className={cn(
+        "inline-flex shrink-0 items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-medium whitespace-nowrap",
+        cls,
+      )}
+    >
       <Icon className="size-3" />
       {label}
     </span>
@@ -379,30 +425,40 @@ function TxTypeBadge({ type, t }: { type: WalletTxType; t: (k: string) => string
 }
 
 // ── Modal wrapper ──────────────────────────────────────────────
-function WalletModal({ onClose, title, children }: { onClose: () => void; title: string; children: React.ReactNode }) {
+function WalletModal({
+  onClose,
+  title,
+  children,
+}: {
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+}) {
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [onClose]);
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center p-4"
+      className="fixed inset-0 z-[100] flex items-end justify-center p-4 sm:items-center"
       onClick={onClose}
     >
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
       <div
-        className="relative z-10 w-full max-w-md rounded-3xl border border-border bg-surface shadow-2xl"
+        className="border-border bg-surface relative z-10 w-full max-w-md rounded-3xl border shadow-2xl"
         onClick={(e) => e.stopPropagation()}
         dir="rtl"
       >
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
-          <h2 className="text-base font-bold text-foreground">{title}</h2>
+        <div className="border-border flex items-center justify-between border-b px-5 py-4">
+          <h2 className="text-foreground text-base font-bold">{title}</h2>
           <button
             type="button"
             onClick={onClose}
-            className="flex size-8 items-center justify-center rounded-lg text-muted hover:bg-surface-2"
+            className="text-muted hover:bg-surface-2 flex size-8 items-center justify-center rounded-lg"
             aria-label="بستن"
           >
             <X className="size-4" />
@@ -415,37 +471,42 @@ function WalletModal({ onClose, title, children }: { onClose: () => void; title:
 }
 
 // ── Buy Modal ──────────────────────────────────────────────────
-function BuyModal({ onClose, summary, t }: {
+function BuyModal({
+  onClose,
+  summary,
+  t,
+}: {
   onClose: () => void;
   summary?: { availableTokens: number };
   t: (k: string) => string;
 }) {
   return (
     <WalletModal onClose={onClose} title={t("buyTitle")}>
-      <p className="mb-4 text-sm leading-relaxed text-muted">{t("buyDesc")}</p>
+      <p className="text-muted mb-4 text-sm leading-relaxed">{t("buyDesc")}</p>
 
       {/* Mission card */}
-      <div className="mb-4 flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4">
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-          <Zap className="size-4 text-primary" />
+      <div className="border-primary/20 bg-primary/5 mb-4 flex items-start gap-3 rounded-2xl border p-4">
+        <div className="bg-primary/10 flex size-8 shrink-0 items-center justify-center rounded-xl">
+          <Zap className="text-primary size-4" />
         </div>
         <div>
-          <span className="block text-xs font-semibold text-primary">{t("buyMissionLabel")}</span>
-          <span className="text-sm text-foreground">
-            {t("buyMissionDesc")}
-          </span>
+          <span className="text-primary block text-xs font-semibold">{t("buyMissionLabel")}</span>
+          <span className="text-foreground text-sm">{t("buyMissionDesc")}</span>
         </div>
       </div>
 
       {summary && (
-        <p className="mb-4 text-xs text-muted">
-          {t("transferAvailable")}: <span className="font-semibold text-foreground">{summary.availableTokens.toLocaleString("fa-IR")} Twin</span>
+        <p className="text-muted mb-4 text-xs">
+          {t("transferAvailable")}:{" "}
+          <span className="text-foreground font-semibold">
+            {summary.availableTokens.toLocaleString("fa-IR")} Twin
+          </span>
         </p>
       )}
 
       <a
         href="#"
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
+        className="bg-primary hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold text-white transition-colors"
       >
         <ExternalLink className="size-4" />
         {t("buyCtaApp")}
@@ -455,36 +516,41 @@ function BuyModal({ onClose, summary, t }: {
 }
 
 // ── Sell Modal ─────────────────────────────────────────────────
-function SellModal({ onClose, summary, t }: {
+function SellModal({
+  onClose,
+  summary,
+  t,
+}: {
   onClose: () => void;
   summary?: { availableTokens: number };
   t: (k: string) => string;
 }) {
   return (
     <WalletModal onClose={onClose} title={t("sellTitle")}>
-      <p className="mb-4 text-sm leading-relaxed text-muted">{t("sellDesc")}</p>
+      <p className="text-muted mb-4 text-sm leading-relaxed">{t("sellDesc")}</p>
 
-      <div className="mb-4 flex items-start gap-3 rounded-2xl border border-warning/20 bg-warning/5 p-4">
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-warning/10">
-          <Zap className="size-4 text-warning" />
+      <div className="border-warning/20 bg-warning/5 mb-4 flex items-start gap-3 rounded-2xl border p-4">
+        <div className="bg-warning/10 flex size-8 shrink-0 items-center justify-center rounded-xl">
+          <Zap className="text-warning size-4" />
         </div>
         <div>
-          <span className="block text-xs font-semibold text-warning">{t("buyMissionLabel")}</span>
-          <span className="text-sm text-foreground">
-            {t("sellMissionDesc")}
-          </span>
+          <span className="text-warning block text-xs font-semibold">{t("buyMissionLabel")}</span>
+          <span className="text-foreground text-sm">{t("sellMissionDesc")}</span>
         </div>
       </div>
 
       {summary && (
-        <p className="mb-4 text-xs text-muted">
-          {t("transferAvailable")}: <span className="font-semibold text-foreground">{summary.availableTokens.toLocaleString("fa-IR")} Twin</span>
+        <p className="text-muted mb-4 text-xs">
+          {t("transferAvailable")}:{" "}
+          <span className="text-foreground font-semibold">
+            {summary.availableTokens.toLocaleString("fa-IR")} Twin
+          </span>
         </p>
       )}
 
       <a
         href="#"
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-warning py-3 text-sm font-semibold text-white hover:bg-warning/90 transition-colors"
+        className="bg-warning hover:bg-warning/90 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold text-white transition-colors"
       >
         <ExternalLink className="size-4" />
         {t("sellCtaApp")}
@@ -505,23 +571,24 @@ function ReceiveModal({ onClose, t }: { onClose: () => void; t: (k: string) => s
 
   return (
     <WalletModal onClose={onClose} title={t("receiveTitle")}>
-
       {/* QR Code — pure SVG mock */}
       <div className="mx-auto mb-4 w-40">
         <MockQR />
       </div>
 
-      <p className="mb-2 text-xs font-medium text-muted">{t("receiveAddress")}</p>
-      <div className="mb-4 flex items-center gap-2 rounded-xl border border-border bg-surface-2 p-3">
-        <span className="flex-1 break-all font-mono text-xs text-foreground" dir="ltr">{MOCK_WALLET_ADDRESS}</span>
+      <p className="text-muted mb-2 text-xs font-medium">{t("receiveAddress")}</p>
+      <div className="border-border bg-surface-2 mb-4 flex items-center gap-2 rounded-xl border p-3">
+        <span className="text-foreground flex-1 font-mono text-xs break-all" dir="ltr">
+          {MOCK_WALLET_ADDRESS}
+        </span>
       </div>
 
-      <p className="mb-4 text-xs text-muted">{t("receiveHint")}</p>
+      <p className="text-muted mb-4 text-xs">{t("receiveHint")}</p>
 
       <button
         type="button"
         onClick={copy}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
+        className="bg-primary hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold text-white transition-colors"
       >
         {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
         {copied ? t("receiveCopied") : t("receiveCopy")}
@@ -531,41 +598,48 @@ function ReceiveModal({ onClose, t }: { onClose: () => void; t: (k: string) => s
 }
 
 // ── Transfer Modal ─────────────────────────────────────────────
-function TransferModal({ onClose, summary, t }: {
+function TransferModal({
+  onClose,
+  summary,
+  t,
+}: {
   onClose: () => void;
   summary?: { availableTokens: number };
   t: (k: string) => string;
 }) {
   const [address, setAddress] = useState("");
-  const [amount, setAmount]   = useState("");
+  const [amount, setAmount] = useState("");
 
   return (
     <WalletModal onClose={onClose} title={t("transferTitle")}>
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-medium text-muted">{t("transferAddress")}</label>
+          <label className="text-muted text-xs font-medium">{t("transferAddress")}</label>
           <input
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             placeholder={t("transferAddressPlaceholder")}
-            className="w-full rounded-xl border border-border bg-surface-2 px-3 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-primary focus:outline-none"
+            className="border-border bg-surface-2 text-foreground placeholder:text-muted focus:border-primary w-full rounded-xl border px-3 py-2.5 text-sm focus:outline-none"
             dir="ltr"
           />
         </div>
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-medium text-muted">{t("transferAmount")}</label>
+          <label className="text-muted text-xs font-medium">{t("transferAmount")}</label>
           <input
             type="text"
             inputMode="decimal"
             value={amount}
             onChange={(e) => setAmount(normalizeDecimalInput(e.target.value))}
             placeholder={t("transferAmountPlaceholder")}
-            className="w-full rounded-xl border border-border bg-surface-2 px-3 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-primary focus:outline-none"
+            className="border-border bg-surface-2 text-foreground placeholder:text-muted focus:border-primary w-full rounded-xl border px-3 py-2.5 text-sm focus:outline-none"
             dir="rtl"
           />
           {summary && (
-            <p className="text-xs text-muted">
-              {t("transferAvailable")}: <span className="font-semibold text-primary">{summary.availableTokens.toLocaleString("fa-IR")} Twin</span>
+            <p className="text-muted text-xs">
+              {t("transferAvailable")}:{" "}
+              <span className="text-primary font-semibold">
+                {summary.availableTokens.toLocaleString("fa-IR")} Twin
+              </span>
             </p>
           )}
         </div>
@@ -574,7 +648,7 @@ function TransferModal({ onClose, summary, t }: {
       <button
         type="button"
         onClick={onClose}
-        className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
+        className="bg-primary hover:bg-primary/90 mt-5 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold text-white transition-colors"
       >
         <Send className="size-4" />
         {t("transferConfirm")}
@@ -600,7 +674,10 @@ function MockQR() {
   );
 
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} className="w-full rounded-xl border border-border bg-white p-2">
+    <svg
+      viewBox={`0 0 ${size} ${size}`}
+      className="border-border w-full rounded-xl border bg-white p-2"
+    >
       {grid.map((row, r) =>
         row.map((filled, c) =>
           filled ? (

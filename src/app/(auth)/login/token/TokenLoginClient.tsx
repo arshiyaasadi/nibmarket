@@ -5,13 +5,14 @@ import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { redirectToPanelLogin, resolveReturnUrl } from "@/config/auth-redirect";
 import { exchangeSsoToken } from "@/lib/auth-exchange";
+import { applyAuthSession } from "@/lib/auth/apply-session";
 import { useAuthActions } from "@/store/hooks/use-auth";
 
 export function TokenLoginClient() {
   const t = useTranslations("auth");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setAuth } = useAuthActions();
+  const { setAuth, setWallet } = useAuthActions();
   const [tokenInput, setTokenInput] = useState(searchParams.get("token") ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,18 +28,7 @@ export function TokenLoginClient() {
     setLoading(true);
     try {
       const data = await exchangeSsoToken(tokenInput);
-      setAuth({
-        token: data.token,
-        refreshToken: data.refreshToken,
-        role: data.role,
-        userId: data.userId,
-        fullName: data.fullName,
-        mobile: data.mobile,
-        email: data.email,
-        inviteCode: data.inviteCode ?? data.referralCode,
-        balance: data.balance,
-        recentSessions: data.recentSessions ?? [],
-      });
+      await applyAuthSession(data, { setAuth, setWallet });
       router.replace(returnUrl);
       router.refresh();
     } catch (err) {

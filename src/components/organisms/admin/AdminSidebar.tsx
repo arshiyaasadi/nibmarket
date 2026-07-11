@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { LayoutDashboard, Users, Network, Target, Shield, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { performLogout } from "@/lib/auth/session";
@@ -15,18 +15,21 @@ const NAV = [
 
 export function AdminSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   async function handleLogout() {
-    await performLogout();
-    router.push("/admin/login");
+    await performLogout("/admin/login");
   }
 
   return (
-    <aside className="fixed start-0 top-0 z-40 flex h-screen w-56 flex-col border-e border-border bg-surface" dir="rtl">
+    <aside
+      className="border-border bg-surface fixed start-0 top-0 z-40 flex h-screen w-56 flex-col border-e"
+      dir="rtl"
+    >
       {/* Logo */}
-      <div className="flex h-14 items-center border-b border-border px-4">
-        <span className="text-sm font-bold text-primary">NIB Club</span>
-        <span className="ms-2 rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">ADMIN</span>
+      <div className="border-border flex h-14 items-center border-b px-4">
+        <span className="text-primary text-sm font-bold">NIB Club</span>
+        <span className="bg-primary/10 text-primary ms-2 rounded-md px-2 py-0.5 text-[11px] font-semibold">
+          ADMIN
+        </span>
       </div>
 
       {/* Nav */}
@@ -41,7 +44,7 @@ export function AdminSidebar() {
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
                 active
                   ? "bg-primary/10 text-primary"
-                  : "text-muted hover:bg-background hover:text-foreground"
+                  : "text-muted hover:bg-background hover:text-foreground",
               )}
             >
               <Icon size={17} />
@@ -52,10 +55,10 @@ export function AdminSidebar() {
       </nav>
 
       {/* Logout */}
-      <div className="border-t border-border p-3">
+      <div className="border-border border-t p-3">
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-background hover:text-red-500"
+          className="text-muted hover:bg-background flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:text-red-500"
         >
           <LogOut size={17} />
           خروج

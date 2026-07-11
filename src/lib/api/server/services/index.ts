@@ -1,13 +1,9 @@
 export {
   getApiServiceMode,
   isApiServiceMode,
-  isPrismaServiceMode,
+  isMockServiceMode,
   buildBackendApiUrl,
   type ApiServiceMode,
 } from "@/config/api-service";
 
-export {
-  proxyRequestToBackend,
-  backendApiGet,
-  backendApiMutate,
-} from "./backend-api-service";
+export { proxyRequestToBackend, backendApiGet, backendApiMutate } from "./backend-api-service";

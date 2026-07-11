@@ -6,16 +6,15 @@ export interface ApiTestConfig {
   mobile: string;
   password: string;
   accessToken?: string;
-  serviceMode: "prisma" | "api";
+  serviceMode: "mock" | "api";
 }
 
 export function loadTestConfig(): ApiTestConfig {
   const baseUrl = process.env.API_TEST_BASE_URL ?? "http://localhost:3000/api/v2";
-  const backendBaseUrl =
-    process.env.API_TEST_BACKEND_URL ?? "https://api-club.nibdev.com/api/v2";
+  const backendBaseUrl = process.env.API_TEST_BACKEND_URL ?? "https://api-club.nibdev.com/api/v2";
   const mobile = process.env.API_TEST_MOBILE ?? "09123456789";
   const password = process.env.API_TEST_PASSWORD ?? "Test@1234";
-  const serviceMode = (process.env.API_TEST_SERVICE_MODE ?? "prisma") as "prisma" | "api";
+  const serviceMode = (process.env.API_TEST_SERVICE_MODE ?? "mock") as "mock" | "api";
 
   return {
     baseUrl: baseUrl.replace(/\/$/, ""),

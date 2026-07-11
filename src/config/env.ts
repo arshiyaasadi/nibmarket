@@ -1,7 +1,7 @@
 import { clientEnv } from "./env.client";
 
 // Client-safe env — only NEXT_PUBLIC_* vars.
-// For server-only env (DATABASE_URL), import from env.server.ts.
+// For server-only env, import from env.server.ts.
 export const env = {
   SITE_URL: clientEnv.NEXT_PUBLIC_SITE_URL,
   APP_URL: clientEnv.NEXT_PUBLIC_APP_URL ?? clientEnv.NEXT_PUBLIC_SITE_URL,

@@ -9,7 +9,9 @@ export { useIsAuthenticated, useUserRole };
 export function useAuthActions() {
   const setAuth = useAuthSlice((s) => s.setAuth);
   const setToken = useAuthSlice((s) => s.setToken);
-  return { setAuth, setToken, clearAuth: clearSessionLocally };
+  const setWallet = useAuthSlice((s) => s.setWallet);
+  const updateSession = useAuthSlice((s) => s.updateSession);
+  return { setAuth, setToken, setWallet, updateSession, clearAuth: clearSessionLocally };
 }
 
 export function useCanAccess(path: string) {

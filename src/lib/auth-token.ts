@@ -22,13 +22,28 @@ export function extractTokenInput(value: string): string {
 
   try {
     const url = new URL(raw);
-    const token = url.searchParams.get("token")
-      ?? url.searchParams.get("sso_token")
-      ?? url.searchParams.get("accessToken");
+    const token =
+      url.searchParams.get("token") ??
+      url.searchParams.get("sso_token") ??
+      url.searchParams.get("accessToken");
     if (token) return stripBearer(token);
   } catch {
     // Not a URL; treat it as a raw token.
   }
 
   return stripBearer(raw);
+}
+
+export function resolveSsoEntryToken(
+  searchParams?: Pick<URLSearchParams, "get"> | null,
+): string | null {
+  for (const key of ["token", "sso_token", "accessToken"] as const) {
+    const value = searchParams?.get(key);
+    if (value) {
+      const extracted = extractTokenInput(value);
+      if (extracted) return extracted;
+    }
+  }
+
+  return readSsoCookie();
 }

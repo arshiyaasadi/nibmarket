@@ -2,7 +2,7 @@
  * Parity tests: compare BFF (Prisma mode) responses with external backend (v2).
  *
  * Prerequisites:
- *   1. BFF running locally with API_SERVICE_MODE=prisma  → API_TEST_BASE_URL
+ *   1. BFF running locally with API_SERVICE_MODE=mock  → API_TEST_BASE_URL
  *   2. External backend available at API_TEST_BACKEND_URL
  *   3. Same test user credentials work on both
  *

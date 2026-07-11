@@ -3,24 +3,26 @@ import { z } from "zod";
 import { clientEnv } from "@/config/env.client";
 import { serverEnv } from "@/config/env.server";
 import { badRequest, unauthorized } from "@/lib/api/server/session";
-import { findOrCreateNibMarketUser } from "@/lib/db/repositories/user.repository";
+import { findOrCreateNibMarketUser } from "@/lib/mock/repositories/user.repository";
 import { numericToRole } from "@/config/roles";
 import type { UserRole } from "@/types/mlm";
 import { buildAuthResponse } from "./auth.handler";
 
-const externalTokenSchema = z.object({
-  accessToken: z.string().optional(),
-  token: z.string().optional(),
-  userId: z.union([z.string(), z.number()]),
-  role: z.union([z.string(), z.number()]).optional(),
-  mobile: z.string().optional().nullable(),
-  phone: z.string().optional().nullable(),
-  email: z.string().email().optional().nullable(),
-  name: z.string().optional().nullable(),
-  fullName: z.string().optional().nullable(),
-  firstName: z.string().optional().nullable(),
-  lastName: z.string().optional().nullable(),
-}).passthrough();
+const externalTokenSchema = z
+  .object({
+    accessToken: z.string().optional(),
+    token: z.string().optional(),
+    userId: z.union([z.string(), z.number()]),
+    role: z.union([z.string(), z.number()]).optional(),
+    mobile: z.string().optional().nullable(),
+    phone: z.string().optional().nullable(),
+    email: z.string().email().optional().nullable(),
+    name: z.string().optional().nullable(),
+    fullName: z.string().optional().nullable(),
+    firstName: z.string().optional().nullable(),
+    lastName: z.string().optional().nullable(),
+  })
+  .passthrough();
 
 function stripBearer(value: string): string {
   return value.trim().replace(/^Bearer\s+/i, "");
@@ -40,10 +42,8 @@ async function readEntryToken(req: Request): Promise<string | null> {
   const cookieToken = readCookie(req, clientEnv.NEXT_PUBLIC_SSO_ENTRY_COOKIE);
   if (cookieToken) return stripBearer(cookieToken);
 
-  const body = await req.json().catch(() => ({})) as { token?: unknown };
-  return typeof body.token === "string" && body.token.trim()
-    ? stripBearer(body.token)
-    : null;
+  const body = (await req.json().catch(() => ({}))) as { token?: unknown };
+  return typeof body.token === "string" && body.token.trim() ? stripBearer(body.token) : null;
 }
 
 function mapExternalRole(value: string | number | undefined): UserRole {
@@ -82,7 +82,10 @@ export async function ssoExchangeHandler(req: Request): Promise<Response> {
     externalUser = await checkSsoToken(entryToken);
   } catch (error) {
     return NextResponse.json(
-      { error: "sso_not_configured", message: error instanceof Error ? error.message : "SSO is not configured" },
+      {
+        error: "sso_not_configured",
+        message: error instanceof Error ? error.message : "SSO is not configured",
+      },
       { status: 500 },
     );
   }

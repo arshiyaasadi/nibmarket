@@ -1,15 +1,14 @@
 import { z } from "zod";
 
 const optionalUrl = z.preprocess(
-  (value) => value === "" ? undefined : value,
+  (value) => (value === "" ? undefined : value),
   z.string().url().optional(),
 );
 
-const apiServiceMode = z.enum(["prisma", "api"]).default("prisma");
+const apiServiceMode = z.enum(["mock", "api"]).default("mock");
 
 const serverSchema = z.object({
-  DATABASE_URL: z.string().url("DATABASE_URL باید یک URL معتبر باشد"),
-  /** `prisma` = BFF handlers + repositories; `api` = proxy to external backend. */
+  /** `mock` = BFF handlers + in-memory fixtures; `api` = proxy to external backend. */
   API_SERVICE_MODE: apiServiceMode,
   BACKEND_API_BASE_URL: z.preprocess(
     (value) => (value === "" ? undefined : value),
@@ -35,7 +34,6 @@ const serverSchema = z.object({
 
 function createServerEnv() {
   const parsed = serverSchema.safeParse({
-    DATABASE_URL: process.env.DATABASE_URL,
     API_SERVICE_MODE: process.env.API_SERVICE_MODE,
     BACKEND_API_BASE_URL: process.env.BACKEND_API_BASE_URL,
     BACKEND_API_VERSION: process.env.BACKEND_API_VERSION,
@@ -47,10 +45,7 @@ function createServerEnv() {
   });
 
   if (!parsed.success) {
-    console.error(
-      "❌ Server env validation failed:",
-      parsed.error.flatten().fieldErrors,
-    );
+    console.error("❌ Server env validation failed:", parsed.error.flatten().fieldErrors);
     throw new Error("Invalid server environment variables");
   }
 

@@ -16,6 +16,7 @@ export const useAuthSlice = create<AuthSlice>()(
       email: null,
       inviteCode: null,
       balance: null,
+      wallet: null,
       recentSessions: [],
 
       setAuth: (payload) =>
@@ -28,12 +29,25 @@ export const useAuthSlice = create<AuthSlice>()(
           mobile: payload.mobile ?? null,
           email: payload.email ?? null,
           inviteCode: payload.inviteCode ?? null,
-          balance: payload.balance ?? null,
+          balance: payload.balance ?? payload.wallet?.totalTokens ?? null,
+          wallet: payload.wallet ?? null,
           recentSessions: payload.recentSessions ?? [],
         }),
 
-      setToken: (token, refreshToken) =>
-        set({ token, refreshToken }),
+      setToken: (token, refreshToken) => set({ token, refreshToken }),
+
+      setWallet: (wallet) =>
+        set({
+          wallet,
+          balance: wallet?.totalTokens ?? null,
+        }),
+
+      updateSession: (payload) =>
+        set((state) => ({
+          ...state,
+          ...payload,
+          balance: payload.balance ?? payload.wallet?.totalTokens ?? state.balance,
+        })),
 
       clearAuth: () =>
         set({
@@ -46,6 +60,7 @@ export const useAuthSlice = create<AuthSlice>()(
           email: null,
           inviteCode: null,
           balance: null,
+          wallet: null,
           recentSessions: [],
         }),
     }),
@@ -61,6 +76,7 @@ export const useAuthSlice = create<AuthSlice>()(
         email: s.email,
         inviteCode: s.inviteCode,
         balance: s.balance,
+        wallet: s.wallet,
       }),
     },
   ),

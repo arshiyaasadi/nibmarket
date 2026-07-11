@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:full": "cd .. && ./db.sh setup && cd web-panel && npm run db:generate && npm run dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint src",
@@ -13,14 +12,9 @@
     "type-check": "tsc --noEmit",
     "test:api": "API_TEST_SKIP=0 tsx --test tests/api/contract.test.ts",
     "test:api:parity": "API_TEST_SKIP=0 tsx --test tests/api/parity.test.ts",
-    "db:generate": "prisma generate",
-    "db:pull": "prisma db pull",
-    "db:studio": "prisma studio",
     "prepare": "husky"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.8.0",
-    "@prisma/client": "^7.8.0",
     "@tanstack/react-query": "^5.101.1",
     "@tanstack/react-table": "^8.21.3",
     "@types/d3": "^7.4.3",
@@ -30,7 +24,6 @@
     "motion": "^12.42.0",
     "next": "16.2.9",
     "next-intl": "^4.13.0",
-    "pg": "^8.22.0",
     "react": "19.2.4",
     "react-d3-tree": "^3.6.6",
     "react-dom": "19.2.4",
@@ -42,7 +35,6 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
-    "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
@@ -51,7 +43,6 @@
     "lint-staged": "^17.0.8",
     "prettier": "^3.8.4",
     "prettier-plugin-tailwindcss": "^0.8.0",
-    "prisma": "^7.8.0",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
     "typescript": "^5"

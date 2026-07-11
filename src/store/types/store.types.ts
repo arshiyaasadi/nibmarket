@@ -1,4 +1,4 @@
-import type { UserRole, LoginActivity } from "@/types/mlm";
+import type { UserRole, LoginActivity, WalletSummary } from "@/types/mlm";
 
 export interface AuthSliceState {
   token: string | null;
@@ -10,6 +10,7 @@ export interface AuthSliceState {
   email: string | null;
   inviteCode: string | null;
   balance: number | null;
+  wallet: WalletSummary | null;
   recentSessions: LoginActivity[];
 }
 
@@ -23,10 +24,17 @@ export interface AuthSliceActions {
     mobile?: string;
     email?: string;
     inviteCode?: string;
-    balance?: number;
+    balance?: number | null;
+    wallet?: WalletSummary | null;
     recentSessions?: LoginActivity[];
   }) => void;
   setToken: (token: string, refreshToken: string) => void;
+  setWallet: (wallet: WalletSummary | null) => void;
+  updateSession: (
+    payload: Partial<Omit<AuthSliceState, "recentSessions">> & {
+      recentSessions?: LoginActivity[];
+    },
+  ) => void;
   clearAuth: () => void;
 }
 

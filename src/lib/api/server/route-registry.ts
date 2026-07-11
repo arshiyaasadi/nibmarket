@@ -46,15 +46,11 @@ import {
   leaderboardMySubsetsHandler,
   leaderboardPoolBalanceHandler,
 } from "./handlers/leaderboard.handler";
-import {
-  missionsActivityHandler,
-  missionsListHandler,
-} from "./handlers/missions.handler";
+import { missionsActivityHandler, missionsListHandler } from "./handlers/missions.handler";
 import {
   getInviteQuotaHandler,
   networkFundsHandler,
   networkInvitedHandler,
-  networkReferrerHandler,
   networkSubsetsHandler,
   networkTreeHandler,
   sendInviteHandler,
@@ -103,7 +99,6 @@ const CUSTOM_ROUTES: Record<string, RouteHandler> = {
 
   "GET:/network/subsets": networkSubsetsHandler,
   "GET:/network/tree": networkTreeHandler,
-  "GET:/network/referrer": networkReferrerHandler,
   "GET:/network/invited": networkInvitedHandler,
   "GET:/network/funds": networkFundsHandler,
   "GET:/network/invite-quota": getInviteQuotaHandler,
@@ -145,10 +140,7 @@ const CUSTOM_ROUTES: Record<string, RouteHandler> = {
   "POST:/admin/admins/assign": adminAdminsAssignHandler,
 };
 
-export function resolveHandler(
-  method: string,
-  segments: string[],
-): RouteHandler | null {
+export function resolveHandler(method: string, segments: string[]): RouteHandler | null {
   const path = `/${segments.join("/")}`;
   const key = `${method}:${path}`;
 
@@ -156,16 +148,37 @@ export function resolveHandler(
   if (CUSTOM_ROUTES[key]) return CUSTOM_ROUTES[key];
 
   // Admin dynamic routes
-  if (method === "PATCH" && segments[0] === "admin" && segments[1] === "users" && segments[3] === "status") {
+  if (
+    method === "PATCH" &&
+    segments[0] === "admin" &&
+    segments[1] === "users" &&
+    segments[3] === "status"
+  ) {
     return (req) => adminUserStatusHandler(req, segments[2]);
   }
-  if (method === "PATCH" && segments[0] === "admin" && segments[1] === "users" && segments[3] === "role") {
+  if (
+    method === "PATCH" &&
+    segments[0] === "admin" &&
+    segments[1] === "users" &&
+    segments[3] === "role"
+  ) {
     return (req) => adminUserRoleHandler(req, segments[2]);
   }
-  if (method === "PATCH" && segments[0] === "admin" && segments[1] === "missions" && segments.length === 3) {
+  if (
+    method === "PATCH" &&
+    segments[0] === "admin" &&
+    segments[1] === "missions" &&
+    segments.length === 3
+  ) {
     return (req) => adminMissionsUpdateHandler(req, segments[2]);
   }
-  if (method === "DELETE" && segments[0] === "admin" && segments[1] === "admins" && segments[2] === "revoke" && segments[3]) {
+  if (
+    method === "DELETE" &&
+    segments[0] === "admin" &&
+    segments[1] === "admins" &&
+    segments[2] === "revoke" &&
+    segments[3]
+  ) {
     return (req) => adminAdminsRevokeHandler(req, segments[3]);
   }
 

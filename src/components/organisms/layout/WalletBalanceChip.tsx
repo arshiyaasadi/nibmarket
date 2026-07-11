@@ -8,12 +8,15 @@ import { useRef, useState } from "react";
 import { Coins } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useDashboardWallet } from "@/features/dashboard/queries";
+import { useSession } from "@/hooks/use-session";
 import { PROJECT } from "@/config/project";
 import Link from "next/link";
 
 export function WalletBalanceChip() {
   const t = useTranslations("auth");
-  const { data: wallet } = useDashboardWallet();
+  const { wallet: sessionWallet } = useSession();
+  const { data: walletData } = useDashboardWallet();
+  const wallet = walletData ?? sessionWallet;
   const [show, setShow] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -37,28 +40,45 @@ export function WalletBalanceChip() {
     <div className="relative" onMouseEnter={onEnter} onMouseLeave={onLeave}>
       <Link
         href="/dashboard/wallet"
-        className="flex items-center gap-atom-md rounded-lg border-2 border-primary px-pad-atom-md py-pad-atom transition-colors hover:bg-primary/5"
+        className="gap-atom-md border-primary px-pad-atom-md py-pad-atom hover:bg-primary/5 flex items-center rounded-lg border-2 transition-colors"
       >
-        <Coins aria-hidden="true" className="size-4 shrink-0 text-primary" />
-        <span className="font-semibold tabular-nums text-primary text-sm">{fmt(available)}</span>
-        <span className="text-xs text-primary-700">{PROJECT.token.name}</span>
+        <Coins aria-hidden="true" className="text-primary size-4 shrink-0" />
+        <span className="text-primary text-sm font-semibold tabular-nums">{fmt(available)}</span>
+        <span className="text-primary-700 text-xs">{PROJECT.token.name}</span>
       </Link>
 
       {/* Hover popup */}
       <div
         className={[
-          "absolute end-0 top-full z-50 mt-atom-md w-64 rounded-xl border border-border bg-surface shadow-lg p-atom-md p-pad-mol",
+          "mt-atom-md border-border bg-surface p-atom-md p-pad-mol absolute end-0 top-full z-50 w-64 rounded-xl border shadow-lg",
           "transition-all duration-200",
-          show ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-1 pointer-events-none",
+          show
+            ? "pointer-events-auto translate-y-0 opacity-100"
+            : "pointer-events-none -translate-y-1 opacity-0",
         ].join(" ")}
         onMouseEnter={onEnter}
         onMouseLeave={onLeave}
       >
-        <div className="flex flex-col gap-atom-md divide-y divide-border overflow-hidden rounded-xl">
+        <div className="gap-atom-md divide-border flex flex-col divide-y overflow-hidden rounded-xl">
           <WalletRow label={t("walletBalance")} value={fmt(total)} unit={PROJECT.token.name} />
-          <WalletRow label={t("walletAvailable")} value={fmt(available)} unit={PROJECT.token.name} highlight />
-          <WalletRow label={t("walletFrozen")} value={fmt(frozen)} unit={PROJECT.token.name} muted />
-          <Link href="/dashboard/wallet" className="text-center px-pad-atom-md py-atom-md text-xs text-primary hover:text-primary-700">تراکنش ها</Link>
+          <WalletRow
+            label={t("walletAvailable")}
+            value={fmt(available)}
+            unit={PROJECT.token.name}
+            highlight
+          />
+          <WalletRow
+            label={t("walletFrozen")}
+            value={fmt(frozen)}
+            unit={PROJECT.token.name}
+            muted
+          />
+          <Link
+            href="/dashboard/wallet"
+            className="px-pad-atom-md py-atom-md text-primary hover:text-primary-700 text-center text-xs"
+          >
+            تراکنش ها
+          </Link>
         </div>
       </div>
     </div>
@@ -66,18 +86,28 @@ export function WalletBalanceChip() {
 }
 
 function WalletRow({
-  label, value, unit, highlight, muted,
+  label,
+  value,
+  unit,
+  highlight,
+  muted,
 }: {
-  label: string; value: string; unit: string; highlight?: boolean; muted?: boolean;
+  label: string;
+  value: string;
+  unit: string;
+  highlight?: boolean;
+  muted?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between px-pad-atom-md py-atom-md">
-      <span className="text-xs text-muted">{label}</span>
-      <span className={[
-        "text-sm font-semibold tabular-nums",
-        highlight ? "text-primary" : muted ? "text-warning" : "text-foreground",
-      ].join(" ")}>
-        {value} <span className="text-xs font-normal text-muted">{unit}</span>
+    <div className="px-pad-atom-md py-atom-md flex items-center justify-between">
+      <span className="text-muted text-xs">{label}</span>
+      <span
+        className={[
+          "text-sm font-semibold tabular-nums",
+          highlight ? "text-primary" : muted ? "text-warning" : "text-foreground",
+        ].join(" ")}
+      >
+        {value} <span className="text-muted text-xs font-normal">{unit}</span>
       </span>
     </div>
   );

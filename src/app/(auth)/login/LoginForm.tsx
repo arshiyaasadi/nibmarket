@@ -11,8 +11,8 @@ import { redirectToPanelLogin } from "@/config/auth-redirect";
 import { MOCK_PASSWORD } from "@/config/mock-hints";
 import { BFF_API_BASE } from "@/lib/api/endpoints";
 import { normalizeMobile, normalizeOtp, normalizeSearchInput } from "@/lib/normalization/digits";
+import { applyAuthSession } from "@/lib/auth/apply-session";
 import { OtpInput } from "./OtpInput";
-import type { UserRole } from "@/types/mlm";
 
 const OTP_EXPIRY = 120;
 
@@ -45,9 +45,10 @@ function isMobileValid(v: string) {
 
 export function LoginForm() {
   const t = useTranslations("auth");
+  const tErrors = useTranslations("errors");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setAuth } = useAuthActions();
+  const { setAuth, setWallet } = useAuthActions();
 
   const initialStep = (() => {
     const s = searchParams.get("step");
@@ -77,7 +78,11 @@ export function LoginForm() {
     if (step !== "otp" && step !== "register-otp" && step !== "forgot-otp") return;
     const id = setInterval(() => {
       setResendTimer((s) => {
-        if (s <= 1) { clearInterval(id); setCanResend(true); return 0; }
+        if (s <= 1) {
+          clearInterval(id);
+          setCanResend(true);
+          return 0;
+        }
         return s - 1;
       });
     }, 1000);
@@ -100,8 +105,32 @@ export function LoginForm() {
     setFieldErrors((prev) => ({ ...prev, [field]: msg }));
   }
   function clearError(field?: string) {
-    if (field) setFieldErrors((prev) => { const n = { ...prev }; delete n[field]; return n; });
+    if (field)
+      setFieldErrors((prev) => {
+        const n = { ...prev };
+        delete n[field];
+        return n;
+      });
     else setFieldErrors({});
+  }
+
+  function resolveFormError(
+    error: unknown,
+    fallback: string,
+    fieldFallback = "form",
+  ): { field: string; message: string } {
+    if (error instanceof FormApiError) {
+      if (error.status >= 500) {
+        return { field: "form", message: error.message || tErrors("serverError") };
+      }
+      return { field: fieldFallback, message: error.message || fallback };
+    }
+    return { field: fieldFallback, message: fallback };
+  }
+
+  function applyFormError(error: unknown, fallback: string, fieldFallback = "form") {
+    const { field, message } = resolveFormError(error, fallback, fieldFallback);
+    setError(field, message);
   }
 
   async function post(path: string, body: object) {
@@ -121,24 +150,8 @@ export function LoginForm() {
     return res.json();
   }
 
-  function onAuthSuccess(data: {
-    token: string; refreshToken: string; role: UserRole;
-    userId: string; fullName: string; mobile?: string;
-    email?: string; inviteCode?: string; referralCode?: string;
-    balance?: number; recentSessions?: unknown[];
-  }) {
-    setAuth({
-      token: data.token,
-      refreshToken: data.refreshToken,
-      role: data.role,
-      userId: data.userId,
-      fullName: data.fullName,
-      mobile: data.mobile,
-      email: data.email,
-      inviteCode: data.inviteCode ?? data.referralCode,
-      balance: data.balance,
-      recentSessions: (data.recentSessions as never[]) ?? [],
-    });
+  async function onAuthSuccess(data: unknown) {
+    await applyAuthSession(data, { setAuth, setWallet });
     router.push(searchParams.get("redirect") ?? ROUTES.DASHBOARD);
     router.refresh();
   }
@@ -146,10 +159,13 @@ export function LoginForm() {
   async function handlePhoneNext(e: React.FormEvent) {
     e.preventDefault();
     clearError();
-    if (!isMobileValid(mobile)) { setError("mobile", t("invalidMobile")); return; }
+    if (!isMobileValid(mobile)) {
+      setError("mobile", t("invalidMobile"));
+      return;
+    }
     setLoading(true);
     try {
-      const data = await post("/auth/check-mobile", { mobile }) as { exists: boolean };
+      const data = (await post("/auth/check-mobile", { mobile })) as { exists: boolean };
       if (data.exists) {
         setStep("password");
       } else {
@@ -157,8 +173,8 @@ export function LoginForm() {
         setOtpCode("");
         setStep("register-otp");
       }
-    } catch {
-      setError("mobile", t("invalidMobile"));
+    } catch (error) {
+      applyFormError(error, t("invalidMobile"), "mobile");
     } finally {
       setLoading(false);
     }
@@ -170,9 +186,9 @@ export function LoginForm() {
     setLoading(true);
     try {
       const data = await post("/auth/login", { mobile, password });
-      onAuthSuccess(data);
-    } catch {
-      setError("password", t("invalidCredentials"));
+      await onAuthSuccess(data);
+    } catch (error) {
+      applyFormError(error, t("invalidCredentials"), "password");
     } finally {
       setLoading(false);
     }
@@ -185,8 +201,8 @@ export function LoginForm() {
       await post(forgotMode ? "/auth/forgot/send" : "/auth/otp/send", { mobile });
       setOtpCode("");
       setStep(forgotMode ? "forgot-otp" : "otp");
-    } catch {
-      setError("otp", t("invalidCredentials"));
+    } catch (error) {
+      applyFormError(error, t("invalidCredentials"), "otp");
     } finally {
       setLoading(false);
     }
@@ -199,8 +215,8 @@ export function LoginForm() {
       await post("/auth/register/otp/send", { mobile });
       setOtpCode("");
       setStep("register-otp");
-    } catch {
-      setError("otp", t("invalidCredentials"));
+    } catch (error) {
+      applyFormError(error, t("invalidCredentials"), "otp");
     } finally {
       setLoading(false);
     }
@@ -209,13 +225,13 @@ export function LoginForm() {
   async function handleOtpVerify(e: React.FormEvent) {
     e.preventDefault();
     clearError();
-    if (otpCode.length < 6) return;
+    if (otpCode.length < 4) return;
     setLoading(true);
     try {
       const data = await post("/auth/otp/verify", { mobile, code: otpCode });
-      onAuthSuccess(data);
-    } catch {
-      setError("otp", t("invalidOtp"));
+      await onAuthSuccess(data);
+    } catch (error) {
+      applyFormError(error, t("invalidOtp"), "otp");
     } finally {
       setLoading(false);
     }
@@ -224,18 +240,18 @@ export function LoginForm() {
   async function handleRegisterOtpVerify(e: React.FormEvent) {
     e.preventDefault();
     clearError();
-    if (otpCode.length < 6) return;
+    if (otpCode.length < 4) return;
     setLoading(true);
     try {
-      const data = await post("/auth/register/otp/verify", { mobile, code: otpCode }) as {
+      const data = (await post("/auth/register/otp/verify", { mobile, code: otpCode })) as {
         registrationToken: string;
       };
       setRegistrationToken(data.registrationToken);
       setNewPassword(MOCK_PASSWORD);
       setConfirmPassword(MOCK_PASSWORD);
       setStep("register-password");
-    } catch {
-      setError("otp", t("invalidOtp"));
+    } catch (error) {
+      applyFormError(error, t("invalidOtp"), "otp");
     } finally {
       setLoading(false);
     }
@@ -244,7 +260,10 @@ export function LoginForm() {
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
     clearError();
-    if (newPassword !== confirmPassword) { setError("confirmPassword", t("passwordMismatch")); return; }
+    if (newPassword !== confirmPassword) {
+      setError("confirmPassword", t("passwordMismatch"));
+      return;
+    }
     setLoading(true);
     try {
       const data = await post("/auth/register", {
@@ -253,11 +272,10 @@ export function LoginForm() {
         registrationToken,
         referralCode: inviteCode || undefined,
       });
-      onAuthSuccess(data);
+      await onAuthSuccess(data);
     } catch (error) {
-      const errorText = error instanceof FormApiError
-        ? `${error.code} ${error.message}`.toLowerCase()
-        : "";
+      const errorText =
+        error instanceof FormApiError ? `${error.code} ${error.message}`.toLowerCase() : "";
 
       if (errorText.includes("referral")) {
         setError("inviteCode", t("invalidReferralCode"));
@@ -270,7 +288,7 @@ export function LoginForm() {
         return;
       }
 
-      setError("newPassword", t("registrationFailed"));
+      applyFormError(error, t("registrationFailed"), "newPassword");
     } finally {
       setLoading(false);
     }
@@ -279,13 +297,13 @@ export function LoginForm() {
   async function handleForgotOtpVerify(e: React.FormEvent) {
     e.preventDefault();
     clearError();
-    if (otpCode.length < 6) return;
+    if (otpCode.length < 4) return;
     setLoading(true);
     try {
       await post("/auth/forgot/verify", { mobile, code: otpCode });
       setStep("forgot-reset");
-    } catch {
-      setError("otp", t("invalidOtp"));
+    } catch (error) {
+      applyFormError(error, t("invalidOtp"), "otp");
     } finally {
       setLoading(false);
     }
@@ -294,13 +312,16 @@ export function LoginForm() {
   async function handleForgotReset(e: React.FormEvent) {
     e.preventDefault();
     clearError();
-    if (newPassword !== confirmPassword) { setError("confirmPassword", t("passwordMismatch")); return; }
+    if (newPassword !== confirmPassword) {
+      setError("confirmPassword", t("passwordMismatch"));
+      return;
+    }
     setLoading(true);
     try {
       await post("/auth/forgot/reset", { mobile, newPassword });
       setStep("forgot-done");
-    } catch {
-      setError("newPassword", t("invalidCredentials"));
+    } catch (error) {
+      applyFormError(error, t("invalidCredentials"), "newPassword");
     } finally {
       setLoading(false);
     }
@@ -309,40 +330,54 @@ export function LoginForm() {
   async function handleNibMarketLogin() {
     clearError();
     setLoading(true);
-    redirectToPanelLogin(searchParams.get("returnUrl") ?? searchParams.get("redirect") ?? ROUTES.DASHBOARD);
+    redirectToPanelLogin(
+      searchParams.get("returnUrl") ?? searchParams.get("redirect") ?? ROUTES.DASHBOARD,
+    );
   }
 
   // ─── Shared input class ──────────────────────────────────────
   const inputCls = (field: string) =>
     cn(
       "w-full h-control-h rounded-lg border-2 bg-surface px-pad-atom-md text-sm placeholder:text-xs placeholder:text-muted focus:outline-none transition-colors",
-      fieldErrors[field] ? "border-danger focus:border-danger" : "border-border focus:border-primary",
+      fieldErrors[field]
+        ? "border-danger focus:border-danger"
+        : "border-border focus:border-primary",
     );
 
   const fieldError = (field: string) =>
-    fieldErrors[field] ? (
-      <p className="text-xs text-danger">{fieldErrors[field]}</p>
-    ) : null;
+    fieldErrors[field] ? <p className="text-danger text-xs">{fieldErrors[field]}</p> : null;
+
+  const formError = fieldErrors.form ? (
+    <p
+      className="bg-danger/10 px-pad-atom-md py-atom-sm text-danger rounded-lg text-center text-sm"
+      role="alert"
+    >
+      {fieldErrors.form}
+    </p>
+  ) : null;
 
   // ─── Render ──────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col gap-pad-mol">
-
+    <div className="gap-pad-mol flex flex-col">
       {step === "phone" && (
-        <p className="text-center text-sm text-muted">{t("loginDescription")}</p>
+        <p className="text-muted text-center text-sm">{t("loginDescription")}</p>
       )}
 
       {/* ── Step: phone ── */}
       {step === "phone" && (
-        <form onSubmit={handlePhoneNext} className="flex flex-col gap-pad-mol">
-          <div className="flex flex-col gap-atom-md">
-            <label className="text-sm font-medium text-foreground">{t("mobile")}</label>
+        <form onSubmit={handlePhoneNext} className="gap-pad-mol flex flex-col">
+          {formError}
+          <div className="gap-atom-md flex flex-col">
+            <label className="text-foreground text-sm font-medium">{t("mobile")}</label>
             <input
               type="tel"
               inputMode="numeric"
               value={mobile}
-              onChange={(e) => { setMobile(normalizeMobile(e.target.value)); clearError("mobile"); }}
+              onChange={(e) => {
+                setMobile(normalizeMobile(e.target.value));
+                clearError("mobile");
+              }}
               placeholder={t("mobilePlaceholder")}
               dir="ltr"
               className={cn(inputCls("mobile"), "text-center tracking-widest")}
@@ -353,20 +388,20 @@ export function LoginForm() {
           <button
             type="button"
             onClick={() => setShowInviteCode((s) => !s)}
-            className="self-start text-xs text-primary hover:underline"
+            className="text-primary self-start text-xs hover:underline"
           >
             {t("haveInviteCode")}
           </button>
 
           {showInviteCode && (
-            <div className="flex flex-col gap-atom-md">
-              <label className="text-sm font-medium text-foreground">{t("inviteCode")}</label>
+            <div className="gap-atom-md flex flex-col">
+              <label className="text-foreground text-sm font-medium">{t("inviteCode")}</label>
               <input
                 type="text"
                 value={inviteCode}
                 onChange={(e) => setInviteCode(normalizeSearchInput(e.target.value).toUpperCase())}
                 dir="ltr"
-                className={cn(inputCls("inviteCode"), "uppercase tracking-widest")}
+                className={cn(inputCls("inviteCode"), "tracking-widest uppercase")}
               />
               {fieldError("inviteCode")}
             </div>
@@ -374,22 +409,22 @@ export function LoginForm() {
 
           <button
             type="submit"
-            className="w-full h-control-h rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary-600 disabled:opacity-50"
+            className="h-control-h bg-primary hover:bg-primary-600 w-full rounded-lg text-sm font-semibold text-white disabled:opacity-50"
           >
             {t("nextButton")}
           </button>
 
-          <div className="relative flex items-center gap-atom-md">
-            <div className="flex-1 border-t border-border" />
-            <span className="text-xs text-muted">{t("orSeparator")}</span>
-            <div className="flex-1 border-t border-border" />
+          <div className="gap-atom-md relative flex items-center">
+            <div className="border-border flex-1 border-t" />
+            <span className="text-muted text-xs">{t("orSeparator")}</span>
+            <div className="border-border flex-1 border-t" />
           </div>
 
           <button
             type="button"
             onClick={handleNibMarketLogin}
             disabled={loading}
-            className="flex w-full h-control-h items-center justify-center gap-atom-md rounded-lg border-2 border-primary bg-primary/5 text-sm font-semibold text-primary hover:bg-primary/10 disabled:opacity-50"
+            className="h-control-h gap-atom-md border-primary bg-primary/5 text-primary hover:bg-primary/10 flex w-full items-center justify-center rounded-lg border-2 text-sm font-semibold disabled:opacity-50"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -406,26 +441,40 @@ export function LoginForm() {
 
       {/* ── Step: OTP (registration) ── */}
       {step === "register-otp" && (
-        <form onSubmit={handleRegisterOtpVerify} className="flex flex-col gap-pad-mol">
-          <div className="flex items-center gap-atom-md">
-            <button type="button" onClick={() => setStep("phone")} className="text-muted hover:text-foreground">
+        <form onSubmit={handleRegisterOtpVerify} className="gap-pad-mol flex flex-col">
+          {formError}
+          <div className="gap-atom-md flex items-center">
+            <button
+              type="button"
+              onClick={() => setStep("phone")}
+              className="text-muted hover:text-foreground"
+            >
               <ChevronRight className="size-5" />
             </button>
-            <div className="flex flex-col gap-pad-atom-xs">
-              <p className="text-sm font-medium text-foreground">{t("registerTitle")}</p>
-              <p className="text-sm text-muted">{t("otpSentTo", { mobile })}</p>
+            <div className="gap-pad-atom-xs flex flex-col">
+              <p className="text-foreground text-sm font-medium">{t("registerTitle")}</p>
+              <p className="text-muted text-sm">{t("otpSentTo", { mobile })}</p>
             </div>
           </div>
 
-          <OtpInput value={otpCode} onChange={(value) => setOtpCode(normalizeOtp(value))} disabled={loading} />
+          <OtpInput
+            value={otpCode}
+            onChange={(value) => setOtpCode(normalizeOtp(value))}
+            disabled={loading}
+          />
           {fieldError("otp")}
 
-          <ResendButton canResend={canResend} timer={resendTimer} onResend={sendRegisterOtp} t={t} />
+          <ResendButton
+            canResend={canResend}
+            timer={resendTimer}
+            onResend={sendRegisterOtp}
+            t={t}
+          />
 
           <button
             type="submit"
-            disabled={loading || otpCode.length < 6}
-            className="w-full h-control-h rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary-600 disabled:opacity-50"
+            disabled={loading || otpCode.length < 4}
+            className="h-control-h bg-primary hover:bg-primary-600 w-full rounded-lg text-sm font-semibold text-white disabled:opacity-50"
           >
             {loading ? "..." : t("nextButton")}
           </button>
@@ -434,19 +483,27 @@ export function LoginForm() {
 
       {/* ── Step: registration password ── */}
       {step === "register-password" && (
-        <form onSubmit={handleRegister} className="flex flex-col gap-pad-mol">
-          <div className="flex items-center gap-atom-md">
-            <button type="button" onClick={() => setStep("register-otp")} className="text-muted hover:text-foreground">
+        <form onSubmit={handleRegister} className="gap-pad-mol flex flex-col">
+          {formError}
+          <div className="gap-atom-md flex items-center">
+            <button
+              type="button"
+              onClick={() => setStep("register-otp")}
+              className="text-muted hover:text-foreground"
+            >
               <ChevronRight className="size-5" />
             </button>
-            <p className="text-sm font-medium text-foreground">{t("registerPasswordTitle")}</p>
+            <p className="text-foreground text-sm font-medium">{t("registerPasswordTitle")}</p>
           </div>
 
           <PasswordField
             label={t("password")}
             field="newPassword"
             value={newPassword}
-            onChange={(v) => { setNewPassword(v); clearError("newPassword"); }}
+            onChange={(v) => {
+              setNewPassword(v);
+              clearError("newPassword");
+            }}
             visible={showRegisterPassword}
             onToggleVisible={() => setShowRegisterPassword((s) => !s)}
             inputCls={inputCls}
@@ -459,7 +516,10 @@ export function LoginForm() {
             label={t("registerConfirmPassword")}
             field="confirmPassword"
             value={confirmPassword}
-            onChange={(v) => { setConfirmPassword(v); clearError("confirmPassword"); }}
+            onChange={(v) => {
+              setConfirmPassword(v);
+              clearError("confirmPassword");
+            }}
             visible={showRegisterConfirm}
             onToggleVisible={() => setShowRegisterConfirm((s) => !s)}
             inputCls={inputCls}
@@ -468,14 +528,17 @@ export function LoginForm() {
             hidePasswordLabel={t("hidePassword")}
           />
 
-          <div className="flex flex-col gap-atom-md">
-            <label className="text-sm font-medium text-foreground">{t("inviteCode")}</label>
+          <div className="gap-atom-md flex flex-col">
+            <label className="text-foreground text-sm font-medium">{t("inviteCode")}</label>
             <input
               type="text"
               value={inviteCode}
-              onChange={(e) => { setInviteCode(normalizeSearchInput(e.target.value).toUpperCase()); clearError("inviteCode"); }}
+              onChange={(e) => {
+                setInviteCode(normalizeSearchInput(e.target.value).toUpperCase());
+                clearError("inviteCode");
+              }}
               dir="ltr"
-              className={cn(inputCls("inviteCode"), "uppercase tracking-widest")}
+              className={cn(inputCls("inviteCode"), "tracking-widest uppercase")}
             />
             {fieldError("inviteCode")}
           </div>
@@ -483,7 +546,7 @@ export function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-control-h rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary-600 disabled:opacity-50"
+            className="h-control-h bg-primary hover:bg-primary-600 w-full rounded-lg text-sm font-semibold text-white disabled:opacity-50"
           >
             {loading ? "..." : t("registerButton")}
           </button>
@@ -492,21 +555,31 @@ export function LoginForm() {
 
       {/* ── Step: password ── */}
       {step === "password" && (
-        <form onSubmit={handlePasswordLogin} className="flex flex-col gap-pad-mol">
-          <div className="flex items-center gap-atom-md">
-            <button type="button" onClick={() => setStep("phone")} className="text-muted hover:text-foreground">
+        <form onSubmit={handlePasswordLogin} className="gap-pad-mol flex flex-col">
+          {formError}
+          <div className="gap-atom-md flex items-center">
+            <button
+              type="button"
+              onClick={() => setStep("phone")}
+              className="text-muted hover:text-foreground"
+            >
               <ChevronRight className="size-5" />
             </button>
-            <span className="text-sm text-muted" dir="ltr">{mobile}</span>
+            <span className="text-muted text-sm" dir="ltr">
+              {mobile}
+            </span>
           </div>
 
-          <div className="flex flex-col gap-atom-md">
-            <label className="text-sm font-medium text-foreground">{t("password")}</label>
+          <div className="gap-atom-md flex flex-col">
+            <label className="text-foreground text-sm font-medium">{t("password")}</label>
             <div className="relative" dir="rtl">
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); clearError("password"); }}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  clearError("password");
+                }}
                 dir="ltr"
                 className={cn(inputCls("password"), "ps-pad-addon")}
               />
@@ -514,7 +587,7 @@ export function LoginForm() {
                 type="button"
                 onClick={() => setShowPassword((s) => !s)}
                 tabIndex={-1}
-                className="absolute inset-y-0 start-0 flex items-center ps-pad-atom-md text-muted hover:text-foreground"
+                className="ps-pad-atom-md text-muted hover:text-foreground absolute inset-y-0 start-0 flex items-center"
               >
                 {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
               </button>
@@ -526,7 +599,7 @@ export function LoginForm() {
             <button
               type="button"
               onClick={() => sendOtp(true)}
-              className="text-xs text-muted hover:text-primary hover:underline"
+              className="text-muted hover:text-primary text-xs hover:underline"
             >
               {t("forgotPassword")}
             </button>
@@ -534,7 +607,7 @@ export function LoginForm() {
               type="button"
               onClick={() => sendOtp(false)}
               disabled={loading}
-              className="text-xs text-primary hover:underline"
+              className="text-primary text-xs hover:underline"
             >
               {t("loginWithOtp")}
             </button>
@@ -543,7 +616,7 @@ export function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-control-h rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary-600 disabled:opacity-50"
+            className="h-control-h bg-primary hover:bg-primary-600 w-full rounded-lg text-sm font-semibold text-white disabled:opacity-50"
           >
             {loading ? "..." : t("loginButton")}
           </button>
@@ -552,23 +625,33 @@ export function LoginForm() {
 
       {/* ── Step: OTP (login) ── */}
       {step === "otp" && (
-        <form onSubmit={handleOtpVerify} className="flex flex-col gap-pad-mol">
-          <div className="flex items-center gap-atom-md">
-            <button type="button" onClick={() => setStep("password")} className="text-muted hover:text-foreground">
+        <form onSubmit={handleOtpVerify} className="gap-pad-mol flex flex-col">
+          {formError}
+          <div className="gap-atom-md flex items-center">
+            <button
+              type="button"
+              onClick={() => setStep("password")}
+              className="text-muted hover:text-foreground"
+            >
               <ChevronRight className="size-5" />
             </button>
-            <p className="text-sm text-muted">{t("otpSentTo", { mobile })}</p>
+            <p className="text-muted text-sm">{t("otpSentTo", { mobile })}</p>
           </div>
 
           <OtpInput value={otpCode} onChange={setOtpCode} disabled={loading} />
           {fieldError("otp")}
 
-          <ResendButton canResend={canResend} timer={resendTimer} onResend={() => sendOtp(false)} t={t} />
+          <ResendButton
+            canResend={canResend}
+            timer={resendTimer}
+            onResend={() => sendOtp(false)}
+            t={t}
+          />
 
           <button
             type="submit"
-            disabled={loading || otpCode.length < 6}
-            className="w-full h-control-h rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary-600 disabled:opacity-50"
+            disabled={loading || otpCode.length < 4}
+            className="h-control-h bg-primary hover:bg-primary-600 w-full rounded-lg text-sm font-semibold text-white disabled:opacity-50"
           >
             {loading ? "..." : t("loginButton")}
           </button>
@@ -577,25 +660,35 @@ export function LoginForm() {
 
       {/* ── Step: OTP (forgot password) ── */}
       {step === "forgot-otp" && (
-        <form onSubmit={handleForgotOtpVerify} className="flex flex-col gap-pad-mol">
-          <div className="flex items-center gap-atom-md">
-            <button type="button" onClick={() => setStep("password")} className="text-muted hover:text-foreground">
+        <form onSubmit={handleForgotOtpVerify} className="gap-pad-mol flex flex-col">
+          {formError}
+          <div className="gap-atom-md flex items-center">
+            <button
+              type="button"
+              onClick={() => setStep("password")}
+              className="text-muted hover:text-foreground"
+            >
               <ChevronRight className="size-5" />
             </button>
-            <p className="text-sm font-medium text-foreground">{t("forgotPasswordTitle")}</p>
+            <p className="text-foreground text-sm font-medium">{t("forgotPasswordTitle")}</p>
           </div>
 
-          <p className="text-center text-sm text-muted">{t("otpSentTo", { mobile })}</p>
+          <p className="text-muted text-center text-sm">{t("otpSentTo", { mobile })}</p>
 
           <OtpInput value={otpCode} onChange={setOtpCode} disabled={loading} />
           {fieldError("otp")}
 
-          <ResendButton canResend={canResend} timer={resendTimer} onResend={() => sendOtp(true)} t={t} />
+          <ResendButton
+            canResend={canResend}
+            timer={resendTimer}
+            onResend={() => sendOtp(true)}
+            t={t}
+          />
 
           <button
             type="submit"
-            disabled={loading || otpCode.length < 6}
-            className="w-full h-control-h rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary-600 disabled:opacity-50"
+            disabled={loading || otpCode.length < 4}
+            className="h-control-h bg-primary hover:bg-primary-600 w-full rounded-lg text-sm font-semibold text-white disabled:opacity-50"
           >
             {loading ? "..." : t("nextButton")}
           </button>
@@ -604,14 +697,20 @@ export function LoginForm() {
 
       {/* ── Step: new password ── */}
       {step === "forgot-reset" && (
-        <form onSubmit={handleForgotReset} className="flex flex-col gap-pad-mol">
-          <p className="text-center text-sm font-medium text-foreground">{t("forgotPasswordTitle")}</p>
+        <form onSubmit={handleForgotReset} className="gap-pad-mol flex flex-col">
+          {formError}
+          <p className="text-foreground text-center text-sm font-medium">
+            {t("forgotPasswordTitle")}
+          </p>
 
           <PasswordField
             label={t("newPassword")}
             field="newPassword"
             value={newPassword}
-            onChange={(v) => { setNewPassword(v); clearError("newPassword"); }}
+            onChange={(v) => {
+              setNewPassword(v);
+              clearError("newPassword");
+            }}
             visible={showResetPassword}
             onToggleVisible={() => setShowResetPassword((s) => !s)}
             inputCls={inputCls}
@@ -624,7 +723,10 @@ export function LoginForm() {
             label={t("resetConfirmPassword")}
             field="confirmPassword"
             value={confirmPassword}
-            onChange={(v) => { setConfirmPassword(v); clearError("confirmPassword"); }}
+            onChange={(v) => {
+              setConfirmPassword(v);
+              clearError("confirmPassword");
+            }}
             visible={showResetConfirm}
             onToggleVisible={() => setShowResetConfirm((s) => !s)}
             inputCls={inputCls}
@@ -636,7 +738,7 @@ export function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-control-h rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary-600 disabled:opacity-50"
+            className="h-control-h bg-primary hover:bg-primary-600 w-full rounded-lg text-sm font-semibold text-white disabled:opacity-50"
           >
             {loading ? "..." : t("submitReset")}
           </button>
@@ -645,15 +747,18 @@ export function LoginForm() {
 
       {/* ── Step: forgot done ── */}
       {step === "forgot-done" && (
-        <div className="flex flex-col items-center gap-pad-mol text-center">
-          <div className="flex size-16 items-center justify-center rounded-full bg-success/10 text-3xl text-success">
+        <div className="gap-pad-mol flex flex-col items-center text-center">
+          <div className="bg-success/10 text-success flex size-16 items-center justify-center rounded-full text-3xl">
             ✓
           </div>
-          <p className="text-sm font-medium text-foreground">{t("passwordResetSuccess")}</p>
+          <p className="text-foreground text-sm font-medium">{t("passwordResetSuccess")}</p>
           <button
             type="button"
-            onClick={() => { setStep("password"); setPassword(""); }}
-            className="w-full rounded-lg bg-primary py-atom-md text-sm font-semibold text-white hover:bg-primary-600"
+            onClick={() => {
+              setStep("password");
+              setPassword("");
+            }}
+            className="bg-primary py-atom-md hover:bg-primary-600 w-full rounded-lg text-sm font-semibold text-white"
           >
             {t("loginButton")}
           </button>
@@ -687,8 +792,8 @@ function PasswordField({
   hidePasswordLabel: string;
 }) {
   return (
-    <div className="flex flex-col gap-atom-md">
-      <label className="text-sm font-medium text-foreground">{label}</label>
+    <div className="gap-atom-md flex flex-col">
+      <label className="text-foreground text-sm font-medium">{label}</label>
       <div className="relative" dir="rtl">
         <input
           type={visible ? "text" : "password"}
@@ -703,30 +808,35 @@ function PasswordField({
           onClick={onToggleVisible}
           tabIndex={-1}
           aria-label={visible ? hidePasswordLabel : showPasswordLabel}
-          className="absolute inset-y-0 start-0 flex items-center ps-pad-atom-md text-muted hover:text-foreground"
+          className="ps-pad-atom-md text-muted hover:text-foreground absolute inset-y-0 start-0 flex items-center"
         >
           {visible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
         </button>
       </div>
-      {error ? <p className="text-xs text-danger">{error}</p> : null}
+      {error ? <p className="text-danger text-xs">{error}</p> : null}
     </div>
   );
 }
 
 function ResendButton({
-  canResend, timer, onResend, t,
+  canResend,
+  timer,
+  onResend,
+  t,
 }: {
-  canResend: boolean; timer: number;
-  onResend: () => void; t: (key: string, opts?: Record<string, string | number | Date>) => string;
+  canResend: boolean;
+  timer: number;
+  onResend: () => void;
+  t: (key: string, opts?: Record<string, string | number | Date>) => string;
 }) {
   return (
     <div className="text-center">
       {canResend ? (
-        <button type="button" onClick={onResend} className="text-xs text-primary hover:underline">
+        <button type="button" onClick={onResend} className="text-primary text-xs hover:underline">
           {t("resendCode")}
         </button>
       ) : (
-        <span className="text-xs text-muted">{t("resendIn", { seconds: timer })}</span>
+        <span className="text-muted text-xs">{t("resendIn", { seconds: timer })}</span>
       )}
     </div>
   );

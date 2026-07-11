@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getWalletSummary, getWalletTransactions } from "@/lib/db/repositories/wallet.repository";
+import { getWalletSummary, getWalletTransactions } from "@/lib/mock/repositories/wallet.repository";
 import { getTokenPriceHistory } from "@/lib/token-price/history";
 import { getCurrentUserId, unauthorized } from "@/lib/api/server/session";
 import type { WalletTxType } from "@/types/mlm";

@@ -35,3 +35,19 @@ export function redirectToPanelLogin(returnUrl?: string): void {
   storeReturnUrl(returnUrl);
   window.location.href = getPanelLoginUrl();
 }
+
+export function buildLoginRedirectUrl(returnUrl?: string): string {
+  const safeReturnUrl = sanitizeReturnUrl(returnUrl);
+  if (safeReturnUrl === ROUTES.DASHBOARD) return ROUTES.LOGIN;
+
+  const params = new URLSearchParams({
+    returnUrl: safeReturnUrl,
+    redirect: safeReturnUrl,
+  });
+  return `${ROUTES.LOGIN}?${params.toString()}`;
+}
+
+/** Local login page — use after logout or session expiry (not external SSO). */
+export function redirectToLocalLogin(returnUrl?: string): void {
+  window.location.href = buildLoginRedirectUrl(returnUrl);
+}

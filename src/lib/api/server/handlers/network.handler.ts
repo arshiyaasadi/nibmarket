@@ -4,11 +4,10 @@ import {
   getNetworkInvited,
   getNetworkSubsets,
   getNetworkTree,
-  getReferrerInfo,
   getInviteQuota,
   sendInviteLetter,
   submitReferrer,
-} from "@/lib/db/repositories/network.repository";
+} from "@/lib/mock/repositories/network.repository";
 
 export async function networkSubsetsHandler(req: Request): Promise<Response> {
   const userId = getCurrentUserId(req);
@@ -20,12 +19,6 @@ export async function networkTreeHandler(req: Request): Promise<Response> {
   const userId = getCurrentUserId(req);
   if (!userId) return unauthorized();
   return NextResponse.json(await getNetworkTree(userId));
-}
-
-export async function networkReferrerHandler(req: Request): Promise<Response> {
-  const userId = getCurrentUserId(req);
-  if (!userId) return unauthorized();
-  return NextResponse.json(await getReferrerInfo(userId));
 }
 
 export async function networkInvitedHandler(req: Request): Promise<Response> {
@@ -60,7 +53,10 @@ export async function sendInviteHandler(req: Request): Promise<Response> {
 
   if (!result.success) {
     const status = result.message === "LIMIT" ? 429 : 400;
-    return NextResponse.json({ message: result.message ?? "SEND_FAILED", remaining: result.remaining }, { status });
+    return NextResponse.json(
+      { message: result.message ?? "SEND_FAILED", remaining: result.remaining },
+      { status },
+    );
   }
   return NextResponse.json(result);
 }
@@ -77,7 +73,10 @@ export async function submitReferrerHandler(req: Request): Promise<Response> {
   const body = await req.json().catch(() => ({}));
   const result = await submitReferrer(userId, String(body.referralCode ?? body.inviteCode ?? ""));
   if (!result.success) {
-    return NextResponse.json({ message: result.message ?? "INVALID_REFERRAL_CODE" }, { status: 400 });
+    return NextResponse.json(
+      { message: result.message ?? "INVALID_REFERRAL_CODE" },
+      { status: 400 },
+    );
   }
   return NextResponse.json(result);
 }

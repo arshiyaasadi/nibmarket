@@ -12,6 +12,7 @@ export function useSession() {
   const email = useAuthSlice((s) => s.email);
   const inviteCode = useAuthSlice((s) => s.inviteCode);
   const balance = useAuthSlice((s) => s.balance);
+  const wallet = useAuthSlice((s) => s.wallet);
   const recentSessions = useAuthSlice((s) => s.recentSessions);
 
   return {
@@ -23,6 +24,7 @@ export function useSession() {
     email,
     inviteCode,
     balance,
+    wallet,
     recentSessions,
     isAuthenticated: !!token,
     logout: clearSessionLocally,
