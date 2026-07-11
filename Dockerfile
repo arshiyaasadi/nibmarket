@@ -5,19 +5,20 @@ ARG NODE_BASE_IMAGE=node:22-bookworm-slim
 FROM ${NODE_BASE_IMAGE} AS base
 WORKDIR /app
 RUN apt-get update -y \
-  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && apt-get install -y --no-install-recommends ca-certificates \
   && rm -rf /var/lib/apt/lists/*
+RUN corepack enable
 
 FROM base AS deps
-COPY package.json package-lock.json .npmrc ./
-RUN npm ci --include=optional --no-audit --no-fund
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
 
 FROM base AS development
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NODE_ENV=development
 EXPOSE 3000
-CMD ["npm", "run", "dev"]
+CMD ["yarn", "dev"]
 
 FROM base AS builder
 ARG GIT_COMMIT=unknown
@@ -50,14 +51,12 @@ ENV NODE_ENV=production \
   NEXT_PUBLIC_PANEL_LOGIN_URL=$NEXT_PUBLIC_PANEL_LOGIN_URL \
   NEXT_PUBLIC_SSO_ENTRY_COOKIE=$NEXT_PUBLIC_SSO_ENTRY_COOKIE \
   NEXT_PUBLIC_PANEL_PROFILE_URL=$NEXT_PUBLIC_PANEL_PROFILE_URL \
-  NEXT_PUBLIC_PANEL_USER_ACCOUNT_URL=$NEXT_PUBLIC_PANEL_USER_ACCOUNT_URL \
-  DATABASE_URL=postgresql://build:build@localhost:5432/build
+  NEXT_PUBLIC_PANEL_USER_ACCOUNT_URL=$NEXT_PUBLIC_PANEL_USER_ACCOUNT_URL
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npx prisma generate
-RUN npm run build
-RUN npm prune --omit=dev
+RUN yarn build
+RUN yarn install --frozen-lockfile --production=true
 
 FROM base AS production
 ENV NODE_ENV=production
@@ -73,4 +72,4 @@ USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
-CMD ["npm", "run", "start"]
+CMD ["yarn", "start"]
