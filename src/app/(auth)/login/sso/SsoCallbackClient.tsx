@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
-import { redirectToPanelLogin, sanitizeReturnUrl } from "@/config/auth-redirect";
+import { redirectToPanelLogin, resolveReturnUrl } from "@/config/auth-redirect";
 import { ROUTES } from "@/config/routes";
 import { exchangeSsoToken } from "@/lib/auth-exchange";
 import { useAuthActions } from "@/store/hooks/use-auth";
@@ -17,7 +17,7 @@ export function SsoCallbackClient() {
   const [error, setError] = useState<string | null>(null);
 
   const returnUrl = useMemo(
-    () => sanitizeReturnUrl(searchParams.get("returnUrl") ?? searchParams.get("redirect")),
+    () => resolveReturnUrl(searchParams.get("returnUrl") ?? searchParams.get("redirect")),
     [searchParams],
   );
 
@@ -53,21 +53,25 @@ export function SsoCallbackClient() {
   }, [returnUrl, router, searchParams, setAuth, t]);
 
   return (
-    <div className="flex flex-col items-center gap-pad-mol text-center">
-      <div className="flex size-12 items-center justify-center rounded-full bg-primary/10">
+    <div className="gap-pad-mol flex flex-col items-center text-center">
+      <div className="bg-primary/10 flex size-12 items-center justify-center rounded-full">
         {error ? (
-          <span className="text-xl font-bold text-danger">!</span>
+          <span className="text-danger text-xl font-bold">!</span>
         ) : (
-          <div className="size-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <div className="border-primary size-6 animate-spin rounded-full border-2 border-t-transparent" />
         )}
       </div>
 
       <div className="flex flex-col gap-2">
-        <h1 className="text-lg font-bold text-foreground">{t("ssoCallbackTitle")}</h1>
-        <p className="text-sm leading-6 text-muted">
+        <h1 className="text-foreground text-lg font-bold">{t("ssoCallbackTitle")}</h1>
+        <p className="text-muted text-sm leading-6">
           {error ? t("ssoMissingToken") : t("ssoCallbackLoading")}
         </p>
-        {error && <p className="text-xs text-danger" dir="ltr">{error}</p>}
+        {error && (
+          <p className="text-danger text-xs" dir="ltr">
+            {error}
+          </p>
+        )}
       </div>
 
       {error && (
@@ -75,13 +79,13 @@ export function SsoCallbackClient() {
           <button
             type="button"
             onClick={() => redirectToPanelLogin(returnUrl)}
-            className="w-full rounded-lg bg-primary py-atom-md text-sm font-semibold text-white hover:bg-primary-600"
+            className="bg-primary py-atom-md hover:bg-primary-600 w-full rounded-lg text-sm font-semibold text-white"
           >
             {t("ssoLoginAgain")}
           </button>
           <Link
             href={`${ROUTES.LOGIN}/token?returnUrl=${encodeURIComponent(returnUrl)}`}
-            className="w-full rounded-lg border border-border py-atom-md text-sm font-semibold text-primary hover:bg-primary/5"
+            className="border-border py-atom-md text-primary hover:bg-primary/5 w-full rounded-lg border text-sm font-semibold"
           >
             {t("ssoManualFallback")}
           </Link>

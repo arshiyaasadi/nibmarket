@@ -13,26 +13,29 @@ export function getSsoCallbackPath(): string {
 }
 
 export function getSsoCallbackUrl(): string {
-  return `${trimTrailingSlash(env.APP_URL)}${getSsoCallbackPath()}`;
+  const path = getSsoCallbackPath();
+  const normalizedPath = path.endsWith("/") ? path : `${path}/`;
+  return `${trimTrailingSlash(env.APP_URL)}${normalizedPath}`;
 }
 
-export function getPanelLoginUrl(returnUrl?: string): string {
-  const callback = new URL(getSsoCallbackUrl());
-  if (returnUrl) callback.searchParams.set("returnUrl", returnUrl);
+function appendCallbackUrl(base: string, callbackUrl: string): string {
+  const separator = base.includes("?") ? "&" : "?";
+  return `${base}${separator}callbackUrl=${callbackUrl}`;
+}
+
+export function getPanelLoginUrl(): string {
+  const callbackUrl = getSsoCallbackUrl();
 
   if (env.PANEL_LOGIN_URL) {
-    const url = new URL(env.PANEL_LOGIN_URL);
-    url.searchParams.set("callbackUrl", callback.toString());
-    return url.toString();
+    return appendCallbackUrl(env.PANEL_LOGIN_URL, callbackUrl);
   }
 
   if (!env.PANEL_BASE_URL) {
     return "/login/token";
   }
 
-  const baseUrl = trimTrailingSlash(env.PANEL_BASE_URL);
-  const separator = baseUrl.includes("?") ? "&" : "?";
-  return `${baseUrl}${separator}callbackUrl=${encodeURIComponent(callback.toString())}`;
+  const panelLoginUrl = `${trimTrailingSlash(env.PANEL_BASE_URL)}/login/`;
+  return appendCallbackUrl(panelLoginUrl, callbackUrl);
 }
 
 export function getPanelProfileUrl(): string | undefined {
