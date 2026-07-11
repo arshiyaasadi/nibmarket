@@ -32,7 +32,24 @@ const serverSchema = z.object({
     .transform((v) => parseInt(v, 10)),
 });
 
-function createServerEnv() {
+export type ServerEnv = z.infer<typeof serverSchema>;
+
+const BUILD_PLACEHOLDER: ServerEnv = {
+  API_SERVICE_MODE: "api",
+  BACKEND_API_BASE_URL: "https://api-club.nibdev.com",
+  BACKEND_API_VERSION: "v2",
+  AUTH_SECRET: "docker-build-placeholder-secret-32ch",
+  ACCESS_TOKEN_TTL_SECONDS: 900,
+  REFRESH_TOKEN_TTL_SECONDS: 2_592_000,
+};
+
+function isBuildPhase(): boolean {
+  return (
+    process.env.NEXT_PHASE === "phase-production-build" || process.env.NEXT_PHASE === "phase-export"
+  );
+}
+
+function createServerEnv(): ServerEnv {
   const parsed = serverSchema.safeParse({
     API_SERVICE_MODE: process.env.API_SERVICE_MODE,
     BACKEND_API_BASE_URL: process.env.BACKEND_API_BASE_URL,
@@ -52,4 +69,22 @@ function createServerEnv() {
   return parsed.data;
 }
 
-export const serverEnv = createServerEnv();
+let cachedServerEnv: ServerEnv | undefined;
+
+export function getServerEnv(): ServerEnv {
+  if (isBuildPhase()) {
+    return BUILD_PLACEHOLDER;
+  }
+
+  if (!cachedServerEnv) {
+    cachedServerEnv = createServerEnv();
+  }
+
+  return cachedServerEnv;
+}
+
+export const serverEnv: ServerEnv = new Proxy({} as ServerEnv, {
+  get(_target, prop: string | symbol) {
+    return Reflect.get(getServerEnv(), prop);
+  },
+});
