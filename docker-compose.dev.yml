@@ -8,8 +8,6 @@ services:
       context: .
       dockerfile: Dockerfile
       target: development
-      args:
-        NODE_BASE_IMAGE: ${NODE_BASE_IMAGE:-node:22-bookworm-slim}
     ports:
       - "3000:3000"
     volumes:

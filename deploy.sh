@@ -128,10 +128,6 @@ if [[ ! -f ".env" ]]; then
   fi
 fi
 
-export GIT_COMMIT="${SYNCED_COMMIT}"
-export GIT_COMMIT_FULL="$(git_sudo rev-parse HEAD)"
-export BUILD_TIME="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-
 echo "--- Building and starting containers (${COMPOSE_PATH})"
 echo "${SUDO_PASS}" | sudo -S docker compose -f "${COMPOSE_PATH}" up -d --build --remove-orphans
 

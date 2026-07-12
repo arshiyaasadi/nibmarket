@@ -51,7 +51,7 @@ SUPER_ADMIN_PASSWORD=NibAdmin@1403
 
 ```env
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-NEXT_PUBLIC_APP_URL=https://club.nibdev.com
+NEXT_PUBLIC_APP_URL=https://api-club.nibdev.com
 NEXT_PUBLIC_APP_NAME=Nib Club
 NEXT_PUBLIC_SSO_CALLBACK_PATH=/login/sso
 NEXT_PUBLIC_PANEL_BASE_URL=https://panel.nibdev.com
