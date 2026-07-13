@@ -2,7 +2,7 @@
 // Update here when the project name, logo, or native token changes.
 
 export const PROJECT = {
-  name: "نیب کلاب",
+  name: "باشگاه مشتریان تامین سرمایه نوین",
   logoSrc: "/images/logo.svg",
   token: {
     name: "Twin",
