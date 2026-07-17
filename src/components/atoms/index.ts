@@ -10,6 +10,7 @@ export * from "./Dropdown";
 export * from "./EmptyState";
 export * from "./Input";
 export * from "./Label";
+export * from "./BottomSheetPanel";
 export * from "./Modal";
 export * from "./Pagination";
 export * from "./Progress";

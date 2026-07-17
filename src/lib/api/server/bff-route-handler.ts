@@ -2,6 +2,7 @@ import { isApiServiceMode } from "@/lib/api/server/services";
 import { proxyRequestToBackend } from "@/lib/api/server/services/backend-api-service";
 import { resolveHandler } from "@/lib/api/server/route-registry";
 import { proxyToBackend } from "@/lib/api/server/proxy-handler";
+import { tryHandleDevAdminAuth } from "@/lib/api/server/dev-admin-auth";
 import { sessionEstablishHandler } from "@/lib/api/server/handlers/auth.handler";
 import { internalServerError } from "@/lib/api/server/session";
 import { logger } from "@/lib/errors/logger";
@@ -23,6 +24,11 @@ export async function handleBffRequest(
     const localHandler = LOCAL_ONLY_ROUTES[routeKey];
     if (localHandler) {
       return await localHandler(req);
+    }
+
+    const devAdminResponse = await tryHandleDevAdminAuth(routeKey, req);
+    if (devAdminResponse) {
+      return devAdminResponse;
     }
 
     if (isApiServiceMode()) {

@@ -8,9 +8,8 @@ import { cn } from "@/lib/utils";
 import { useAuthActions } from "@/store/hooks/use-auth";
 import { ROUTES } from "@/config/routes";
 import { redirectToPanelLogin } from "@/config/auth-redirect";
-import { MOCK_PASSWORD } from "@/config/mock-hints";
 import { BFF_API_BASE } from "@/lib/api/endpoints";
-import { normalizeMobile, normalizeOtp, normalizeSearchInput } from "@/lib/normalization/digits";
+import { normalizeMobile, normalizeSearchInput } from "@/lib/normalization/digits";
 import { applyAuthSession } from "@/lib/auth/apply-session";
 import { OtpInput } from "./OtpInput";
 
@@ -20,8 +19,7 @@ const VALID_STEPS = [
   "phone",
   "password",
   "otp",
-  "register-otp",
-  "register-password",
+  "nib-market-required",
   "forgot-otp",
   "forgot-reset",
   "forgot-done",
@@ -37,6 +35,10 @@ class FormApiError extends Error {
     super(message);
     this.name = "FormApiError";
   }
+}
+
+function isNibMarketRequiredError(error: unknown): boolean {
+  return error instanceof FormApiError && error.code === "nib_market_required";
 }
 
 function isMobileValid(v: string) {
@@ -57,16 +59,13 @@ export function LoginForm() {
 
   const [step, setStepState] = useState<Step>(initialStep);
   const [mobile, setMobile] = useState("");
-  const [password, setPassword] = useState(MOCK_PASSWORD);
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
-  const [showRegisterConfirm, setShowRegisterConfirm] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showInviteCode, setShowInviteCode] = useState(false);
   const [inviteCode, setInviteCode] = useState("");
   const [otpCode, setOtpCode] = useState("");
-  const [registrationToken, setRegistrationToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -75,7 +74,7 @@ export function LoginForm() {
   const [canResend, setCanResend] = useState(false);
 
   useEffect(() => {
-    if (step !== "otp" && step !== "register-otp" && step !== "forgot-otp") return;
+    if (step !== "otp" && step !== "forgot-otp") return;
     const id = setInterval(() => {
       setResendTimer((s) => {
         if (s <= 1) {
@@ -90,7 +89,7 @@ export function LoginForm() {
   }, [step]);
 
   function setStep(next: Step) {
-    if (next === "otp" || next === "register-otp" || next === "forgot-otp") {
+    if (next === "otp" || next === "forgot-otp") {
       setResendTimer(OTP_EXPIRY);
       setCanResend(false);
     }
@@ -151,8 +150,9 @@ export function LoginForm() {
   }
 
   async function onAuthSuccess(data: unknown) {
-    await applyAuthSession(data, { setAuth, setWallet });
-    router.push(searchParams.get("redirect") ?? ROUTES.DASHBOARD);
+    const session = await applyAuthSession(data, { setAuth, setWallet });
+    const fallback = session.role === "admin" ? ROUTES.ADMIN.ROOT : ROUTES.DASHBOARD;
+    router.push(searchParams.get("redirect") ?? fallback);
     router.refresh();
   }
 
@@ -166,14 +166,18 @@ export function LoginForm() {
     setLoading(true);
     try {
       const data = (await post("/auth/check-mobile", { mobile })) as { exists: boolean };
-      if (data.exists) {
-        setStep("password");
-      } else {
-        await post("/auth/register/otp/send", { mobile });
-        setOtpCode("");
-        setStep("register-otp");
+      if (!data.exists) {
+        setStep("nib-market-required");
+        return;
       }
+      await post("/auth/otp/send", { mobile });
+      setOtpCode("");
+      setStep("otp");
     } catch (error) {
+      if (isNibMarketRequiredError(error)) {
+        setStep("nib-market-required");
+        return;
+      }
       applyFormError(error, t("invalidMobile"), "mobile");
     } finally {
       setLoading(false);
@@ -208,20 +212,6 @@ export function LoginForm() {
     }
   }
 
-  async function sendRegisterOtp() {
-    clearError();
-    setLoading(true);
-    try {
-      await post("/auth/register/otp/send", { mobile });
-      setOtpCode("");
-      setStep("register-otp");
-    } catch (error) {
-      applyFormError(error, t("invalidCredentials"), "otp");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   async function handleOtpVerify(e: React.FormEvent) {
     e.preventDefault();
     clearError();
@@ -232,63 +222,6 @@ export function LoginForm() {
       await onAuthSuccess(data);
     } catch (error) {
       applyFormError(error, t("invalidOtp"), "otp");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleRegisterOtpVerify(e: React.FormEvent) {
-    e.preventDefault();
-    clearError();
-    if (otpCode.length < 4) return;
-    setLoading(true);
-    try {
-      const data = (await post("/auth/register/otp/verify", { mobile, code: otpCode })) as {
-        registrationToken: string;
-      };
-      setRegistrationToken(data.registrationToken);
-      setNewPassword(MOCK_PASSWORD);
-      setConfirmPassword(MOCK_PASSWORD);
-      setStep("register-password");
-    } catch (error) {
-      applyFormError(error, t("invalidOtp"), "otp");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleRegister(e: React.FormEvent) {
-    e.preventDefault();
-    clearError();
-    if (newPassword !== confirmPassword) {
-      setError("confirmPassword", t("passwordMismatch"));
-      return;
-    }
-    setLoading(true);
-    try {
-      const data = await post("/auth/register", {
-        mobile,
-        password: newPassword,
-        registrationToken,
-        referralCode: inviteCode || undefined,
-      });
-      await onAuthSuccess(data);
-    } catch (error) {
-      const errorText =
-        error instanceof FormApiError ? `${error.code} ${error.message}`.toLowerCase() : "";
-
-      if (errorText.includes("referral")) {
-        setError("inviteCode", t("invalidReferralCode"));
-        return;
-      }
-
-      if (errorText.includes("already_registered")) {
-        setError("mobile", t("alreadyRegistered"));
-        setStep("password");
-        return;
-      }
-
-      applyFormError(error, t("registrationFailed"), "newPassword");
     } finally {
       setLoading(false);
     }
@@ -327,12 +260,16 @@ export function LoginForm() {
     }
   }
 
-  async function handleNibMarketLogin() {
+  function handleNibMarketRedirect() {
     clearError();
-    setLoading(true);
     redirectToPanelLogin(
       searchParams.get("returnUrl") ?? searchParams.get("redirect") ?? ROUTES.DASHBOARD,
     );
+  }
+
+  async function handleNibMarketLogin() {
+    setLoading(true);
+    handleNibMarketRedirect();
   }
 
   // ─── Shared input class ──────────────────────────────────────
@@ -439,10 +376,9 @@ export function LoginForm() {
         </form>
       )}
 
-      {/* ── Step: OTP (registration) ── */}
-      {step === "register-otp" && (
-        <form onSubmit={handleRegisterOtpVerify} className="gap-pad-mol flex flex-col">
-          {formError}
+      {/* ── Step: Nib Market registration required ── */}
+      {step === "nib-market-required" && (
+        <div className="gap-pad-mol flex flex-col">
           <div className="gap-atom-md flex items-center">
             <button
               type="button"
@@ -451,106 +387,46 @@ export function LoginForm() {
             >
               <ChevronRight className="size-5" />
             </button>
-            <div className="gap-pad-atom-xs flex flex-col">
-              <p className="text-foreground text-sm font-medium">{t("registerTitle")}</p>
-              <p className="text-muted text-sm">{t("otpSentTo", { mobile })}</p>
-            </div>
+            <p className="text-foreground text-sm font-medium">{t("nibMarketRequiredTitle")}</p>
           </div>
 
-          <OtpInput
-            value={otpCode}
-            onChange={(value) => setOtpCode(normalizeOtp(value))}
-            disabled={loading}
-          />
-          {fieldError("otp")}
+          <p className="text-muted text-center text-sm" dir="ltr">
+            {mobile}
+          </p>
 
-          <ResendButton
-            canResend={canResend}
-            timer={resendTimer}
-            onResend={sendRegisterOtp}
-            t={t}
-          />
+          <p className="text-muted text-center text-sm leading-relaxed">
+            {t("nibMarketRequiredDescription")}
+          </p>
 
           <button
-            type="submit"
-            disabled={loading || otpCode.length < 4}
-            className="h-control-h bg-primary hover:bg-primary-600 w-full rounded-lg text-sm font-semibold text-white disabled:opacity-50"
+            type="button"
+            onClick={handleNibMarketRedirect}
+            className="h-control-h bg-primary hover:bg-primary-600 w-full rounded-lg text-sm font-semibold text-white"
           >
-            {loading ? "..." : t("nextButton")}
+            {t("registerInNibMarket")}
           </button>
-        </form>
-      )}
 
-      {/* ── Step: registration password ── */}
-      {step === "register-password" && (
-        <form onSubmit={handleRegister} className="gap-pad-mol flex flex-col">
-          {formError}
-          <div className="gap-atom-md flex items-center">
-            <button
-              type="button"
-              onClick={() => setStep("register-otp")}
-              className="text-muted hover:text-foreground"
-            >
-              <ChevronRight className="size-5" />
-            </button>
-            <p className="text-foreground text-sm font-medium">{t("registerPasswordTitle")}</p>
+          <div className="gap-atom-md relative flex items-center">
+            <div className="border-border flex-1 border-t" />
+            <span className="text-muted text-xs">{t("orSeparator")}</span>
+            <div className="border-border flex-1 border-t" />
           </div>
 
-          <PasswordField
-            label={t("password")}
-            field="newPassword"
-            value={newPassword}
-            onChange={(v) => {
-              setNewPassword(v);
-              clearError("newPassword");
-            }}
-            visible={showRegisterPassword}
-            onToggleVisible={() => setShowRegisterPassword((s) => !s)}
-            inputCls={inputCls}
-            error={fieldErrors.newPassword}
-            showPasswordLabel={t("showPassword")}
-            hidePasswordLabel={t("hidePassword")}
-          />
-
-          <PasswordField
-            label={t("registerConfirmPassword")}
-            field="confirmPassword"
-            value={confirmPassword}
-            onChange={(v) => {
-              setConfirmPassword(v);
-              clearError("confirmPassword");
-            }}
-            visible={showRegisterConfirm}
-            onToggleVisible={() => setShowRegisterConfirm((s) => !s)}
-            inputCls={inputCls}
-            error={fieldErrors.confirmPassword}
-            showPasswordLabel={t("showPassword")}
-            hidePasswordLabel={t("hidePassword")}
-          />
-
-          <div className="gap-atom-md flex flex-col">
-            <label className="text-foreground text-sm font-medium">{t("inviteCode")}</label>
-            <input
-              type="text"
-              value={inviteCode}
-              onChange={(e) => {
-                setInviteCode(normalizeSearchInput(e.target.value).toUpperCase());
-                clearError("inviteCode");
-              }}
-              dir="ltr"
-              className={cn(inputCls("inviteCode"), "tracking-widest uppercase")}
+          <button
+            type="button"
+            onClick={handleNibMarketRedirect}
+            className="h-control-h gap-atom-md border-primary bg-primary/5 text-primary hover:bg-primary/10 flex w-full items-center justify-center rounded-lg border-2 text-sm font-semibold"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/nib-market-logo.svg"
+              alt=""
+              aria-hidden="true"
+              className="h-5 w-auto shrink-0 brightness-0 invert"
             />
-            {fieldError("inviteCode")}
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="h-control-h bg-primary hover:bg-primary-600 w-full rounded-lg text-sm font-semibold text-white disabled:opacity-50"
-          >
-            {loading ? "..." : t("registerButton")}
+            {t("loginWithNibMarket")}
           </button>
-        </form>
+        </div>
       )}
 
       {/* ── Step: password ── */}
@@ -630,7 +506,7 @@ export function LoginForm() {
           <div className="gap-atom-md flex items-center">
             <button
               type="button"
-              onClick={() => setStep("password")}
+              onClick={() => setStep("phone")}
               className="text-muted hover:text-foreground"
             >
               <ChevronRight className="size-5" />
@@ -647,6 +523,17 @@ export function LoginForm() {
             onResend={() => sendOtp(false)}
             t={t}
           />
+
+          <div className="flex items-center justify-end">
+            <button
+              type="button"
+              onClick={() => setStep("password")}
+              disabled={loading}
+              className="text-primary text-xs hover:underline"
+            >
+              {t("loginWithPassword")}
+            </button>
+          </div>
 
           <button
             type="submit"

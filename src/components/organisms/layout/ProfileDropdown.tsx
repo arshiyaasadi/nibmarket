@@ -6,24 +6,15 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import {
-  LogOut,
-  UserCircle,
-  CheckCircle,
-  XCircle,
-  History,
-  Pencil,
-  X,
-  Check,
-  Link2,
-} from "lucide-react";
-import { Alert, Button, Input, Modal, ModalBody, Tabs } from "@/components/atoms";
+import { LogOut, UserCircle, History, Link2, ChevronRight, ExternalLink } from "lucide-react";
+import { BottomSheetPanel, Modal, ModalBody, Tabs } from "@/components/atoms";
 import { ThemeToggle } from "./ThemeToggle";
 import { performLogout } from "@/lib/auth/session";
 import { BFF_API_BASE } from "@/lib/api/endpoints";
+import { getPanelProfileUrl } from "@/config/sso";
 import { useSession } from "@/hooks/use-session";
-import { cn } from "@/lib/utils";
-import { normalizeSearchInput } from "@/lib/normalization/digits";
+import { useIsMobile } from "@/hooks/use-is-mobile";
+import { cn, formatDisplayDate, formatDisplayDateTime } from "@/lib/utils";
 import type { LoginActivity } from "@/types/mlm";
 
 type ProfileDetails = {
@@ -36,12 +27,17 @@ type ProfileDetails = {
   recentSessions: LoginActivity[];
 };
 
+type SheetView = "menu" | "info" | "sessions";
+
 export function ProfileDropdown() {
   const t = useTranslations("auth");
-  const { fullName, role } = useSession();
+  const isMobile = useIsMobile();
+  const { fullName, role, inviteCode } = useSession();
 
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetView, setSheetView] = useState<SheetView>("menu");
   const [activeTab, setActiveTab] = useState<"info" | "sessions">("info");
   const [profileDetails, setProfileDetails] = useState<ProfileDetails | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
@@ -62,11 +58,13 @@ export function ProfileDropdown() {
   }, []);
 
   function onEnter() {
+    if (isMobile) return;
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => setOpen(true), 120);
   }
 
   function onLeave() {
+    if (isMobile) return;
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => setOpen(false), 180);
   }
@@ -82,13 +80,66 @@ export function ProfileDropdown() {
   function openProfile(tab: "info" | "sessions" = "info") {
     setOpen(false);
     setActiveTab(tab);
-    setProfileOpen(true);
     void fetchProfile();
+
+    if (isMobile) {
+      setSheetView(tab === "sessions" ? "sessions" : "info");
+      setSheetOpen(true);
+      return;
+    }
+
+    setProfileOpen(true);
+  }
+
+  function openMobileMenu() {
+    setSheetView("menu");
+    setSheetOpen(true);
+  }
+
+  function closeSheet() {
+    setSheetOpen(false);
+    setTimeout(() => setSheetView("menu"), 250);
   }
 
   async function handleLogout() {
+    setOpen(false);
+    closeSheet();
     await performLogout();
   }
+
+  function handleIconClick() {
+    if (isMobile) {
+      openMobileMenu();
+      return;
+    }
+    openProfile("info");
+  }
+
+  const profileContent =
+    loadingProfile && !profileDetails ? (
+      <div className="flex h-24 items-center justify-center">
+        <div className="border-primary h-5 w-5 animate-spin rounded-full border-2 border-t-transparent" />
+      </div>
+    ) : (
+      <ProfileInfoTab
+        fullName={profileDetails?.fullName ?? fullName}
+        mobile={profileDetails?.mobile}
+        email={profileDetails?.email}
+        birthDate={profileDetails?.birthDate}
+        nationalId={profileDetails?.nationalId}
+        inviteCode={inviteCode}
+        role={role}
+      />
+    );
+
+  const sessionsContent = <SessionsTab recentSessions={profileDetails?.recentSessions ?? []} />;
+
+  const sheetTitle =
+    sheetView === "menu"
+      ? fullName || t("viewProfile")
+      : sheetView === "info"
+        ? t("profileTitle")
+        : t("sessionsTab");
 
   return (
     <>
@@ -96,27 +147,15 @@ export function ProfileDropdown() {
         <button
           type="button"
           aria-label={t("viewProfile")}
-          onClick={() => openProfile("info")}
+          onClick={handleIconClick}
           className="p-pad-atom text-muted hover:bg-surface-2 hover:text-foreground flex items-center justify-center rounded-lg transition-colors"
         >
           <UserCircle className="size-6" />
         </button>
 
-        {open && (
+        {!isMobile && open && (
           <div className="mt-atom-md border-border bg-surface absolute end-0 top-full z-50 w-72 overflow-hidden rounded-xl border shadow-lg">
-            <div className="gap-atom-md p-pad-mol border-border flex items-center border-b">
-              <div className="bg-primary/10 flex size-10 shrink-0 items-center justify-center rounded-full">
-                <UserCircle className="text-primary size-6" />
-              </div>
-              <div className="gap-pad-atom-xs flex min-w-0 flex-col">
-                <span className="text-foreground truncate text-sm font-semibold">{fullName}</span>
-                {role && role !== "client" && (
-                  <span className="text-muted text-xs">
-                    {role === "manager" ? t("roleManager") : t("roleAdmin")}
-                  </span>
-                )}
-              </div>
-            </div>
+            <ProfileMenuHeader fullName={fullName} role={role} />
 
             <div className="px-pad-mol py-pad-atom-md border-border flex items-center justify-between border-b">
               <span className="text-muted text-xs">{t("theme")}</span>
@@ -124,70 +163,165 @@ export function ProfileDropdown() {
             </div>
 
             <div className="p-pad-atom-md flex flex-col">
-              <button
-                type="button"
-                onClick={() => openProfile("info")}
-                className="gap-atom-md px-pad-atom-md py-atom-md text-foreground hover:bg-surface-2 flex items-center rounded-lg text-right text-sm transition-colors"
-              >
-                <UserCircle className="text-muted size-4 shrink-0" />
+              <MenuButton icon={UserCircle} onClick={() => openProfile("info")}>
                 {t("viewProfile")}
-              </button>
-              <button
-                type="button"
-                onClick={() => openProfile("sessions")}
-                className="gap-atom-md px-pad-atom-md py-atom-md text-foreground hover:bg-surface-2 flex items-center rounded-lg text-right text-sm transition-colors"
-              >
-                <History className="text-muted size-4 shrink-0" />
+              </MenuButton>
+              <MenuButton icon={History} onClick={() => openProfile("sessions")}>
                 {t("sessionsMenuItem")}
-              </button>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="gap-atom-md px-pad-atom-md py-atom-md text-danger hover:bg-danger/5 flex items-center rounded-lg text-right text-sm transition-colors"
-              >
-                <LogOut className="size-4 shrink-0" />
+              </MenuButton>
+              <MenuButton icon={LogOut} onClick={handleLogout} danger>
                 {t("logout")}
-              </button>
+              </MenuButton>
             </div>
           </div>
         )}
       </div>
 
-      <Modal
-        open={profileOpen}
-        onClose={() => setProfileOpen(false)}
-        title={t("profileTitle")}
-        size="md"
-      >
-        <ModalBody className="flex flex-col gap-4 pt-0">
-          <Tabs
-            items={[
-              { key: "info", label: t("profileInfoTab") },
-              { key: "sessions", label: t("sessionsTab") },
-            ]}
-            active={activeTab}
-            onChange={(key) => setActiveTab(key as "info" | "sessions")}
-          />
+      {isMobile && (
+        <BottomSheetPanel open={sheetOpen} onClose={closeSheet} title={sheetTitle}>
+          <div className="flex flex-col gap-5">
+            {sheetView !== "menu" && (
+              <button
+                type="button"
+                onClick={() => setSheetView("menu")}
+                className="text-muted hover:text-foreground flex items-center gap-1 self-start text-xs"
+              >
+                <ChevronRight className="size-4" />
+                {t("backButton")}
+              </button>
+            )}
 
-          {loadingProfile && !profileDetails ? (
-            <div className="flex h-24 items-center justify-center">
-              <div className="border-primary h-5 w-5 animate-spin rounded-full border-2 border-t-transparent" />
-            </div>
-          ) : activeTab === "info" ? (
-            <ProfileInfoTab
-              fullName={profileDetails?.fullName ?? fullName}
-              mobile={profileDetails?.mobile}
-              email={profileDetails?.email}
-              birthDate={profileDetails?.birthDate}
-              nationalId={profileDetails?.nationalId}
-              nibMarketLinked={profileDetails?.nibMarketLinked ?? false}
+            {sheetView === "menu" && (
+              <>
+                <ProfileMenuHeader fullName={fullName} role={role} compact />
+
+                <div className="border-border flex items-center justify-between rounded-2xl border px-4 py-3.5">
+                  <span className="text-muted text-sm">{t("theme")}</span>
+                  <ThemeToggle />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <MenuButton icon={UserCircle} onClick={() => openProfile("info")} sheet>
+                    {t("viewProfile")}
+                  </MenuButton>
+                  <MenuButton icon={History} onClick={() => openProfile("sessions")} sheet>
+                    {t("sessionsMenuItem")}
+                  </MenuButton>
+                  <MenuButton icon={LogOut} onClick={handleLogout} danger sheet>
+                    {t("logout")}
+                  </MenuButton>
+                </div>
+              </>
+            )}
+
+            {sheetView === "info" && profileContent}
+            {sheetView === "sessions" &&
+              (loadingProfile && !profileDetails ? (
+                <div className="flex h-24 items-center justify-center">
+                  <div className="border-primary h-5 w-5 animate-spin rounded-full border-2 border-t-transparent" />
+                </div>
+              ) : (
+                sessionsContent
+              ))}
+          </div>
+        </BottomSheetPanel>
+      )}
+
+      {!isMobile && (
+        <Modal
+          open={profileOpen}
+          onClose={() => setProfileOpen(false)}
+          title={t("profileTitle")}
+          size="md"
+        >
+          <ModalBody className="flex flex-col gap-3 pt-0">
+            <Tabs
+              items={[
+                { key: "info", label: t("profileInfoTab") },
+                { key: "sessions", label: t("sessionsTab") },
+              ]}
+              active={activeTab}
+              onChange={(key) => {
+                setActiveTab(key as "info" | "sessions");
+                if (key === "sessions" && !profileDetails) void fetchProfile();
+              }}
             />
-          ) : (
-            <SessionsTab recentSessions={profileDetails?.recentSessions ?? []} />
-          )}
-        </ModalBody>
-      </Modal>
+
+            {loadingProfile && !profileDetails ? (
+              <div className="flex h-24 items-center justify-center">
+                <div className="border-primary h-5 w-5 animate-spin rounded-full border-2 border-t-transparent" />
+              </div>
+            ) : activeTab === "info" ? (
+              profileContent
+            ) : (
+              sessionsContent
+            )}
+          </ModalBody>
+        </Modal>
+      )}
     </>
+  );
+}
+
+function ProfileMenuHeader({
+  fullName,
+  role,
+  compact,
+}: {
+  fullName: string | null | undefined;
+  role: string | null | undefined;
+  compact?: boolean;
+}) {
+  const t = useTranslations("auth");
+
+  return (
+    <div
+      className={cn(
+        "gap-atom-md border-border flex items-center border-b",
+        compact ? "pb-4" : "p-pad-mol",
+      )}
+    >
+      <div className="bg-primary/10 flex size-10 shrink-0 items-center justify-center rounded-full">
+        <UserCircle className="text-primary size-6" />
+      </div>
+      <div className="gap-pad-atom-xs flex min-w-0 flex-col">
+        <span className="text-foreground truncate text-sm font-semibold">{fullName}</span>
+        {role && role !== "client" && (
+          <span className="text-muted text-xs">
+            {role === "manager" ? t("roleManager") : t("roleAdmin")}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MenuButton({
+  icon: Icon,
+  children,
+  onClick,
+  danger,
+  sheet,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  children: React.ReactNode;
+  onClick: () => void;
+  danger?: boolean;
+  sheet?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "gap-atom-md flex items-center text-right text-sm transition-colors",
+        sheet ? "rounded-2xl px-4 py-3.5" : "px-pad-atom-md py-atom-md rounded-lg",
+        danger ? "text-danger hover:bg-danger/5" : "text-foreground hover:bg-surface-2",
+      )}
+    >
+      <Icon className={cn("size-4 shrink-0", !danger && "text-muted")} />
+      {children}
+    </button>
   );
 }
 
@@ -197,111 +331,83 @@ function ProfileInfoTab({
   email,
   birthDate,
   nationalId,
-  nibMarketLinked,
+  inviteCode,
+  role,
 }: {
   fullName: string | null | undefined;
   mobile?: string | null;
   email?: string | null;
   birthDate?: string | null;
   nationalId?: string | null;
-  nibMarketLinked: boolean;
+  inviteCode?: string | null;
+  role?: string | null;
 }) {
   const t = useTranslations("auth");
-  const [editing, setEditing] = useState(false);
-  const [draftName, setDraftName] = useState(fullName ?? "");
-  const [draftBirth, setDraftBirth] = useState(birthDate ?? "");
-  const [saved, setSaved] = useState(false);
+  const panelProfileUrl = getPanelProfileUrl();
 
-  async function handleSave() {
-    setSaved(true);
-    setEditing(false);
-    setTimeout(() => setSaved(false), 3000);
-  }
-
-  function handleCancel() {
-    setDraftName(fullName ?? "");
-    setDraftBirth(birthDate ?? "");
-    setEditing(false);
-  }
+  const fields = [
+    { label: t("profileFullName"), value: fullName ?? "" },
+    { label: t("profileMobile"), value: mobile ?? "", dir: "ltr" as const },
+    { label: t("profileEmail"), value: email ?? "", dir: "ltr" as const },
+    {
+      label: t("profileBirthDate"),
+      value: birthDate ? formatDisplayDate(birthDate) : "",
+      dir: "ltr" as const,
+    },
+    { label: t("profileNationalId"), value: nationalId ?? "", dir: "ltr" as const },
+    { label: t("profileInviteCode"), value: inviteCode ?? "", dir: "ltr" as const },
+    ...(role && role !== "client"
+      ? [
+          {
+            label: t("profileRole"),
+            value: role === "manager" ? t("roleManager") : t("roleAdmin"),
+          },
+        ]
+      : []),
+  ];
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex justify-end">
-        {!editing ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            startIcon={<Pencil className="size-3.5" />}
-            onClick={() => {
-              setDraftName(fullName ?? "");
-              setDraftBirth(birthDate ?? "");
-              setEditing(true);
-            }}
+    <div className="flex flex-col gap-3">
+      <dl className="divide-border/70 border-border/60 divide-y rounded-xl border">
+        {fields.map((field) => (
+          <ProfileField key={field.label} {...field} />
+        ))}
+      </dl>
+
+      <div className="bg-surface-2/50 border-border/60 flex flex-col gap-2.5 rounded-xl border px-3 py-3">
+        <p className="text-muted text-xs leading-relaxed">{t("profileEditOnNibMarketDesc")}</p>
+        {panelProfileUrl ? (
+          <a
+            href={panelProfileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-primary hover:bg-primary-600 flex h-9 items-center justify-center gap-1.5 rounded-lg text-xs font-semibold text-white transition-colors"
           >
-            {t("profileEditButton")}
-          </Button>
-        ) : (
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              startIcon={<X className="size-3.5" />}
-              onClick={handleCancel}
-            >
-              {t("profileCancelButton")}
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              startIcon={<Check className="size-3.5" />}
-              onClick={handleSave}
-            >
-              {t("profileSaveButton")}
-            </Button>
-          </div>
-        )}
+            <Link2 className="size-3.5" />
+            {t("profileGoToNibMarket")}
+            <ExternalLink className="size-3 opacity-70" />
+          </a>
+        ) : null}
       </div>
+    </div>
+  );
+}
 
-      {saved && <Alert variant="success">{t("profileSaved")}</Alert>}
-
-      <div className="flex flex-col gap-3">
-        <Input
-          label={t("profileFullName")}
-          value={editing ? draftName : (fullName ?? "")}
-          onChange={(e) => setDraftName(e.target.value)}
-          disabled={!editing}
-        />
-        <Input label={t("profileMobile")} value={mobile ?? ""} disabled dir="ltr" />
-        <Input label={t("profileEmail")} value={email ?? ""} disabled dir="ltr" />
-        <Input
-          label={t("profileBirthDate")}
-          value={editing ? draftBirth : birthDate || "—"}
-          onChange={(e) => setDraftBirth(normalizeSearchInput(e.target.value))}
-          disabled={!editing}
-          dir="ltr"
-        />
-        <Input
-          label={t("profileNationalId")}
-          value={nationalId || "—"}
-          disabled
-          dir="ltr"
-          hint={nationalId ? t("profileNationalIdLocked") : undefined}
-        />
-      </div>
-
-      {!nibMarketLinked && (
-        <div className="border-border flex flex-col gap-3 border-t pt-4">
-          <Alert variant="info" title={t("profileCompleteTitle")}>
-            {t("profileCompleteDesc")}
-          </Alert>
-          <Button type="button" fullWidth startIcon={<Link2 className="size-4" />}>
-            {t("profileConnectNibMarket")}
-          </Button>
-        </div>
-      )}
+function ProfileField({
+  label,
+  value,
+  dir,
+}: {
+  label: string;
+  value: string;
+  dir?: "ltr" | "rtl";
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 px-3 py-2">
+      <dt className="text-muted shrink-0 text-[11px]">{label}</dt>
+      <dd className="text-foreground min-w-0 truncate text-end text-xs font-medium" dir={dir}>
+        {value || "—"}
+      </dd>
     </div>
   );
 }
@@ -310,32 +416,35 @@ function SessionsTab({ recentSessions }: { recentSessions: LoginActivity[] }) {
   const t = useTranslations("auth");
 
   if (recentSessions.length === 0) {
-    return <p className="text-muted py-6 text-center text-sm">{t("noSessions")}</p>;
+    return <p className="text-muted py-4 text-center text-xs">{t("noSessions")}</p>;
   }
 
   return (
-    <ul className="divide-border max-h-72 divide-y overflow-y-auto">
+    <ul className="divide-border/70 border-border/60 max-h-[min(60vh,20rem)] divide-y overflow-y-auto rounded-xl border">
       {recentSessions.map((s) => (
-        <li key={s.id} className="flex items-start gap-3 py-3">
-          {s.status === "success" ? (
-            <CheckCircle className="text-success mt-0.5 size-4 shrink-0" />
-          ) : (
-            <XCircle className="text-danger mt-0.5 size-4 shrink-0" />
-          )}
+        <li key={s.id} className="flex items-center gap-2.5 px-3 py-2">
+          <span
+            className={cn(
+              "size-1.5 shrink-0 rounded-full",
+              s.status === "success" ? "bg-success" : "bg-danger",
+            )}
+            aria-hidden
+          />
           <div className="min-w-0 flex-1">
-            <p className="text-foreground text-sm font-medium">{s.device}</p>
-            <p className="text-muted text-xs" dir="ltr">
+            <p className="text-foreground text-xs font-medium tabular-nums" dir="ltr">
               {s.ip}
             </p>
-            <p className="text-muted text-xs">{s.createdAt}</p>
+            <p className="text-muted text-[11px] tabular-nums">
+              {formatDisplayDateTime(s.createdAt)}
+            </p>
           </div>
           <span
             className={cn(
-              "shrink-0 text-xs",
+              "shrink-0 text-[10px] font-medium",
               s.status === "success" ? "text-success" : "text-danger",
             )}
           >
-            {s.status === "success" ? "موفق" : "ناموفق"}
+            {s.status === "success" ? t("sessionSuccess") : t("sessionFailed")}
           </span>
         </li>
       ))}

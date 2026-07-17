@@ -7,6 +7,8 @@ import { useTranslations } from "next-intl";
 import { useNetworkSubsetTree } from "@/features/network/queries";
 import { SubmitReferrerModal } from "@/components/organisms/network/SubmitReferrerModal";
 import { Modal, ModalBody } from "@/components/atoms/Modal";
+import { useSession } from "@/hooks/use-session";
+import { hasReferrerRegisteredLocally } from "@/lib/storage/referrer-registration";
 import { cn } from "@/lib/utils";
 
 const NetworkOrgChart = dynamic(() => import("@/components/organisms/network/NetworkOrgChart"), {
@@ -36,18 +38,20 @@ export function NetworkTreeWidget({
   onInvite,
 }: NetworkTreeWidgetProps) {
   const t = useTranslations("network");
+  const { userId } = useSession();
   const resolvedTitle = title ?? t("treeWidgetTitle");
   const compact = !showTitle;
-  const { root, truncated, subsets, isLoading, isError, isFetching } = useNetworkSubsetTree();
+  const { root, truncated, isLoading, isError, isFetching } = useNetworkSubsetTree();
   const subsetsLoading = isLoading || isFetching;
   const [modalOpen, setModalOpen] = useState(false);
   const [showReferrerModal, setShowReferrerModal] = useState(false);
+  const [referrerSubmitted, setReferrerSubmitted] = useState(false);
+  const referrerRegistered = referrerSubmitted || hasReferrerRegisteredLocally(userId);
 
   const hasTree = Boolean(!isLoading && !isError && root && (root.children?.length ?? 0) > 0);
   const hasNoSubsets = Boolean(root && !(root.children?.length ?? 0));
-  // TODO(upline-referrer): نمایش نام/سطح معرف بالاسری — API اختصاصی upline بعداً اضافه شود
-  const hasReferrer = subsets.length > 0;
-  const canRegisterReferrer = hasNoSubsets && !subsetsLoading && !hasReferrer;
+  // TODO(backend-referrer-status): use dedicated upline/referrer API instead of localStorage
+  const canRegisterReferrer = hasNoSubsets && !subsetsLoading && !referrerRegistered;
 
   return (
     <>
@@ -129,7 +133,12 @@ export function NetworkTreeWidget({
         </Modal>
       )}
 
-      {showReferrerModal && <SubmitReferrerModal onClose={() => setShowReferrerModal(false)} />}
+      {showReferrerModal && (
+        <SubmitReferrerModal
+          onClose={() => setShowReferrerModal(false)}
+          onSuccess={() => setReferrerSubmitted(true)}
+        />
+      )}
     </>
   );
 }

@@ -26,6 +26,8 @@ import {
 import { MOCK_OTP } from "@/config/mock-hints";
 import { normalizeMobile, normalizeOtp } from "@/lib/normalization/digits";
 import { isSuperAdminId, SUPER_ADMIN } from "@/config/super-admin";
+import { isDevAdminId, isDevAdminMobile, isDevAdminOtp } from "@/config/dev-admin-auth";
+import { buildDevAdminAuthResponse, getDevAdminProfile } from "@/lib/api/server/dev-admin-auth";
 export { MOCK_OTP };
 
 function buildSuperAdminAuthResponse() {
@@ -100,7 +102,19 @@ export async function checkMobileHandler(req: Request): Promise<Response> {
   const mobile = normalizeMobile(String(body.mobile ?? ""));
   if (!mobile) return badRequest("mobile required");
   const user = await mobileExists(mobile);
-  return NextResponse.json({ exists: !!user, status: user?.status });
+  if (!user && isDevAdminMobile(mobile)) {
+    return NextResponse.json({ exists: true, status: "active" });
+  }
+  if (!user) {
+    return NextResponse.json(
+      {
+        error: "nib_market_required",
+        message: "ابتدا باید فرایند ثبت‌نام در نیب مارکت را کامل کنید.",
+      },
+      { status: 403 },
+    );
+  }
+  return NextResponse.json({ exists: true, status: user.status });
 }
 
 // POST /auth/login — password-based login
@@ -142,6 +156,9 @@ export async function profileHandler(req: Request): Promise<Response> {
       recentSessions: [],
     });
   }
+  if (isDevAdminId(userId)) {
+    return NextResponse.json(getDevAdminProfile());
+  }
   const profile = await getUserProfileDetails(userId);
   if (!profile) return unauthorized();
   return NextResponse.json(profile);
@@ -152,6 +169,9 @@ export async function otpSendHandler(req: Request): Promise<Response> {
   const { mobile } = await req.json().catch(() => ({ mobile: "" }));
   const normalizedMobile = normalizeMobile(String(mobile));
   if (!normalizedMobile) return badRequest("mobile required");
+  if (isDevAdminMobile(normalizedMobile)) {
+    return NextResponse.json({ success: true, expiresIn: 120 });
+  }
   const user = await findUserByLogin(normalizedMobile);
   if (!user) return unauthorized("User not found");
   return NextResponse.json({ success: true, expiresIn: 120 });
@@ -160,10 +180,13 @@ export async function otpSendHandler(req: Request): Promise<Response> {
 // POST /auth/otp/verify — verify OTP and return auth tokens
 export async function otpVerifyHandler(req: Request): Promise<Response> {
   const body = await req.json().catch(() => ({}));
-  if (normalizeOtp(String(body.code ?? "")) !== MOCK_OTP) return unauthorized("invalid_otp");
   const login = body.mobile
     ? normalizeMobile(String(body.mobile))
     : String(body.email ?? "").trim();
+  if (isDevAdminMobile(login) && isDevAdminOtp(String(body.code ?? ""))) {
+    return buildDevAdminAuthResponse();
+  }
+  if (normalizeOtp(String(body.code ?? "")) !== MOCK_OTP) return unauthorized("invalid_otp");
   const user = await findUserByLogin(login);
   if (!user) return unauthorized("User not found");
   return buildAuthResponse(user.id, req);

@@ -3,7 +3,8 @@
 /* ── IRANSans Font ───────────────────────────────────────────── */
 @font-face {
   font-family: "IRANSans";
-  src: url("/fonts/IRANSans/IRANSansWeb_Light.woff2") format("woff2"),
+  src:
+    url("/fonts/IRANSans/IRANSansWeb_Light.woff2") format("woff2"),
     url("/fonts/IRANSans/IRANSansWeb_Light.woff") format("woff");
   font-weight: 300;
   font-style: normal;
@@ -12,7 +13,8 @@
 
 @font-face {
   font-family: "IRANSans";
-  src: url("/fonts/IRANSans/IRANSansWeb_Regular.woff2") format("woff2"),
+  src:
+    url("/fonts/IRANSans/IRANSansWeb_Regular.woff2") format("woff2"),
     url("/fonts/IRANSans/IRANSansWeb_Regular.woff") format("woff");
   font-weight: 400;
   font-style: normal;
@@ -21,7 +23,8 @@
 
 @font-face {
   font-family: "IRANSans";
-  src: url("/fonts/IRANSans/IRANSansWeb_Bold.woff2") format("woff2"),
+  src:
+    url("/fonts/IRANSans/IRANSansWeb_Bold.woff2") format("woff2"),
     url("/fonts/IRANSans/IRANSansWeb_Bold.woff") format("woff");
   font-weight: 700;
   font-style: normal;
@@ -30,7 +33,8 @@
 
 @font-face {
   font-family: "IRANSans";
-  src: url("/fonts/IRANSans/IRANSansWeb_Black.woff2") format("woff2"),
+  src:
+    url("/fonts/IRANSans/IRANSansWeb_Black.woff2") format("woff2"),
     url("/fonts/IRANSans/IRANSansWeb_Black.woff") format("woff");
   font-weight: 900;
   font-style: normal;
@@ -71,7 +75,7 @@
   --text-9xl--line-height: 1;
 
   /* Primary — Dark Amethyst */
-  --color-primary-50:  #f1e8fc;
+  --color-primary-50: #f1e8fc;
   --color-primary-100: #e4d2f9;
   --color-primary-200: #c8a4f4;
   --color-primary-300: #ad77ee;
@@ -82,10 +86,10 @@
   --color-primary-800: #2f0b5b;
   --color-primary-900: #18062d;
   --color-primary-950: #100420;
-  --color-primary:     #761ce3;
+  --color-primary: #761ce3;
 
   /* Secondary — neutral purple-grey (no brand secondary defined) */
-  --color-secondary-50:  #f2f1f6;
+  --color-secondary-50: #f2f1f6;
   --color-secondary-100: #e5e3ed;
   --color-secondary-200: #c8c4da;
   --color-secondary-300: #aaa4c7;
@@ -95,59 +99,59 @@
   --color-secondary-700: #423f5e;
   --color-secondary-800: #2c2a3f;
   --color-secondary-900: #17161f;
-  --color-secondary:     #6f6a9e;
+  --color-secondary: #6f6a9e;
 
   /* Neutral — Light mode */
   --color-background: #ffffff;
-  --color-surface:    #F5F5F5;
-  --color-surface-2:  #f5f4f8;
-  --color-border:     #dddce8;
-  --color-muted:      #8b8ba8;
+  --color-surface: #f5f5f5;
+  --color-surface-2: #f5f4f8;
+  --color-border: #dddce8;
+  --color-muted: #8b8ba8;
   --color-foreground: #1a1020;
 
   /* Semantic */
-  --color-success:  #16a34a;
-  --color-warning:  #d97706;
-  --color-danger:   #dc2626;
-  --color-info:     #2563eb;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+  --color-info: #2563eb;
 
   /* Border radius */
-  --radius-sm:   0.25rem;
-  --radius:      0.5rem;
-  --radius-md:   0.75rem;
-  --radius-lg:   1rem;
-  --radius-xl:   1.5rem;
+  --radius-sm: 0.25rem;
+  --radius: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
   --radius-full: 9999px;
 
   /* ── Semantic Spacing Tokens ─────────────────────────────────── */
   /* Atom level (4–12px) */
-  --spacing-atom:        0.25rem;   /* 4px  — icon ↔ label gap */
-  --spacing-atom-md:     0.5rem;    /* 8px  — badge ↔ text gap */
-  --spacing-pad-atom:    0.375rem;  /* 6px  — button/chip inner padding */
-  --spacing-pad-atom-md: 0.75rem;   /* 12px — atom inner padding */
-  --spacing-pad-atom-xs: 0.125rem;  /* 2px  — micro padding */
+  --spacing-atom: 0.25rem; /* 4px  — icon ↔ label gap */
+  --spacing-atom-md: 0.5rem; /* 8px  — badge ↔ text gap */
+  --spacing-pad-atom: 0.375rem; /* 6px  — button/chip inner padding */
+  --spacing-pad-atom-md: 0.75rem; /* 12px — atom inner padding */
+  --spacing-pad-atom-xs: 0.125rem; /* 2px  — micro padding */
 
   /* Molecule level (16–32px) */
-  --spacing-mol:         1.4rem;      /* 16px — atoms-inside-molecule gap */
-  --spacing-mol-md:      1.8rem;    /* 24px — card grid / large button padding */
-  --spacing-pad-mol:     1.4rem;      /* 16px — molecule container padding */
-  --spacing-pad-mol-md:  2rem;      /* 32px — card/form block padding */
-  --spacing-stack-mol:   1.25rem;   /* 20px — vertical row spacing */
+  --spacing-mol: 1.4rem; /* 16px — atoms-inside-molecule gap */
+  --spacing-mol-md: 1.8rem; /* 24px — card grid / large button padding */
+  --spacing-pad-mol: 1.4rem; /* 16px — molecule container padding */
+  --spacing-pad-mol-md: 2rem; /* 32px — card/form block padding */
+  --spacing-stack-mol: 1.25rem; /* 20px — vertical row spacing */
 
   /* Organism level (32–80px) */
-  --spacing-org:         2rem;      /* 32px — molecules-inside-organism gap */
-  --spacing-org-md:      3rem;      /* 48px — section column gap */
-  --spacing-pad-org:     3rem;      /* 48px — section padding Y */
-  --spacing-pad-org-x:   4rem;      /* 64px — section padding X */
-  --spacing-stack-org:   5rem;      /* 80px — section ↔ section spacing */
+  --spacing-org: 2rem; /* 32px — molecules-inside-organism gap */
+  --spacing-org-md: 3rem; /* 48px — section column gap */
+  --spacing-pad-org: 3rem; /* 48px — section padding Y */
+  --spacing-pad-org-x: 4rem; /* 64px — section padding X */
+  --spacing-stack-org: 5rem; /* 80px — section ↔ section spacing */
 
   /* Utility */
-  --spacing-pad-addon:   2.25rem;   /* 36px — input/select icon-offset padding */
+  --spacing-pad-addon: 2.25rem; /* 36px — input/select icon-offset padding */
 
   /* Control height — inputs, buttons, selects */
-  --spacing-control-h:   3rem;      /* 48px — standard control height */
+  --spacing-control-h: 3rem; /* 48px — standard control height */
   --spacing-control-h-sm: 2.25rem; /* 36px — compact control height */
-  --spacing-control-h-lg: 3.5rem;  /* 56px — large control height */
+  --spacing-control-h-lg: 3.5rem; /* 56px — large control height */
 }
 
 /* ── Dark Mode Overrides ─────────────────────────────────────── */
@@ -156,39 +160,41 @@
 @media (prefers-color-scheme: dark) {
   :root:not(.light):not(.dark) {
     --color-background: #100420;
-    --color-surface:    #1a0f2e;
-    --color-surface-2:  #251840;
-    --color-border:     #3a2860;
-    --color-muted:      #9b8fbc;
+    --color-surface: #1a0f2e;
+    --color-surface-2: #251840;
+    --color-border: #3a2860;
+    --color-muted: #9b8fbc;
     --color-foreground: #ede9f8;
-    --color-primary:    #9149e9;
+    --color-primary: #9149e9;
   }
 }
 
 /* Explicit dark mode */
 html.dark {
   --color-background: #100420;
-  --color-surface:    #1a0f2e;
-  --color-surface-2:  #251840;
-  --color-border:     #3a2860;
-  --color-muted:      #9b8fbc;
+  --color-surface: #1a0f2e;
+  --color-surface-2: #251840;
+  --color-border: #3a2860;
+  --color-muted: #9b8fbc;
   --color-foreground: #ede9f8;
-  --color-primary:    #9149e9;
+  --color-primary: #9149e9;
 }
 
 /* Explicit light mode — force light even if OS is dark */
 html.light {
   --color-background: #ffffff;
-  --color-surface:    #F5F5F5;
-  --color-surface-2:  #f5f4f8;
-  --color-border:     #dddce8;
-  --color-muted:      #8b8ba8;
+  --color-surface: #f5f5f5;
+  --color-surface-2: #f5f4f8;
+  --color-border: #dddce8;
+  --color-muted: #8b8ba8;
   --color-foreground: #1a1020;
-  --color-primary:    #761ce3;
+  --color-primary: #761ce3;
 }
 
 /* ── Base ────────────────────────────────────────────────────── */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -203,4 +209,9 @@ body {
   color: var(--color-foreground);
   background-color: var(--color-background);
   -webkit-font-smoothing: antialiased;
+}
+
+/* ── Bottom sheet ───────────────────────────────────────────── */
+.nib-bottom-sheet {
+  font-family: var(--font-sans);
 }
