@@ -229,6 +229,7 @@ export async function refreshHandler(req: Request): Promise<Response> {
   const userId = refreshClaims?.sub;
   if (!userId) return unauthorized();
   if (isSuperAdminId(userId)) return buildSuperAdminAuthResponse();
+  if (isDevAdminId(userId)) return buildDevAdminAuthResponse();
   const user = await findUserById(userId);
   if (!user || user.status !== "active") return unauthorized();
   return buildAuthResponse(user.id, req, false);

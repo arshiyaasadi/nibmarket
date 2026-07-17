@@ -1,32 +1,40 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { X, Check } from "lucide-react";
 import { useSendInvite, useInviteQuota } from "@/features/network/queries";
+import { useSession } from "@/hooks/use-session";
 import { normalizeMobile } from "@/lib/normalization/digits";
+import { fillInviteTemplate, MOCK_INVITE_TEMPLATES } from "@/lib/network/invite-templates";
 import { fundsData } from "@/resources/data/funds";
 import { cn } from "@/lib/utils";
 
-type InviteStep = "form" | "fund" | "success";
+type InviteStep = "form" | "fund" | "message" | "success";
 
 function FundLogo({ title, image }: { title: string; image: string }) {
   const [failed, setFailed] = useState(false);
   if (failed) {
     return (
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-xs font-bold text-primary">
+      <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xs font-bold">
         {title.charAt(0)}
       </div>
     );
   }
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={image} alt={title} className="h-10 w-10 shrink-0 rounded-xl object-cover" onError={() => setFailed(true)} />
+    <img
+      src={image}
+      alt={title}
+      className="h-10 w-10 shrink-0 rounded-xl object-cover"
+      onError={() => setFailed(true)}
+    />
   );
 }
 
 export function InviteModal({ onClose }: { onClose: () => void }) {
   const t = useTranslations("network");
+  const { fullName } = useSession();
   const { data: quota } = useInviteQuota();
 
   const [step, setStep] = useState<InviteStep>("form");
@@ -36,9 +44,28 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
   const [mobile, setMobile] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedFund, setSelectedFund] = useState<string | null>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState(MOCK_INVITE_TEMPLATES[0].id);
   const [sendError, setSendError] = useState("");
 
   const { mutateAsync: sendInvite, isPending } = useSendInvite();
+
+  const inviterName = fullName?.trim() || t("inviteTemplateDefaultInviter");
+
+  const templates = useMemo(
+    () =>
+      MOCK_INVITE_TEMPLATES.map((tpl) => ({
+        id: tpl.id,
+        title: t(tpl.titleKey),
+        body: fillInviteTemplate(t(tpl.bodyKey), {
+          firstName: firstName.trim() || "…",
+          lastName: lastName.trim() || "…",
+          inviterName,
+        }),
+      })),
+    [t, firstName, lastName, inviterName],
+  );
+
+  const selectedTemplate = templates.find((tpl) => tpl.id === selectedTemplateId) ?? templates[0];
 
   const handleClose = useCallback(() => {
     setVisible(false);
@@ -47,7 +74,9 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") handleClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") handleClose();
+    };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [handleClose]);
@@ -61,12 +90,21 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
     return Object.keys(e).length === 0;
   };
 
-  const submitForm = () => { if (validateForm()) setStep("fund"); };
+  const submitForm = () => {
+    if (validateForm()) setStep("fund");
+  };
 
-  const submitInvite = async () => {
+  const goToMessageStep = () => {
     if (!selectedFund) return;
     setSendError("");
+    setStep("message");
+  };
+
+  const submitInvite = async () => {
+    if (!selectedFund || !selectedTemplateId) return;
+    setSendError("");
     try {
+      // Message template is UI-only for now; send payload unchanged.
       await sendInvite({ firstName, lastName, mobile, fundId: selectedFund });
       setStep("success");
     } catch (err: unknown) {
@@ -91,23 +129,32 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
     <div
       className="fixed inset-0 z-[300] flex items-center justify-center p-4 backdrop-blur-sm"
       style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
-      onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) handleClose();
+      }}
     >
       <div
-        className="w-full max-w-2xl overflow-hidden rounded-2xl border border-border bg-background shadow-2xl transition-all duration-200"
+        className="border-border bg-background w-full max-w-2xl overflow-hidden rounded-2xl border shadow-2xl transition-all duration-200"
         style={{ opacity: visible ? 1 : 0, transform: visible ? "scale(1)" : "scale(0.95)" }}
         dir="rtl"
       >
-        <div className="flex items-center justify-between border-b border-border px-6 py-4">
+        <div className="border-border flex items-center justify-between border-b px-6 py-4">
           <div>
-            <span className="font-bold text-foreground">{t("vipInviteModalTitle")}</span>
+            <span className="text-foreground font-bold">{t("vipInviteModalTitle")}</span>
             {quota && (
-              <p className="mt-0.5 text-xs text-muted">
-                {t("vipInviteQuota", { remaining: remaining.toLocaleString("fa-IR"), limit: quota.limit.toLocaleString("fa-IR") })}
+              <p className="text-muted mt-0.5 text-xs">
+                {t("vipInviteQuota", {
+                  remaining: remaining.toLocaleString("fa-IR"),
+                  limit: quota.limit.toLocaleString("fa-IR"),
+                })}
               </p>
             )}
           </div>
-          <button onClick={handleClose} className="rounded-lg p-1.5 text-muted transition hover:bg-surface hover:text-foreground">
+          <button
+            type="button"
+            onClick={handleClose}
+            className="text-muted hover:bg-surface hover:text-foreground rounded-lg p-1.5 transition"
+          >
             <X size={18} />
           </button>
         </div>
@@ -116,12 +163,12 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
           {step === "form" && (
             <div className="flex flex-col gap-5">
               {atLimit ? (
-                <div className="rounded-xl border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-foreground">
+                <div className="border-warning/30 bg-warning/5 text-foreground rounded-xl border px-4 py-3 text-sm">
                   {t("modalLimitError")}
                 </div>
               ) : (
                 <>
-                  <p className="text-sm text-muted">{t("vipInviteModalDesc")}</p>
+                  <p className="text-muted text-sm">{t("vipInviteModalDesc")}</p>
                   <div className="flex flex-col gap-3">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
@@ -129,18 +176,22 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
                           value={firstName}
                           onChange={(e) => setFirstName(e.target.value)}
                           placeholder={t("modalFirstName")}
-                          className="w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-primary focus:outline-none"
+                          className="border-border bg-surface text-foreground placeholder:text-muted focus:border-primary w-full rounded-xl border px-3 py-2.5 text-sm focus:outline-none"
                         />
-                        {errors.firstName && <p className="mt-1 text-xs text-red-500">{errors.firstName}</p>}
+                        {errors.firstName && (
+                          <p className="mt-1 text-xs text-red-500">{errors.firstName}</p>
+                        )}
                       </div>
                       <div>
                         <input
                           value={lastName}
                           onChange={(e) => setLastName(e.target.value)}
                           placeholder={t("modalLastName")}
-                          className="w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-primary focus:outline-none"
+                          className="border-border bg-surface text-foreground placeholder:text-muted focus:border-primary w-full rounded-xl border px-3 py-2.5 text-sm focus:outline-none"
                         />
-                        {errors.lastName && <p className="mt-1 text-xs text-red-500">{errors.lastName}</p>}
+                        {errors.lastName && (
+                          <p className="mt-1 text-xs text-red-500">{errors.lastName}</p>
+                        )}
                       </div>
                     </div>
                     <div>
@@ -149,14 +200,17 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
                         onChange={(e) => setMobile(normalizeMobile(e.target.value))}
                         placeholder={t("modalMobilePlaceholder")}
                         dir="ltr"
-                        className="w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-primary focus:outline-none"
+                        className="border-border bg-surface text-foreground placeholder:text-muted focus:border-primary w-full rounded-xl border px-3 py-2.5 text-sm focus:outline-none"
                       />
-                      {errors.mobile && <p className="mt-1 text-xs text-red-500">{errors.mobile}</p>}
+                      {errors.mobile && (
+                        <p className="mt-1 text-xs text-red-500">{errors.mobile}</p>
+                      )}
                     </div>
                   </div>
                   <button
+                    type="button"
                     onClick={submitForm}
-                    className="w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+                    className="bg-primary w-full rounded-xl py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
                   >
                     {t("modalContinue")}
                   </button>
@@ -167,11 +221,11 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
 
           {step === "fund" && (
             <div className="flex flex-col gap-4">
-              <p className="text-sm font-medium text-foreground">{t("modalStep2Title")}</p>
+              <p className="text-foreground text-sm font-medium">{t("modalStep2Title")}</p>
               <div className="flex max-h-64 flex-col gap-3 overflow-y-auto pe-1">
                 {fundsData.map((category) => (
                   <div key={category.id} className="flex flex-col gap-2">
-                    <p className="text-xs font-semibold text-muted">{category.categoryTitle}</p>
+                    <p className="text-muted text-xs font-semibold">{category.categoryTitle}</p>
                     {category.items.map((item) => {
                       const fundId = fundIdFromImage(item.image);
                       const selected = selectedFund === fundId;
@@ -182,13 +236,22 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
                           onClick={() => setSelectedFund(fundId)}
                           className={cn(
                             "flex items-center gap-3 rounded-xl border px-3 py-2.5 text-right transition",
-                            selected ? "border-primary bg-primary/5" : "border-border bg-surface hover:border-primary/50"
+                            selected
+                              ? "border-primary bg-primary/5"
+                              : "border-border bg-surface hover:border-primary/50",
                           )}
                         >
                           <FundLogo title={item.title} image={item.image} />
                           <div className="min-w-0 flex-1">
-                            <p className={cn("text-sm font-medium", selected ? "text-primary" : "text-foreground")}>{item.title}</p>
-                            <p className="mt-0.5 text-xs text-muted">{item.description}</p>
+                            <p
+                              className={cn(
+                                "text-sm font-medium",
+                                selected ? "text-primary" : "text-foreground",
+                              )}
+                            >
+                              {item.title}
+                            </p>
+                            <p className="text-muted mt-0.5 text-xs">{item.description}</p>
                           </div>
                         </button>
                       );
@@ -196,16 +259,87 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
                   </div>
                 ))}
               </div>
-              {sendError && <p className="text-xs text-red-500">{sendError}</p>}
               <div className="flex gap-2">
-                <button type="button" onClick={() => setStep("form")} className="flex-1 rounded-xl border border-border py-2.5 text-sm text-muted hover:text-foreground">
+                <button
+                  type="button"
+                  onClick={() => setStep("form")}
+                  className="border-border text-muted hover:text-foreground flex-1 rounded-xl border py-2.5 text-sm"
+                >
+                  {t("modalBack")}
+                </button>
+                <button
+                  type="button"
+                  onClick={goToMessageStep}
+                  disabled={!selectedFund}
+                  className="bg-primary flex-1 rounded-xl py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                >
+                  {t("modalContinue")}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === "message" && (
+            <div className="flex flex-col gap-4">
+              <div>
+                <p className="text-foreground text-sm font-medium">{t("modalStepMessageTitle")}</p>
+                <p className="text-muted mt-1 text-xs">{t("modalStepMessageDesc")}</p>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                {templates.map((tpl) => {
+                  const selected = selectedTemplateId === tpl.id;
+                  return (
+                    <button
+                      key={tpl.id}
+                      type="button"
+                      onClick={() => setSelectedTemplateId(tpl.id)}
+                      className={cn(
+                        "rounded-xl border px-3 py-3 text-right transition",
+                        selected
+                          ? "border-primary bg-primary/5"
+                          : "border-border bg-surface hover:border-primary/40",
+                      )}
+                    >
+                      <p
+                        className={cn(
+                          "text-sm font-semibold",
+                          selected ? "text-primary" : "text-foreground",
+                        )}
+                      >
+                        {tpl.title}
+                      </p>
+                      <p className="text-muted mt-1.5 line-clamp-2 text-xs leading-5 whitespace-pre-line">
+                        {tpl.body}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {selectedTemplate && (
+                <div className="border-border bg-surface-2/50 rounded-xl border px-3 py-3">
+                  <p className="text-foreground text-xs leading-6 whitespace-pre-line">
+                    {selectedTemplate.body}
+                  </p>
+                </div>
+              )}
+
+              {sendError && <p className="text-xs text-red-500">{sendError}</p>}
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setStep("fund")}
+                  className="border-border text-muted hover:text-foreground flex-1 rounded-xl border py-2.5 text-sm"
+                >
                   {t("modalBack")}
                 </button>
                 <button
                   type="button"
                   onClick={submitInvite}
                   disabled={!selectedFund || isPending}
-                  className="flex-1 rounded-xl bg-primary py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                  className="bg-primary flex-1 rounded-xl py-2.5 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   {isPending ? t("modalSending") : t("modalSendInvite")}
                 </button>
@@ -218,9 +352,13 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
                 <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
-              <p className="font-semibold text-foreground">{t("modalStep3Title")}</p>
-              <p className="text-sm text-muted">{t("modalStep3Desc")}</p>
-              <button type="button" onClick={handleClose} className="w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-white transition hover:opacity-90">
+              <p className="text-foreground font-semibold">{t("modalStep3Title")}</p>
+              <p className="text-muted text-sm">{t("modalStep3Desc")}</p>
+              <button
+                type="button"
+                onClick={handleClose}
+                className="bg-primary w-full rounded-xl py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+              >
                 {t("modalClose")}
               </button>
             </div>

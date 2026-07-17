@@ -7,6 +7,12 @@
 #   3) git fetch + reset --hard (no merge — avoids conflicts on server)
 #   4) bring containers up with docker compose (production)
 #
+# Zone (APP_ENV):
+#   - Default deploy host is nibdev → APP_ENV=development (nibdev URLs).
+#   - For nibmarket live: set APP_ENV=production in the server .env
+#     (or DEPLOY_APP_ENV=production when seeding a missing .env).
+#   - Changing APP_ENV requires a rebuild (this script always --build).
+#
 # Required local files (next to this script):
 #   sudo_pass.txt      — sudo password for the remote server
 #   git_credentials.txt — line 1: git username, line 2: git password/token
@@ -17,6 +23,8 @@ set -euo pipefail
 SSH_HOST="${DEPLOY_SSH_HOST:-pod1.nibdev.com}"
 PROJECT_DIR="${DEPLOY_PROJECT_DIR:-/opt/MLM_Front}"
 COMPOSE_FILE="${DEPLOY_COMPOSE_FILE:-docker-compose.prod.yml}"
+# Used only when seeding a missing .env on the server (development | production)
+DEPLOY_APP_ENV="${DEPLOY_APP_ENV:-development}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SUDO_PASS_FILE="${SCRIPT_DIR}/sudo_pass.txt"
@@ -51,6 +59,7 @@ ssh "${SSH_HOST}" \
   SUDO_PASS="${SUDO_PASS}" \
   PROJECT_DIR="${PROJECT_DIR}" \
   COMPOSE_FILE="${COMPOSE_FILE}" \
+  DEPLOY_APP_ENV="${DEPLOY_APP_ENV}" \
   'bash -s' <<'REMOTE_EOF'
 set -euo pipefail
 
@@ -115,18 +124,30 @@ if [[ ! -f "${COMPOSE_PATH}" ]]; then
 fi
 
 if [[ ! -f ".env" ]]; then
-  if [[ ! -f ".env.example" ]]; then
-    echo "Error: neither .env nor .env.example found after git sync"
-    exit 1
+  ENV_TEMPLATE=".env.example"
+  if [[ "${DEPLOY_APP_ENV}" == "production" ]]; then
+    ENV_TEMPLATE=".env.production.example"
   fi
-  echo "--- .env missing — copying from .env.example"
-  echo "Warning: update production secrets in ${PROJECT_DIR}/.env if this is first deploy"
-  if cp .env.example .env 2>/dev/null; then
+  if [[ ! -f "${ENV_TEMPLATE}" ]]; then
+    if [[ -f ".env.example" ]]; then
+      ENV_TEMPLATE=".env.example"
+    else
+      echo "Error: neither .env nor ${ENV_TEMPLATE} found after git sync"
+      exit 1
+    fi
+  fi
+  echo "--- .env missing — copying from ${ENV_TEMPLATE} (DEPLOY_APP_ENV=${DEPLOY_APP_ENV})"
+  echo "Warning: update AUTH_SECRET (and APP_ENV) in ${PROJECT_DIR}/.env if this is first deploy"
+  if cp "${ENV_TEMPLATE}" .env 2>/dev/null; then
     :
   else
-    echo "${SUDO_PASS}" | sudo -S cp .env.example .env
+    echo "${SUDO_PASS}" | sudo -S cp "${ENV_TEMPLATE}" .env
   fi
 fi
+
+APP_ENV_VALUE="$(grep -E '^APP_ENV=' .env 2>/dev/null | head -n1 | cut -d= -f2- || true)"
+APP_ENV_VALUE="${APP_ENV_VALUE:-development}"
+echo "--- APP_ENV=${APP_ENV_VALUE} (client URLs are baked at image build — rebuild required to change zone)"
 
 echo "--- Building and starting containers (${COMPOSE_PATH})"
 echo "${SUDO_PASS}" | sudo -S docker compose -f "${COMPOSE_PATH}" up -d --build --remove-orphans

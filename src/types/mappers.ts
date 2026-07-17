@@ -24,7 +24,9 @@ export function dateToIso(value: Date | string | null | undefined): string {
   return value instanceof Date ? value.toISOString() : value;
 }
 
-export function getFullName(profile?: { first_name: string | null; last_name: string | null } | null): string {
+export function getFullName(
+  profile?: { first_name: string | null; last_name: string | null } | null,
+): string {
   const fullName = `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim();
   return fullName || "کاربر";
 }
@@ -143,7 +145,7 @@ export function mapUserMissionStatus(status: string): MissionActivityStatus {
 }
 
 export function mapLeaderboardEntry(
-  row: { userId: string; fullName: string; tokens: number },
+  row: { userId: string; fullName: string; tokens: number; subsetCount?: number },
   index: number,
   currentUserId?: string,
 ): LeaderboardEntry {
@@ -154,5 +156,6 @@ export function mapLeaderboardEntry(
     tokens: row.tokens,
     period: "current",
     isSelf: row.userId === currentUserId,
+    subsetCount: row.subsetCount,
   };
 }

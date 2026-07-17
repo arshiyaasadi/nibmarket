@@ -6,10 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Check, Copy } from "lucide-react";
 import { SubsetDepositsWidget } from "@/components/molecules/SubsetDepositsWidget";
 import { ROUTES } from "@/config/routes";
-import {
-  useCommissionLevelRules,
-  useSubsetDepositTransactions,
-} from "@/features/subset-deposits/queries";
+import { useSubsetDepositTransactions } from "@/features/subset-deposits/queries";
 import { cn, formatDisplayDate, truncateIdentifier } from "@/lib/utils";
 import type { SubsetDepositStatus, SubsetDepositStatusFilter } from "@/types/mlm";
 
@@ -46,7 +43,6 @@ export function SubsetDepositsContent() {
     [router, searchParams],
   );
 
-  const { data: rules = [], isLoading: loadingRules } = useCommissionLevelRules();
   const {
     data: txPages,
     isLoading: loadingTx,
@@ -75,37 +71,7 @@ export function SubsetDepositsContent() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
-        <div className="flex min-h-0 flex-col lg:w-[55%]">
-          <SubsetDepositsWidget showDetailLink={false} />
-        </div>
-        <div className="border-border bg-surface flex min-h-0 flex-col rounded-2xl border p-5 lg:w-[45%]">
-          <div className="mb-4">
-            <h2 className="text-foreground text-sm font-semibold">{t("rulesTitle")}</h2>
-            <p className="text-muted mt-1 text-xs leading-6">{t("rulesDescription")}</p>
-          </div>
-
-          <div className="grid gap-2 sm:grid-cols-2">
-            {loadingRules
-              ? Array.from({ length: 5 }).map((_, index) => (
-                  <div key={index} className="bg-surface-2 h-12 animate-pulse rounded-xl" />
-                ))
-              : rules.map((rule) => (
-                  <div
-                    key={rule.level}
-                    className="border-border bg-background flex items-center justify-between gap-3 rounded-xl border px-3 py-2"
-                  >
-                    <span className="text-foreground text-xs font-medium">
-                      {t("levelGuide", { level: pn(rule.level) })}
-                    </span>
-                    <span className="bg-primary/10 text-primary rounded-full px-2.5 py-1 text-xs font-bold">
-                      {t("rateValue", { rate: pn(rule.ratePercent) })}
-                    </span>
-                  </div>
-                ))}
-          </div>
-        </div>
-      </div>
+      <SubsetDepositsWidget showDetailLink={false} showRulesLink expanded />
 
       <div className="flex flex-col gap-4">
         <h2 className="text-foreground text-base font-bold">{t("txTitle")}</h2>

@@ -282,11 +282,11 @@ or
 
 **Request Body:**
 ```json
-{ "mobile": "09123456789", "code": "12345" }
+{ "mobile": "09123456789", "code": "1234" }
 ```
 or
 ```json
-{ "email": "user@example.com", "code": "12345" }
+{ "email": "user@example.com", "code": "1234" }
 ```
 
 **Response `200`:** Same as `AuthResponse` (see login)
@@ -332,7 +332,7 @@ or
 
 **Request Body:**
 ```json
-{ "mobile": "09123456789", "code": "12345" }
+{ "mobile": "09123456789", "code": "1234" }
 ```
 
 **Response `200`:**
@@ -364,7 +364,7 @@ or
   "password": "secret123",
   "registrationToken": "<jwt>",
   "referralCode": "NIB123456",
-  "code": "12345"
+  "code": "1234"
 }
 ```
 
@@ -428,7 +428,7 @@ or
 
 **Request Body:**
 ```json
-{ "mobile": "09123456789", "code": "12345" }
+{ "mobile": "09123456789", "code": "1234" }
 ```
 
 **Response `200`:**

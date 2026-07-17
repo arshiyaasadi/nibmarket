@@ -5,10 +5,10 @@ import {
   getEmptyCompetitionHistory,
   getEmptyHonors,
   getLeaderboard,
+  getMySubsetsLeaderboard,
   getPoolBalance,
 } from "@/lib/mock/repositories/leaderboard.repository";
 import { getDashboardMissions } from "@/lib/mock/repositories/mission.repository";
-import { getNetworkSubsets } from "@/lib/mock/repositories/network.repository";
 
 export async function leaderboardPoolBalanceHandler(req: Request): Promise<Response> {
   const userId = getCurrentUserId(req);
@@ -19,13 +19,13 @@ export async function leaderboardPoolBalanceHandler(req: Request): Promise<Respo
 export async function leaderboardCurrentMonthHandler(req: Request): Promise<Response> {
   const userId = getCurrentUserId(req);
   if (!userId) return unauthorized();
-  return NextResponse.json(await getLeaderboard(userId, 20));
+  return NextResponse.json(await getLeaderboard(userId, 7));
 }
 
 export async function leaderboardMySubsetsHandler(req: Request): Promise<Response> {
   const userId = getCurrentUserId(req);
   if (!userId) return unauthorized();
-  return NextResponse.json(await getNetworkSubsets(userId));
+  return NextResponse.json(await getMySubsetsLeaderboard(userId, 7));
 }
 
 export async function leaderboardMissionsHandler(req: Request): Promise<Response> {

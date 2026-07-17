@@ -23,5 +23,5 @@ export async function walletTransactionsHandler(req: Request): Promise<Response>
 }
 
 export async function tokenPriceHandler(): Promise<Response> {
-  return NextResponse.json(getTokenPriceHistory(30));
+  return NextResponse.json(getTokenPriceHistory(7));
 }

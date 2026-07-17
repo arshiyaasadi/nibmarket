@@ -19,6 +19,14 @@ export function useLeaderboardCurrentMonth() {
   });
 }
 
+export function useLeaderboardMySubsets() {
+  return useQuery({
+    queryKey: ["leaderboard", "my-subsets"],
+    queryFn: () => LeaderboardService.getMySubsets(),
+    staleTime: 120_000,
+  });
+}
+
 export function useLeaderboardHonors() {
   return useQuery({
     queryKey: ["leaderboard", "honors"],

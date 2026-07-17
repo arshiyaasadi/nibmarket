@@ -27,7 +27,7 @@ export function OtpInput({ value, onChange, disabled }: OtpInputProps) {
     const char = normalizeOtp(raw).slice(-1);
     const next = digits.map((d, i) => (i === index ? char : d)).join("");
     onChange(next);
-    if (char && index < 5) focusAt(index + 1);
+    if (char && index < 3) focusAt(index + 1);
   }
 
   function handleKeyDown(index: number, e: React.KeyboardEvent<HTMLInputElement>) {
@@ -52,7 +52,7 @@ export function OtpInput({ value, onChange, disabled }: OtpInputProps) {
     const pasted = normalizeOtp(e.clipboardData.getData("text"));
     const next = Array.from({ length: 4 }, (_, i) => pasted[i] ?? "").join("");
     onChange(next);
-    focusAt(Math.min(pasted.length, 5));
+    focusAt(Math.min(pasted.length, 3));
   }
 
   return (

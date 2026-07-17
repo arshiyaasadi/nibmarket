@@ -4,6 +4,7 @@
   "viewTransactions": "مشاهده ریز تراکنش‌ها",
   "rulesTitle": "راهنمای رسوب",
   "rulesDescription": "درصد رسوب بر اساس سطح زیرمجموعه و قوانین فعال سیستم محاسبه می‌شود.",
+  "rulesLink": "قوانین رسوب",
   "levelGuide": "سطح {level}",
   "rateValue": "{rate}٪",
   "txTitle": "تراکنش‌های رسوبی",

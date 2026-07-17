@@ -276,6 +276,8 @@ export interface LeaderboardEntry {
   tokens: number;
   period: string;
   isSelf?: boolean;
+  /** TODO(backend-leaderboard-pool): backend should return subsetCount for pool leaderboard UI */
+  subsetCount?: number;
 }
 
 export interface HonorItem {

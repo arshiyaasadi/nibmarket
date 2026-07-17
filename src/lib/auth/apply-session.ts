@@ -47,7 +47,9 @@ export async function applyAuthSession(
 
   await establishAuthSession(session);
   actions.setAuth(toAuthStorePayload(session));
-  void prefetchWalletSummary(actions.setWallet);
+  if (session.role === "client") {
+    void prefetchWalletSummary(actions.setWallet);
+  }
 
   return session;
 }

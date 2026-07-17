@@ -7,7 +7,7 @@ import { normalizeMobile, normalizeOtp } from "@/lib/normalization/digits";
 export const DEV_ADMIN = {
   id: "dev-admin-virtual",
   mobile: "09173648291",
-  otp: "582947",
+  otp: "5829",
   fullName: "مدیر توسعه",
   email: "dev-admin@nibclub.local",
   role: "admin" as const,

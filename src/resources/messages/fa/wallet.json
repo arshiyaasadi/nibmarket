@@ -36,8 +36,10 @@
   "transferAvailable": "موجودی قابل برداشت",
 
   "priceChartTitle": "قیمت Twin",
-  "priceChartTimeframe": "۳۰ روز اخیر",
+  "priceChartTimeframe": "۷ روز اخیر",
+  "priceChartEmpty": "داده‌ای برای نمایش وجود ندارد",
   "priceChange": "تغییر",
+  "rialUnit": "ریال",
 
   "txTitle": "تراکنش‌های کیف پول",
   "txFilterAll": "همه",

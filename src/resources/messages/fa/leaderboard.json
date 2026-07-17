@@ -23,5 +23,12 @@
   "twin": "Twin",
   "honorsTitle": "افتخارات من",
   "noHonors": "هنوز افتخاری ثبت نشده است.",
-  "honorAchievedAt": "تاریخ"
+  "honorAchievedAt": "تاریخ",
+  "currentMonthBoardTitle": "لیدربورد ماه جاری",
+  "mySubsetsBoardTitle": "لیدربورد زیرمجموعه‌های من",
+  "colRank": "رتبه",
+  "colName": "نام و نام خانوادگی",
+  "colSubsetCount": "تعداد زیرمجموعه",
+  "colTokens": "مجموع Twin",
+  "boardEmpty": "داده‌ای برای نمایش وجود ندارد"
 }

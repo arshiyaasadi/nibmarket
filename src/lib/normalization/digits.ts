@@ -20,11 +20,13 @@ export function normalizeMobile(value: string): string {
 }
 
 export function normalizeOtp(value: string): string {
-  return digitsOnly(value).slice(0, 6);
+  return digitsOnly(value).slice(0, 4);
 }
 
 export function normalizeDecimalInput(value: string): string {
-  const normalized = toEnglishDigits(value).replace(/[٬,]/g, ".").replace(/[^\d.]/g, "");
+  const normalized = toEnglishDigits(value)
+    .replace(/[٬,]/g, ".")
+    .replace(/[^\d.]/g, "");
   const [head, ...tail] = normalized.split(".");
   return tail.length > 0 ? `${head}.${tail.join("")}` : head;
 }
