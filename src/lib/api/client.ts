@@ -8,8 +8,10 @@ const BFF_BASE = BFF_API_BASE;
 
 type RequestOptions = Omit<RequestInit, "body"> & { body?: unknown };
 
-function buildAuthHeaders(headers?: HeadersInit): HeadersInit {
-  const token = useAuthSlice.getState().token;
+const AUTH_ATTEMPT_PATHS = new Set(["/auth/login", "/admin/auth/login"]);
+
+function buildAuthHeaders(path: string, headers?: HeadersInit): HeadersInit {
+  const token = AUTH_ATTEMPT_PATHS.has(path) ? null : useAuthSlice.getState().token;
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -21,8 +23,6 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return requestInternal<T>(path, options, true);
 }
 
-const AUTH_ATTEMPT_PATHS = new Set(["/auth/login", "/admin/auth/login"]);
-
 async function requestInternal<T>(
   path: string,
   options: RequestOptions = {},
@@ -32,7 +32,7 @@ async function requestInternal<T>(
 
   const res = await fetch(`${BFF_BASE}${path}`, {
     credentials: "include",
-    headers: buildAuthHeaders(headers),
+    headers: buildAuthHeaders(path, headers),
     ...rest,
     ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
   });

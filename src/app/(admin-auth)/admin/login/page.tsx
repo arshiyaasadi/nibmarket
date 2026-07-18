@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
-import { ENDPOINTS } from "@/lib/api/endpoints";
+import { BFF_API_BASE, ENDPOINTS } from "@/lib/api/endpoints";
+import { clearSessionLocally } from "@/lib/auth/session";
 import { useAuthActions } from "@/store/hooks/use-auth";
 import { applyAuthSession } from "@/lib/auth/apply-session";
 import { DEV_ADMIN_LOGIN } from "@/config/mock-hints";
@@ -19,6 +20,14 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    clearSessionLocally();
+    void fetch(`${BFF_API_BASE}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    }).catch(() => {});
+  }, []);
 
   function clearError() {
     if (error) setError("");
