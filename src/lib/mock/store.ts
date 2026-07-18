@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { MOCK_PASSWORD } from "@/config/mock-hints";
 import {
   createDefaultMockUser,
+  createSeedMockUsers,
   MOCK_INVITED,
   MOCK_MISSIONS,
   MOCK_MISSION_ACTIVITY,
@@ -30,6 +31,9 @@ export async function ensureMockStore() {
   if (users.size > 0) return;
   const hash = await getDefaultPasswordHash();
   users.set(MOCK_USER_ID, createDefaultMockUser(hash));
+  for (const user of createSeedMockUsers(hash)) {
+    users.set(user.id, user);
+  }
 }
 
 export function getMockUsers() {
@@ -72,6 +76,12 @@ export async function addMockUser(input: {
     firstName: "کاربر",
     lastName: "جدید",
     balance: 0,
+    kycStatus: "none",
+    gender: "male",
+    birthDate: null,
+    nationalId: null,
+    nibMarketLinked: false,
+    createdAt: new Date().toISOString(),
   };
   users.set(id, user);
   return user;

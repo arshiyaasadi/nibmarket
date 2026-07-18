@@ -72,4 +72,48 @@ export const ENDPOINTS = {
     LIST: "/notifications",
     ACTIVITY: "/notifications/activity",
   },
+  ADMIN: {
+    AUTH: {
+      LOGIN: "/admin/auth/login",
+    },
+    STATS: "/admin/stats",
+    USERS: {
+      LIST: "/admin/users",
+      DEMOGRAPHICS: "/admin/users/demographics",
+      DETAIL: (userId: string) => `/admin/users/${userId}` as const,
+      UPDATE_STATUS: (userId: string) => `/admin/users/${userId}/status` as const,
+      UPDATE_ROLE: (userId: string) => `/admin/users/${userId}/role` as const,
+    },
+    NETWORK: {
+      CLOSURE: "/admin/network/closure",
+      INVITES_OVERVIEW: "/admin/network/invites/overview",
+      INVITES_LOG: "/admin/network/invites/log",
+      INVITE_TEMPLATES: "/admin/network/invite-templates",
+      CREATE_INVITE_TEMPLATE: "/admin/network/invite-templates",
+      UPDATE_INVITE_TEMPLATE: (templateId: string) =>
+        `/admin/network/invite-templates/${templateId}` as const,
+    },
+    MISSIONS: {
+      LIST: "/admin/missions/list",
+      OVERVIEW: "/admin/missions/overview",
+      JOBS_HEALTH: "/admin/missions/jobs/health",
+      COMPLETIONS: "/admin/missions/completions",
+      UPDATE_STATUS: (missionId: string) => `/admin/missions/${missionId}/status` as const,
+    },
+    TWIN: {
+      OVERVIEW: "/admin/twin/overview",
+      ALLOCATIONS: "/admin/twin/allocations",
+    },
+    POOL: {
+      OVERVIEW: "/admin/pool/overview",
+      PARTICIPANTS: "/admin/pool/participants",
+      PERIODS: "/admin/pool/periods",
+    },
+    SEDIMENT: {
+      OVERVIEW: "/admin/sediment/overview",
+      JOB: "/admin/sediment/job",
+      ASSETS: "/admin/sediment/assets",
+      DEPOSITS: "/admin/sediment/deposits",
+    },
+  },
 } as const;

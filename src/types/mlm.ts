@@ -222,6 +222,8 @@ export interface SendInviteRequest {
   mobile: string;
   fundId: string;
   message?: string;
+  /** Selected template id from GET /network/invite-templates — TODO(backend-invite-templates) */
+  templateId?: string;
 }
 
 export interface SendInviteResponse {

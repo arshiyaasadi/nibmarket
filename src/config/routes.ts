@@ -35,6 +35,10 @@ export const ROUTES = {
   ADMIN: {
     ROOT: "/admin",
     USERS: "/admin/users",
+    USER_DETAIL: (userId: string) => `/admin/users/${userId}` as const,
+    TWIN: "/admin/twin",
+    POOL: "/admin/pool",
+    SEDIMENT: "/admin/sediment",
     REPORTS: "/admin/reports",
   },
 } as const;

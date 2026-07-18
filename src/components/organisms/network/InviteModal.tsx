@@ -105,7 +105,13 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
     setSendError("");
     try {
       // Message template is UI-only for now; send payload unchanged.
-      await sendInvite({ firstName, lastName, mobile, fundId: selectedFund });
+      await sendInvite({
+        firstName,
+        lastName,
+        mobile,
+        fundId: selectedFund,
+        templateId: selectedTemplateId,
+      });
       setStep("success");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "";

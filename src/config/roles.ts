@@ -30,12 +30,26 @@ export const ADMIN_ROLE_GUARDS: Record<string, UserRole[]> = {
   "/admin/users": ["manager", "admin"],
   "/admin/network": ["manager", "admin"],
   "/admin/missions": ["manager", "admin"],
-  "/admin/admins": ["admin"],
+  "/admin/twin": ["manager", "admin"],
+  "/admin/pool": ["manager", "admin"],
+  "/admin/sediment": ["manager", "admin"],
   "/admin/reports": ["admin"],
 };
 
 export function canAccess(path: string, role: UserRole): boolean {
-  const allowed = ROLE_GUARDS[path] ?? ADMIN_ROLE_GUARDS[path];
+  const allowed = resolveAllowedRoles(path);
   if (!allowed) return true;
   return allowed.includes(role);
+}
+
+/** Resolve route guard — exact match first, then admin sub-route prefixes. */
+export function resolveAllowedRoles(pathname: string): UserRole[] | undefined {
+  const allGuards = { ...ROLE_GUARDS, ...ADMIN_ROLE_GUARDS };
+  if (allGuards[pathname]) return allGuards[pathname];
+
+  if (pathname.startsWith("/admin/users/") && pathname !== "/admin/users/demographics") {
+    return ADMIN_ROLE_GUARDS["/admin/users"];
+  }
+
+  return undefined;
 }

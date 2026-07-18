@@ -1,117 +1,180 @@
 "use client";
-import { useState } from "react";
+
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { type ColumnDef, type PaginationState } from "@tanstack/react-table";
+import { Mail, UserPlus } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
+import { ENDPOINTS } from "@/lib/api/endpoints";
 import { DataTable } from "@/components/ui/DataTable";
-import { Search } from "lucide-react";
+import { AdminOverviewStatCard } from "@/components/molecules/AdminOverviewStatCard";
+import { AdminTableToolbar } from "@/components/molecules/AdminTableToolbar";
+import { InviteTemplateList } from "@/components/organisms/admin/network/InviteTemplateList";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import type {
+  AdminInviteLogResponse,
+  AdminInviteLogRow,
+  AdminInviteOverviewResponse,
+  AdminInviteTemplatesResponse,
+} from "@/types/admin";
 
-interface ClosureRow {
-  ancestorId: string;
-  ancestorName: string;
-  ancestorCode: string;
-  descendantId: string;
-  descendantName: string;
-  descendantCode: string;
-  depth: number;
-}
+const LOG_STATUS_COLORS: Record<string, string> = {
+  active: "bg-green-500/10 text-green-600",
+  pending_invite: "bg-yellow-500/10 text-yellow-700",
+  pending_verification: "bg-yellow-500/10 text-yellow-700",
+  suspended: "bg-red-500/10 text-red-600",
+  closed: "bg-gray-500/10 text-gray-500",
+};
 
-interface ClosureResponse {
-  data: ClosureRow[];
-  total: number;
-  pageCount: number;
+function formatLogTime(iso: string) {
+  const d = new Date(iso);
+  return `${d.toLocaleDateString("fa-IR")} · ${d.toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit" })}`;
 }
 
 export default function NetworkPageContent() {
-  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 50 });
-  const [userIdInput, setUserIdInput] = useState("");
-  const [userId, setUserId] = useState("");
-  const [depthFilter, setDepthFilter] = useState("");
+  const t = useTranslations("admin.network");
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
+  const [searchInput, setSearchInput] = useState("");
+  const search = useDebouncedValue(searchInput);
 
-  const { data, isLoading } = useQuery<ClosureResponse>({
-    queryKey: ["admin", "network", pagination, userId, depthFilter],
-    queryFn: () =>
-      apiClient.get(`/admin/network/closure?page=${pagination.pageIndex}&pageSize=${pagination.pageSize}&userId=${userId}&depth=${depthFilter}`),
+  function handleSearchChange(value: string) {
+    setSearchInput(value);
+    setPagination((p) => (p.pageIndex === 0 ? p : { ...p, pageIndex: 0 }));
+  }
+
+  const { data: overview, isLoading: overviewLoading } = useQuery<AdminInviteOverviewResponse>({
+    queryKey: ["admin", "network", "invites", "overview"],
+    queryFn: () => apiClient.get(ENDPOINTS.ADMIN.NETWORK.INVITES_OVERVIEW),
   });
 
-  const columns: ColumnDef<ClosureRow, unknown>[] = [
-    {
-      id: "ancestor",
-      header: "نیاکان (Ancestor)",
-      cell: ({ row }) => (
-        <div>
-          <p className="font-medium text-foreground">{row.original.ancestorName}</p>
-          <p className="text-[11px] text-muted" dir="ltr">{row.original.ancestorCode}</p>
-        </div>
-      ),
-    },
-    {
-      id: "descendant",
-      header: "فرزند (Descendant)",
-      cell: ({ row }) => (
-        <div style={{ paddingInlineStart: `${row.original.depth * 16}px` }}>
-          <p className="font-medium text-foreground">{row.original.descendantName}</p>
-          <p className="text-[11px] text-muted" dir="ltr">{row.original.descendantCode}</p>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "depth",
-      header: "عمق",
-      cell: ({ getValue }) => (
-        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
-          سطح {Number(getValue()).toLocaleString("fa-IR")}
-        </span>
-      ),
-    },
-  ];
+  const { data: templates, isLoading: templatesLoading } = useQuery<AdminInviteTemplatesResponse>({
+    queryKey: ["admin", "network", "invite-templates"],
+    queryFn: () => apiClient.get(ENDPOINTS.ADMIN.NETWORK.INVITE_TEMPLATES),
+  });
 
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    setUserId(userIdInput);
-    setPagination(p => ({ ...p, pageIndex: 0 }));
-  }
+  const { data: logs, isLoading: logsLoading } = useQuery<AdminInviteLogResponse>({
+    queryKey: ["admin", "network", "invites", "log", pagination, search],
+    queryFn: () =>
+      apiClient.get(
+        `${ENDPOINTS.ADMIN.NETWORK.INVITES_LOG}?page=${pagination.pageIndex}&pageSize=${pagination.pageSize}&search=${encodeURIComponent(search)}`,
+      ),
+  });
+
+  const logColumns = useMemo<ColumnDef<AdminInviteLogRow, unknown>[]>(
+    () => [
+      {
+        accessorKey: "sentAt",
+        header: t("logColumns.sentAt"),
+        cell: ({ getValue }) => (
+          <span className="text-muted text-xs tabular-nums">
+            {formatLogTime(String(getValue()))}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "inviterName",
+        header: t("logColumns.inviter"),
+        cell: ({ row }) => <span className="text-sm font-medium">{row.original.inviterName}</span>,
+      },
+      {
+        accessorKey: "inviterMobile",
+        header: t("logColumns.inviterMobile"),
+        cell: ({ getValue }) => (
+          <span className="text-muted text-xs" dir="ltr">
+            {String(getValue())}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "inviteeMobile",
+        header: t("logColumns.inviteeMobile"),
+        cell: ({ getValue }) => (
+          <span className="text-foreground text-sm font-medium" dir="ltr">
+            {String(getValue())}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "status",
+        header: t("logColumns.status"),
+        cell: ({ getValue }) => {
+          const status = String(getValue());
+          return (
+            <span
+              className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${LOG_STATUS_COLORS[status] ?? ""}`}
+            >
+              {t(`status.${status}` as "status.active")}
+            </span>
+          );
+        },
+      },
+    ],
+    [t],
+  );
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-bold text-foreground">شبکه (Network Closure)</h1>
-        <p className="mt-1 text-xs text-muted">نمایش روابط سلسله‌مراتبی بین کاربران</p>
+        <h1 className="text-foreground text-xl font-bold">{t("title")}</h1>
+        <p className="text-muted mt-1 text-xs">{t("subtitle")}</p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <form onSubmit={handleSearch} className="relative min-w-64 flex-1">
-          <Search size={14} className="absolute start-3 top-1/2 -translate-y-1/2 text-muted" />
-          <input
-            value={userIdInput}
-            onChange={e => setUserIdInput(e.target.value)}
-            placeholder="User ID برای فیلتر ancestor..."
-            className="w-full rounded-xl border border-border bg-surface py-2 ps-9 pe-4 text-sm text-foreground outline-none focus:border-primary"
-            dir="ltr"
-          />
-        </form>
-        <select
-          value={depthFilter}
-          onChange={e => { setDepthFilter(e.target.value); setPagination(p => ({ ...p, pageIndex: 0 })); }}
-          className="rounded-xl border border-border bg-surface px-3 py-2 text-sm text-foreground outline-none"
-        >
-          <option value="">همه سطوح</option>
-          {[0, 1, 2, 3, 4, 5].map(d => (
-            <option key={d} value={d}>سطح {d.toLocaleString("fa-IR")}</option>
-          ))}
-        </select>
-        <span className="text-xs text-muted">{data?.total?.toLocaleString("fa-IR") ?? "—"} رابطه</span>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {overviewLoading ? (
+          Array.from({ length: 2 }).map((_, i) => (
+            <div
+              key={i}
+              className="border-border bg-surface h-24 animate-pulse rounded-2xl border"
+            />
+          ))
+        ) : (
+          <>
+            <AdminOverviewStatCard
+              label={t("todayInvites")}
+              value={(overview?.todayCount ?? 0).toLocaleString("fa-IR")}
+              icon={Mail}
+              iconClassName="bg-green-500/10 text-green-600"
+            />
+            <AdminOverviewStatCard
+              label={t("totalInvites")}
+              value={(overview?.totalCount ?? 0).toLocaleString("fa-IR")}
+              icon={UserPlus}
+              iconClassName="bg-primary/10 text-primary"
+            />
+          </>
+        )}
       </div>
 
-      <DataTable
-        data={data?.data ?? []}
-        columns={columns}
-        pageCount={data?.pageCount}
-        pagination={pagination}
-        onPaginationChange={setPagination}
-        isLoading={isLoading}
-        emptyMessage="رابطه‌ای یافت نشد"
-      />
+      <section>
+        <h2 className="text-foreground mb-2 text-sm font-semibold">{t("templatesTitle")}</h2>
+        <InviteTemplateList templates={templates?.data ?? []} isLoading={templatesLoading} />
+      </section>
+
+      <section>
+        <div className="mb-3">
+          <h2 className="text-foreground text-sm font-semibold">{t("logTitle")}</h2>
+        </div>
+
+        <AdminTableToolbar
+          value={searchInput}
+          onChange={handleSearchChange}
+          placeholder={t("searchPlaceholder")}
+          total={logs?.total}
+          totalLabel={(count) => t("logCount", { count })}
+        />
+
+        <DataTable
+          data={logs?.data ?? []}
+          columns={logColumns}
+          isLoading={logsLoading}
+          emptyMessage={t("logEmpty")}
+          pagination={pagination}
+          pageCount={logs?.pageCount}
+          total={logs?.total}
+          onPaginationChange={setPagination}
+        />
+      </section>
     </div>
   );
 }

@@ -21,6 +21,8 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return requestInternal<T>(path, options, true);
 }
 
+const AUTH_ATTEMPT_PATHS = new Set(["/auth/login", "/admin/auth/login"]);
+
 async function requestInternal<T>(
   path: string,
   options: RequestOptions = {},
@@ -35,7 +37,12 @@ async function requestInternal<T>(
     ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
   });
 
-  if (res.status === 401 && allowRefresh && path !== "/auth/refresh") {
+  if (
+    res.status === 401 &&
+    allowRefresh &&
+    path !== "/auth/refresh" &&
+    !AUTH_ATTEMPT_PATHS.has(path)
+  ) {
     const refreshed = await refreshSession();
     if (refreshed) {
       return requestInternal<T>(path, options, false);
@@ -45,14 +52,21 @@ async function requestInternal<T>(
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => null);
-    throw new ApiException(res.status, errorData?.message ?? `${res.status} ${res.statusText}`);
+    const message = errorData?.message ?? errorData?.error ?? `${res.status} ${res.statusText}`;
+    throw new ApiException(res.status, message);
   }
 
   return res.json() as Promise<T>;
 }
 
 async function handleUnauthorized(path: string): Promise<void> {
-  if (path.startsWith("/auth/") || typeof window === "undefined") return;
+  if (
+    path.startsWith("/auth/") ||
+    path.startsWith("/admin/auth/") ||
+    typeof window === "undefined"
+  ) {
+    return;
+  }
 
   const currentPath = window.location.pathname;
   if (currentPath.startsWith("/login")) return;

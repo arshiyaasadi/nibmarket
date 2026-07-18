@@ -9,7 +9,21 @@ import network from "./network.json";
 import leaderboard from "./leaderboard.json";
 import pages from "./pages.json";
 import subsetDeposits from "./subsetDeposits.json";
+import admin from "./admin.json";
 
-const messages = { common, nav, dashboard, errors, auth, wallet, missions, network, leaderboard, pages, subsetDeposits };
+const messages = {
+  common,
+  nav,
+  dashboard,
+  errors,
+  auth,
+  wallet,
+  missions,
+  network,
+  leaderboard,
+  pages,
+  subsetDeposits,
+  admin,
+};
 
 export default messages;

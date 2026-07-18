@@ -5,7 +5,9 @@ import {
   ensureMockStore,
   getMockInvitedRegistered,
   getMockPendingInvites,
+  getMockUser,
 } from "@/lib/mock/store";
+import { addMockInviteLog, getInviteTemplateMeta } from "@/lib/mock/invite-logs";
 import type {
   InvitedPerson,
   InviteQuota,
@@ -89,9 +91,14 @@ export async function getInviteQuota(_userId: string): Promise<InviteQuota> {
 }
 
 export async function sendInviteLetter(
-  _userId: string,
+  userId: string,
   payload: SendInviteRequest,
 ): Promise<SendInviteResponse> {
+  await ensureMockStore();
+  const inviter = getMockUser(userId);
+  const templateId = payload.templateId ?? "formal";
+  const template = getInviteTemplateMeta(templateId);
+
   addMockPendingInvite({
     id: crypto.randomUUID(),
     firstName: payload.firstName.trim(),
@@ -102,6 +109,20 @@ export async function sendInviteLetter(
     joinDate: formatDateTime(new Date()),
     inviteType: "vip",
   });
+
+  addMockInviteLog({
+    inviterUserId: userId,
+    inviterName: inviter ? `${inviter.firstName} ${inviter.lastName}`.trim() : "کاربر",
+    inviterMobile: inviter?.mobile ?? "",
+    inviteeFirstName: payload.firstName.trim(),
+    inviteeLastName: payload.lastName.trim(),
+    inviteeMobile: payload.mobile.trim(),
+    templateId,
+    message: payload.message ?? template.body,
+    fundId: payload.fundId,
+    status: "pending_invite",
+  });
+
   return { success: true, remaining: 4 };
 }
 

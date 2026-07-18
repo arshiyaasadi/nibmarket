@@ -1,15 +1,16 @@
-import { normalizeMobile, normalizeOtp } from "@/lib/normalization/digits";
+import { DEV_ADMIN_LOGIN } from "@/config/mock-hints";
 
 /**
- * Temporary dev-only admin login via the regular mobile OTP flow.
- * TODO(backend-admin-auth): Remove once backend supports admin OTP login.
+ * Temporary dev-only admin account for POST /admin/auth/login.
+ * TODO(backend-admin-auth): Replace with backend admin user store.
  */
 export const DEV_ADMIN = {
   id: "dev-admin-virtual",
-  mobile: "09173648291",
-  otp: "5829",
-  fullName: "مدیر توسعه",
-  email: "dev-admin@nibclub.local",
+  username: process.env.DEV_ADMIN_USERNAME ?? DEV_ADMIN_LOGIN.username,
+  password: process.env.DEV_ADMIN_PASSWORD ?? DEV_ADMIN_LOGIN.password,
+  fullName: DEV_ADMIN_LOGIN.fullName,
+  email: DEV_ADMIN_LOGIN.email,
+  mobile: DEV_ADMIN_LOGIN.mobile,
   role: "admin" as const,
 };
 
@@ -17,12 +18,12 @@ export function isDevAdminAuthEnabled(): boolean {
   return process.env.NODE_ENV !== "production" || process.env.ENABLE_DEV_ADMIN_LOGIN === "1";
 }
 
-export function isDevAdminMobile(mobile: string): boolean {
-  return normalizeMobile(mobile) === DEV_ADMIN.mobile;
+export function isDevAdminUsername(username: string): boolean {
+  return username.trim().toLowerCase() === DEV_ADMIN.username.trim().toLowerCase();
 }
 
-export function isDevAdminOtp(code: string): boolean {
-  return normalizeOtp(code) === DEV_ADMIN.otp;
+export function isDevAdminPassword(password: string): boolean {
+  return password === DEV_ADMIN.password;
 }
 
 export function isDevAdminId(userId: string): boolean {

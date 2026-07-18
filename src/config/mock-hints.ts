@@ -2,5 +2,11 @@
 export const MOCK_PASSWORD = "Test@1234";
 export const MOCK_OTP = "1234";
 
-/** Dev-only admin login via /login OTP flow. TODO(backend-admin-auth): remove when backend is ready. */
-export { DEV_ADMIN } from "@/config/dev-admin-auth";
+/** Dev-only admin login credentials — safe for client hint box on `/admin/login`. */
+export const DEV_ADMIN_LOGIN = {
+  username: "admin",
+  password: "Admin@1403",
+  fullName: "مدیر توسعه",
+  email: "dev-admin@nibclub.local",
+  mobile: "09173648291",
+} as const;

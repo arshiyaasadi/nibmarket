@@ -26,7 +26,7 @@ import {
 import { MOCK_OTP } from "@/config/mock-hints";
 import { normalizeMobile, normalizeOtp } from "@/lib/normalization/digits";
 import { isSuperAdminId, SUPER_ADMIN } from "@/config/super-admin";
-import { isDevAdminId, isDevAdminMobile, isDevAdminOtp } from "@/config/dev-admin-auth";
+import { isDevAdminId } from "@/config/dev-admin-auth";
 import { buildDevAdminAuthResponse, getDevAdminProfile } from "@/lib/api/server/dev-admin-auth";
 export { MOCK_OTP };
 
@@ -102,9 +102,6 @@ export async function checkMobileHandler(req: Request): Promise<Response> {
   const mobile = normalizeMobile(String(body.mobile ?? ""));
   if (!mobile) return badRequest("mobile required");
   const user = await mobileExists(mobile);
-  if (!user && isDevAdminMobile(mobile)) {
-    return NextResponse.json({ exists: true, status: "active" });
-  }
   if (!user) {
     return NextResponse.json(
       {
@@ -169,9 +166,6 @@ export async function otpSendHandler(req: Request): Promise<Response> {
   const { mobile } = await req.json().catch(() => ({ mobile: "" }));
   const normalizedMobile = normalizeMobile(String(mobile));
   if (!normalizedMobile) return badRequest("mobile required");
-  if (isDevAdminMobile(normalizedMobile)) {
-    return NextResponse.json({ success: true, expiresIn: 120 });
-  }
   const user = await findUserByLogin(normalizedMobile);
   if (!user) return unauthorized("User not found");
   return NextResponse.json({ success: true, expiresIn: 120 });
@@ -183,9 +177,6 @@ export async function otpVerifyHandler(req: Request): Promise<Response> {
   const login = body.mobile
     ? normalizeMobile(String(body.mobile))
     : String(body.email ?? "").trim();
-  if (isDevAdminMobile(login) && isDevAdminOtp(String(body.code ?? ""))) {
-    return buildDevAdminAuthResponse();
-  }
   if (normalizeOtp(String(body.code ?? "")) !== MOCK_OTP) return unauthorized("invalid_otp");
   const user = await findUserByLogin(login);
   if (!user) return unauthorized("User not found");
@@ -305,9 +296,9 @@ export async function registerHandler(req: Request): Promise<Response> {
 
 export async function logoutHandler(_req: Request): Promise<Response> {
   const res = NextResponse.json({ ok: true });
-  res.cookies.delete("nib_token");
-  res.cookies.delete("nib_role");
-  res.cookies.delete("nib_refresh");
+  res.cookies.set("nib_token", "", { ...COOKIE_OPTS, maxAge: 0 });
+  res.cookies.set("nib_role", "", { ...COOKIE_OPTS, maxAge: 0 });
+  res.cookies.set("nib_refresh", "", { ...REFRESH_COOKIE_OPTS, maxAge: 0 });
   return res;
 }
 

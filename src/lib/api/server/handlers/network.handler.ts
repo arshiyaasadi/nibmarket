@@ -49,6 +49,7 @@ export async function sendInviteHandler(req: Request): Promise<Response> {
     mobile: String(body.mobile ?? ""),
     fundId: String(body.fundId ?? ""),
     message: body.message ? String(body.message) : undefined,
+    templateId: body.templateId ? String(body.templateId) : undefined,
   });
 
   if (!result.success) {

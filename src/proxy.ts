@@ -2,17 +2,19 @@
 // Docs: node_modules/next/dist/docs/01-app/02-guides/authentication.md
 
 import { NextRequest, NextResponse } from "next/server";
-import { ROLE_GUARDS, ADMIN_ROLE_GUARDS } from "@/config/roles";
+import { resolveAllowedRoles } from "@/config/roles";
 import { ROUTES } from "@/config/routes";
 import type { UserRole } from "@/types/mlm";
 
 export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Admin login page — public, but redirect to /admin if already authenticated
+  // Admin login page — public; skip redirect unless session is already an admin/manager
   if (pathname === "/admin/login") {
     const token = req.cookies.get("nib_token")?.value;
-    if (token) {
+    const role = req.cookies.get("nib_role")?.value as UserRole | undefined;
+    const adminRoles: UserRole[] = ["admin", "manager"];
+    if (token && role && adminRoles.includes(role)) {
       const url = req.nextUrl.clone();
       url.pathname = "/admin";
       return NextResponse.redirect(url);
@@ -20,8 +22,7 @@ export default async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const allGuards = { ...ROLE_GUARDS, ...ADMIN_ROLE_GUARDS };
-  const allowedRoles = allGuards[pathname];
+  const allowedRoles = resolveAllowedRoles(pathname);
 
   // Unguarded route — always pass through
   if (!allowedRoles) return NextResponse.next();
@@ -52,7 +53,5 @@ export default async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:png|svg|ico)$).*)",
-  ],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:png|svg|ico)$).*)"],
 };

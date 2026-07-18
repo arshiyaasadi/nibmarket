@@ -1,0 +1,331 @@
+{
+  "common": {
+    "searchPlaceholder": "جستجو...",
+    "clearSearch": "پاک کردن جستجو",
+    "totalRecords": "{count} رکورد",
+    "showingRange": "نمایش {from}–{to} از {total}",
+    "pageOf": "صفحه {page} از {total}",
+    "pageSize": "تعداد در صفحه"
+  },
+  "nav": {
+    "dashboard": "داشبورد",
+    "users": "کاربران",
+    "twin": "TWIN",
+    "pool": "استخر",
+    "network": "دعوت از دوستان",
+    "missions": "مأموریت‌ها",
+    "sediment": "رسوب",
+    "logout": "خروج",
+    "brandAdmin": "ADMIN"
+  },
+  "users": {
+    "title": "کاربران",
+    "subtitle": "مدیریت کاربران سیستم",
+    "searchPlaceholder": "جستجو موبایل، نام...",
+    "allStatuses": "همه وضعیت‌ها",
+    "tableUserCount": "{count} کاربر در جدول",
+    "empty": "کاربری یافت نشد",
+    "viewProfile": "مشاهده پروفایل",
+    "changeStatus": "تغییر وضعیت",
+    "statusModalTitle": "تغییر وضعیت کاربر",
+    "currentStatus": "وضعیت فعلی",
+    "newStatus": "وضعیت جدید",
+    "submitting": "در حال ثبت...",
+    "submitChanges": "ثبت تغییرات",
+    "columns": {
+      "name": "نام",
+      "mobile": "موبایل",
+      "email": "ایمیل",
+      "role": "نقش",
+      "status": "وضعیت",
+      "kyc": "KYC",
+      "referralCode": "کد معرف",
+      "joinedAt": "تاریخ عضویت",
+      "actions": "عملیات"
+    },
+    "status": {
+      "active": "فعال",
+      "suspended": "تعلیق",
+      "pending_verification": "در انتظار تأیید",
+      "closed": "بسته"
+    },
+    "kyc": {
+      "none": "—",
+      "pending": "در انتظار",
+      "verified": "تأیید شده",
+      "rejected": "رد شده"
+    }
+  },
+  "demographics": {
+    "ageTitle": "توزیع سنی کاربران",
+    "ageSubtitle": "بر اساس بازه سنی",
+    "totalTitle": "تعداد کل کاربران",
+    "totalSubtitle": "ثبت‌شده در سامانه",
+    "genderSection": "توزیع جنسیتی",
+    "male": "مرد",
+    "female": "زن",
+    "percentTotal": "100%",
+    "tooltipStats": "{count} نفر · {percent}٪"
+  },
+  "twin": {
+    "title": "TWIN",
+    "subtitle": "مدیریت توکن و تخصیص‌ها",
+    "instantPrice": "ارزش توکن (لحظه‌ای)",
+    "totalTokens": "تعداد کل توکن‌ها",
+    "frozenTokens": "توکن‌های فریز شده",
+    "frozenPercent": "{percent}٪ از کل",
+    "priceChange": "{value}٪ نسبت به دیروز",
+    "rialUnit": "ریال",
+    "tokenUnit": "TWIN",
+    "allocationsTitle": "توکن‌های تخصیص‌داده‌شده",
+    "allocationsSubtitle": "بر اساس موجودی کاربران",
+    "searchPlaceholder": "جستجو نام، موبایل...",
+    "tableCount": "{count} کاربر",
+    "empty": "تخصیصی یافت نشد",
+    "columns": {
+      "name": "نام",
+      "mobile": "موبایل",
+      "totalTokens": "کل توکن",
+      "availableTokens": "قابل برداشت",
+      "frozenTokens": "فریز شده",
+      "frozenPercent": "درصد فریز",
+      "source": "منبع تخصیص",
+      "allocatedAt": "آخرین تخصیص"
+    },
+    "sources": {
+      "mission_reward": "پاداش مأموریت",
+      "commission_reward": "کمیسیون شبکه",
+      "registration": "ثبت‌نام",
+      "adjustment": "تعدیل سیستمی",
+      "mint": "صدور",
+      "pool_deposit": "استخر"
+    }
+  },
+  "pool": {
+    "title": "استخر Pool",
+    "subtitle": "مدیریت استخر مسابقه و شرکت‌کنندگان",
+    "totalPool": "حجم Pool جاری",
+    "dailyChange": "تغییر امروز",
+    "dailyChangePercent": "{percent}٪ نسبت به کل",
+    "participants": "شرکت‌کنندگان",
+    "topWinners": "برندگان دوره",
+    "topWinnersHint": "{count} نفر برتر",
+    "distributed": "توزیع‌شده در دوره",
+    "pending": "در انتظار توزیع",
+    "twinUnit": "TWIN",
+    "currentPeriod": "دوره جاری",
+    "periodRange": "{start} تا {end}",
+    "timeRemaining": "زمان باقی‌مانده",
+    "daysHours": "{days} روز · {hours} ساعت",
+    "periods": {
+      "current": "رقابت جاری"
+    },
+    "participantsTitle": "شرکت‌کنندگان Pool",
+    "participantsSubtitle": "رتبه‌بندی بر اساس Twin",
+    "searchPlaceholder": "جستجو نام، موبایل...",
+    "tableCount": "{count} شرکت‌کننده",
+    "empty": "شرکت‌کننده‌ای یافت نشد",
+    "historyTitle": "تاریخچه دوره‌ها",
+    "historySubtitle": "دوره‌های قبلی Pool",
+    "historySearchPlaceholder": "جستجو دوره، برنده...",
+    "historyCount": "{count} دوره",
+    "historyEmpty": "تاریخچه‌ای ثبت نشده",
+    "columns": {
+      "rank": "رتبه",
+      "name": "نام",
+      "mobile": "موبایل",
+      "subsetCount": "زیرمجموعه",
+      "tokens": "Twin",
+      "sharePercent": "سهم از Pool",
+      "estimatedReward": "پاداش تخمینی"
+    },
+    "historyColumns": {
+      "title": "دوره",
+      "range": "بازه زمانی",
+      "totalPool": "حجم Pool",
+      "participants": "شرکت‌کننده",
+      "winner": "برنده",
+      "distributed": "توزیع‌شده"
+    }
+  },
+  "network": {
+    "title": "دعوت از دوستان",
+    "subtitle": "پیگیری دعوت‌نامه‌های ارسالی و قالب‌های پیام",
+    "todayInvites": "دعوت‌های امروز",
+    "totalInvites": "کل دعوت‌ها",
+    "templatesTitle": "قالب‌های پیام دعوت",
+    "addTemplate": "قالب جدید",
+    "editTemplate": "ویرایش قالب",
+    "newTemplate": "قالب پیام جدید",
+    "placeholdersHint": "متغیرهای قابل استفاده",
+    "saveTemplate": "ثبت",
+    "savingTemplate": "در حال ثبت...",
+    "cancelEdit": "انصراف",
+    "templateSaveError": "خطا در ذخیره قالب",
+    "templateEmptyError": "متن قالب نمی‌تواند خالی باشد",
+    "logTitle": "لاگ دعوت‌نامه‌ها",
+    "logSubtitle": "تاریخچه ارسال دعوت VIP",
+    "searchPlaceholder": "جستجو دعوت‌کننده، موبایل...",
+    "logCount": "{count} رکورد",
+    "logEmpty": "دعوت‌نامه‌ای ثبت نشده",
+    "logColumns": {
+      "sentAt": "زمان",
+      "inviter": "دعوت‌کننده",
+      "inviterMobile": "موبایل دعوت‌کننده",
+      "inviteeMobile": "موبایل دعوت‌شده",
+      "status": "وضعیت"
+    },
+    "status": {
+      "pending_invite": "در انتظار",
+      "pending_verification": "در انتظار تأیید",
+      "active": "فعال",
+      "suspended": "تعلیق",
+      "closed": "بسته"
+    }
+  },
+  "missions": {
+    "title": "مأموریت‌ها",
+    "subtitle": "مشاهده مأموریت‌های سیستم و وضعیت جاب‌های بک‌اند",
+    "totalMissions": "تعداد مأموریت‌ها",
+    "activeMissionsHint": "{count} مأموریت فعال",
+    "totalJobs": "تعداد جاب‌های بک‌اند",
+    "jobsHint": "یک جاب برای هر مأموریت",
+    "listTitle": "لیست مأموریت‌ها",
+    "listSubtitle": "فقط امکان فعال یا غیرفعال کردن مأموریت وجود دارد",
+    "searchPlaceholder": "جستجو کد، عنوان، جاب...",
+    "tableCount": "{count} مأموریت",
+    "empty": "مأموریتی یافت نشد",
+    "activate": "فعال‌سازی",
+    "deactivate": "غیرفعال‌سازی",
+    "toggling": "در حال ثبت...",
+    "columns": {
+      "code": "کد",
+      "title": "عنوان",
+      "type": "نوع",
+      "reward": "پاداش (Twin)",
+      "job": "جاب بک‌اند",
+      "status": "وضعیت",
+      "verification": "تأیید",
+      "actions": "عملیات"
+    },
+    "types": {
+      "referral_count": "تعداد معرفی",
+      "purchase": "خرید",
+      "registration": "ثبت‌نام",
+      "fund_issue": "صندوق",
+      "custom": "سفارشی"
+    },
+    "status": {
+      "active": "فعال",
+      "paused": "غیرفعال",
+      "draft": "پیش‌نویس",
+      "archived": "بایگانی"
+    },
+    "verification": {
+      "auto": "خودکار",
+      "manual": "دستی"
+    },
+    "completionsTitle": "آخرین مأموریت‌های انجام‌شده",
+    "completionsSubtitle": "تکمیل‌شده توسط کاربران — جدیدترین‌ها",
+    "completionsCount": "{count} رکورد",
+    "completionsEmpty": "تکمیلی ثبت نشده",
+    "completionColumns": {
+      "completedAt": "زمان تکمیل",
+      "user": "کاربر",
+      "mobile": "موبایل",
+      "mission": "مأموریت",
+      "reward": "پاداش (Twin)"
+    },
+    "health": {
+      "title": "سلامت جاب‌های بک‌اند",
+      "subtitle": "وضعیت اجرای جاب مرتبط با هر مأموریت",
+      "refresh": "بررسی مجدد",
+      "checkedAt": "آخرین بررسی: {time}",
+      "empty": "جابی ثبت نشده",
+      "columns": {
+        "mission": "مأموریت",
+        "job": "جاب",
+        "status": "وضعیت",
+        "lastRun": "آخرین اجرا",
+        "nextRun": "اجرای بعدی",
+        "latency": "تأخیر",
+        "message": "پیام"
+      },
+      "status": {
+        "healthy": "سالم",
+        "degraded": "نیاز به توجه",
+        "down": "قطع",
+        "unknown": "نامشخص"
+      },
+      "messages": {
+        "mission_paused": "مأموریت غیرفعال است — جاب متوقف شده",
+        "high_latency": "تأخیر بالاتر از حد مجاز"
+      }
+    }
+  },
+  "sediment": {
+    "title": "رسوب",
+    "subtitle": "دارایی‌های نیب مارکت کاربران و توزیع رسوب روزانه به بالاسری‌ها",
+    "totalAssets": "کل دارایی نیب مارکت",
+    "rialUnit": "ریال",
+    "assetRecordsHint": "{count} رکورد دارایی",
+    "linkedUsers": "کاربران متصل به نیب مارکت",
+    "todaySediment": "رسوب امروز",
+    "monthSedimentHint": "{count} TWIN این ماه",
+    "pendingSediment": "رسوب در انتظار",
+    "searchPlaceholder": "جستجو نام، موبایل، صندوق...",
+    "assetsTitle": "دارایی‌های نیب مارکت",
+    "assetsSubtitle": "موجودی صندوق‌های کاربران — synced از بک‌اند",
+    "assetsCount": "{count} رکورد",
+    "assetsEmpty": "دارایی‌ای یافت نشد",
+    "depositsTitle": "رسوب‌های واریزی",
+    "depositsSubtitle": "سود محاسبه‌شده از دارایی زیرمجموعه و واریز به بالاسری",
+    "depositsSearchPlaceholder": "جستجو گیرنده، منبع، تراکنش...",
+    "depositsCount": "{count} رکورد",
+    "depositsEmpty": "رسوبی ثبت نشده",
+    "allStatuses": "همه وضعیت‌ها",
+    "assetColumns": {
+      "user": "کاربر",
+      "mobile": "موبایل",
+      "fund": "صندوق",
+      "value": "ارزش (ریال)",
+      "profitRate": "نرخ سود",
+      "syncedAt": "آخرین sync"
+    },
+    "depositColumns": {
+      "processedAt": "زمان پردازش",
+      "beneficiary": "گیرنده رسوب",
+      "source": "منبع (زیرمجموعه)",
+      "level": "سطح",
+      "baseAmount": "مبلغ پایه (ریال)",
+      "rate": "نرخ",
+      "sediment": "رسوب (Twin)",
+      "fund": "صندوق",
+      "status": "وضعیت"
+    },
+    "status": {
+      "calculated": "محاسبه‌شده",
+      "credited": "واریز شده",
+      "reversed": "برگشت‌خورده",
+      "failed": "ناموفق"
+    },
+    "job": {
+      "title": "جاب توزیع رسوب",
+      "subtitle": "خواندن روزانه دارایی‌ها و واریز سود به بالاسری‌ها",
+      "refresh": "بررسی مجدد",
+      "jobName": "نام جاب",
+      "lastRun": "آخرین اجرا",
+      "lastSuccess": "آخرین موفقیت",
+      "nextRun": "اجرای بعدی",
+      "schedule": "زمان‌بندی",
+      "processedAssets": "دارایی پردازش‌شده",
+      "distributedTwin": "Twin توزیع‌شده امروز",
+      "status": {
+        "healthy": "سالم",
+        "degraded": "نیاز به توجه",
+        "down": "قطع",
+        "unknown": "نامشخص"
+      }
+    }
+  }
+}

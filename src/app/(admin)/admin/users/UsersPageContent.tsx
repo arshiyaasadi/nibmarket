@@ -1,42 +1,28 @@
 "use client";
-import { useState } from "react";
+
+import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { type ColumnDef, type PaginationState } from "@tanstack/react-table";
 import { apiClient } from "@/lib/api/client";
+import { ENDPOINTS } from "@/lib/api/endpoints";
 import { DataTable } from "@/components/ui/DataTable";
-import { Search } from "lucide-react";
+import { AdminTableToolbar } from "@/components/molecules/AdminTableToolbar";
+import { AdminUserDemographicsCards } from "@/components/organisms/admin/users/AdminUserDemographicsCards";
+import { ChangeUserStatusModal } from "@/components/organisms/admin/users/ChangeUserStatusModal";
+import { UserRowActions } from "@/components/organisms/admin/users/UserRowActions";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import type {
+  AdminUserKycStatus,
+  AdminUserListItem,
+  AdminUsersDemographicsResponse,
+  AdminUsersListResponse,
+  AdminUserStatus,
+  UpdateAdminUserStatusRequest,
+} from "@/types/admin";
 
-interface UserRow {
-  id: string;
-  mobile: string;
-  email: string | null;
-  firstName: string;
-  lastName: string;
-  role: string;
-  status: string;
-  kycStatus: string;
-  referralCode: string;
-  createdAt: string;
-}
+const STATUS_OPTIONS: AdminUserStatus[] = ["active", "suspended", "pending_verification", "closed"];
 
-interface UsersResponse {
-  data: UserRow[];
-  total: number;
-  pageCount: number;
-}
-
-const STATUS_LABELS: Record<string, string> = {
-  active: "فعال",
-  suspended: "تعلیق",
-  pending_verification: "در انتظار تأیید",
-  closed: "بسته",
-};
-const KYC_LABELS: Record<string, string> = {
-  none: "—",
-  pending: "در انتظار",
-  verified: "تأیید شده",
-  rejected: "رد شده",
-};
 const STATUS_COLORS: Record<string, string> = {
   active: "bg-green-500/10 text-green-600",
   suspended: "bg-red-500/10 text-red-600",
@@ -45,148 +31,187 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function UsersPageContent() {
+  const t = useTranslations("admin.users");
   const qc = useQueryClient();
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 });
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
   const [searchInput, setSearchInput] = useState("");
+  const search = useDebouncedValue(searchInput);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [statusModalUser, setStatusModalUser] = useState<AdminUserListItem | null>(null);
 
-  const { data, isLoading } = useQuery<UsersResponse>({
+  function handleSearchChange(value: string) {
+    setSearchInput(value);
+    setPagination((p) => (p.pageIndex === 0 ? p : { ...p, pageIndex: 0 }));
+  }
+
+  function handleStatusFilterChange(value: string) {
+    setStatusFilter(value);
+    setPagination((p) => (p.pageIndex === 0 ? p : { ...p, pageIndex: 0 }));
+  }
+
+  const { data: demographics, isLoading: demographicsLoading } =
+    useQuery<AdminUsersDemographicsResponse>({
+      queryKey: ["admin", "users", "demographics"],
+      queryFn: () => apiClient.get(ENDPOINTS.ADMIN.USERS.DEMOGRAPHICS),
+    });
+
+  const { data, isLoading } = useQuery<AdminUsersListResponse>({
     queryKey: ["admin", "users", pagination, search, statusFilter],
     queryFn: () =>
-      apiClient.get(`/admin/users?page=${pagination.pageIndex}&pageSize=${pagination.pageSize}&search=${encodeURIComponent(search)}&status=${statusFilter}`),
+      apiClient.get(
+        `${ENDPOINTS.ADMIN.USERS.LIST}?page=${pagination.pageIndex}&pageSize=${pagination.pageSize}&search=${encodeURIComponent(search)}&status=${statusFilter}`,
+      ),
   });
 
   const statusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) =>
-      apiClient.patch(`/admin/users/${id}/status`, { status }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "users"] }),
+    mutationFn: ({ id, status }: { id: string; status: AdminUserStatus }) =>
+      apiClient.patch(ENDPOINTS.ADMIN.USERS.UPDATE_STATUS(id), {
+        status,
+      } satisfies UpdateAdminUserStatusRequest),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "users"] });
+      setStatusModalUser(null);
+    },
   });
 
-  const columns: ColumnDef<UserRow, unknown>[] = [
-    {
-      accessorKey: "fullName",
-      header: "نام",
-      cell: ({ row }) => (
-        <span className="font-medium">
-          {row.original.firstName || row.original.lastName
-            ? `${row.original.firstName} ${row.original.lastName}`.trim()
-            : "—"}
-        </span>
-      ),
-    },
-    {
-      accessorKey: "mobile",
-      header: "موبایل",
-      cell: ({ getValue }) => <span dir="ltr" className="text-xs">{String(getValue())}</span>,
-    },
-    {
-      accessorKey: "email",
-      header: "ایمیل",
-      cell: ({ getValue }) => <span dir="ltr" className="text-xs">{String(getValue() ?? "—")}</span>,
-    },
-    {
-      accessorKey: "role",
-      header: "نقش",
-      cell: ({ getValue }) => {
-        const r = String(getValue());
-        return <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">{r}</span>;
+  const columns = useMemo<ColumnDef<AdminUserListItem, unknown>[]>(
+    () => [
+      {
+        accessorKey: "fullName",
+        header: t("columns.name"),
+        cell: ({ row }) => <span className="font-medium">{row.original.fullName || "—"}</span>,
       },
-    },
-    {
-      accessorKey: "status",
-      header: "وضعیت",
-      cell: ({ getValue }) => {
-        const s = String(getValue());
-        return (
-          <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${STATUS_COLORS[s] ?? "bg-gray-100 text-gray-500"}`}>
-            {STATUS_LABELS[s] ?? s}
+      {
+        accessorKey: "mobile",
+        header: t("columns.mobile"),
+        cell: ({ getValue }) => (
+          <span dir="ltr" className="text-xs">
+            {String(getValue())}
           </span>
-        );
+        ),
       },
-    },
-    {
-      accessorKey: "kycStatus",
-      header: "KYC",
-      cell: ({ getValue }) => <span className="text-xs text-muted">{KYC_LABELS[String(getValue())] ?? String(getValue())}</span>,
-    },
-    {
-      accessorKey: "referralCode",
-      header: "کد معرف",
-      cell: ({ getValue }) => <span dir="ltr" className="font-mono text-xs">{String(getValue())}</span>,
-    },
-    {
-      accessorKey: "createdAt",
-      header: "تاریخ عضویت",
-      cell: ({ getValue }) => {
-        const d = new Date(String(getValue()));
-        return <span className="text-xs text-muted">{d.toLocaleDateString("fa-IR")}</span>;
+      {
+        accessorKey: "email",
+        header: t("columns.email"),
+        cell: ({ getValue }) => (
+          <span dir="ltr" className="text-xs">
+            {String(getValue() ?? "—")}
+          </span>
+        ),
       },
-    },
-    {
-      id: "actions",
-      header: "عملیات",
-      cell: ({ row }) => {
-        const isActive = row.original.status === "active";
-        return (
-          <button
-            onClick={() => statusMutation.mutate({ id: row.original.id, status: isActive ? "suspended" : "active" })}
-            className={`rounded-lg px-3 py-1 text-xs font-medium transition ${
-              isActive ? "bg-red-500/10 text-red-600 hover:bg-red-500/20" : "bg-green-500/10 text-green-600 hover:bg-green-500/20"
-            }`}
-          >
-            {isActive ? "تعلیق" : "فعال‌سازی"}
-          </button>
-        );
+      {
+        accessorKey: "role",
+        header: t("columns.role"),
+        cell: ({ getValue }) => {
+          const r = String(getValue());
+          return (
+            <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-[11px] font-semibold">
+              {r}
+            </span>
+          );
+        },
       },
-    },
-  ];
-
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    setSearch(searchInput);
-    setPagination(p => ({ ...p, pageIndex: 0 }));
-  }
+      {
+        accessorKey: "status",
+        header: t("columns.status"),
+        cell: ({ getValue }) => {
+          const s = String(getValue()) as AdminUserStatus;
+          return (
+            <span
+              className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${STATUS_COLORS[s] ?? "bg-gray-100 text-gray-500"}`}
+            >
+              {t(`status.${s}`)}
+            </span>
+          );
+        },
+      },
+      {
+        accessorKey: "kycStatus",
+        header: t("columns.kyc"),
+        cell: ({ getValue }) => {
+          const kyc = String(getValue()) as AdminUserKycStatus;
+          return <span className="text-muted text-xs">{t(`kyc.${kyc}`)}</span>;
+        },
+      },
+      {
+        accessorKey: "referralCode",
+        header: t("columns.referralCode"),
+        cell: ({ getValue }) => (
+          <span dir="ltr" className="font-mono text-xs">
+            {String(getValue())}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "createdAt",
+        header: t("columns.joinedAt"),
+        cell: ({ getValue }) => {
+          const d = new Date(String(getValue()));
+          return <span className="text-muted text-xs">{d.toLocaleDateString("fa-IR")}</span>;
+        },
+      },
+      {
+        id: "actions",
+        header: t("columns.actions"),
+        cell: ({ row }) => (
+          <UserRowActions user={row.original} onChangeStatus={setStatusModalUser} />
+        ),
+      },
+    ],
+    [t],
+  );
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-bold text-foreground">کاربران</h1>
-        <p className="mt-1 text-xs text-muted">مدیریت کاربران سیستم</p>
+        <h1 className="text-foreground text-xl font-bold">{t("title")}</h1>
+        <p className="text-muted mt-1 text-xs">{t("subtitle")}</p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <form onSubmit={handleSearch} className="relative min-w-48 flex-1">
-          <Search size={14} className="absolute start-3 top-1/2 -translate-y-1/2 text-muted" />
-          <input
-            value={searchInput}
-            onChange={e => setSearchInput(e.target.value)}
-            placeholder="جستجو موبایل، نام..."
-            className="w-full rounded-xl border border-border bg-surface py-2 ps-9 pe-4 text-sm text-foreground outline-none focus:border-primary"
-          />
-        </form>
-        <select
-          value={statusFilter}
-          onChange={e => { setStatusFilter(e.target.value); setPagination(p => ({ ...p, pageIndex: 0 })); }}
-          className="rounded-xl border border-border bg-surface px-3 py-2 text-sm text-foreground outline-none"
-        >
-          <option value="">همه وضعیت‌ها</option>
-          <option value="active">فعال</option>
-          <option value="suspended">تعلیق</option>
-          <option value="pending_verification">در انتظار تأیید</option>
-          <option value="closed">بسته</option>
-        </select>
-        <span className="text-xs text-muted">{data?.total?.toLocaleString("fa-IR") ?? "—"} کاربر</span>
-      </div>
+      <AdminUserDemographicsCards data={demographics} isLoading={demographicsLoading} />
+
+      <AdminTableToolbar
+        value={searchInput}
+        onChange={handleSearchChange}
+        placeholder={t("searchPlaceholder")}
+        total={data?.total}
+        totalLabel={(count) => t("tableUserCount", { count })}
+        filters={
+          <select
+            value={statusFilter}
+            onChange={(e) => handleStatusFilterChange(e.target.value)}
+            className="border-border bg-surface text-foreground rounded-xl border px-3 py-2 text-sm outline-none"
+          >
+            <option value="">{t("allStatuses")}</option>
+            {STATUS_OPTIONS.map((status) => (
+              <option key={status} value={status}>
+                {t(`status.${status}`)}
+              </option>
+            ))}
+          </select>
+        }
+      />
 
       <DataTable
         data={data?.data ?? []}
         columns={columns}
         pageCount={data?.pageCount}
+        total={data?.total}
         pagination={pagination}
         onPaginationChange={setPagination}
         isLoading={isLoading}
-        emptyMessage="کاربری یافت نشد"
+        emptyMessage={t("empty")}
+      />
+
+      <ChangeUserStatusModal
+        user={statusModalUser}
+        open={Boolean(statusModalUser)}
+        loading={statusMutation.isPending}
+        onClose={() => setStatusModalUser(null)}
+        onSubmit={({ status }) => {
+          if (!statusModalUser) return;
+          statusMutation.mutate({ id: statusModalUser.id, status });
+        }}
       />
     </div>
   );

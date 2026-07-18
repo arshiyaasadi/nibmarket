@@ -16,16 +16,32 @@ import {
 import { ssoExchangeHandler } from "./handlers/auth-sso.handler";
 import {
   adminStatsHandler,
+  adminLoginHandler,
   adminUsersHandler,
+  adminUsersDemographicsHandler,
+  adminUserDetailHandler,
   adminUserStatusHandler,
   adminUserRoleHandler,
   adminNetworkClosureHandler,
   adminMissionsListHandler,
-  adminMissionsCreateHandler,
-  adminMissionsUpdateHandler,
-  adminAdminsListHandler,
-  adminAdminsAssignHandler,
-  adminAdminsRevokeHandler,
+  adminMissionsOverviewHandler,
+  adminMissionsJobsHealthHandler,
+  adminMissionCompletionsHandler,
+  adminMissionStatusHandler,
+  adminSedimentOverviewHandler,
+  adminSedimentJobHandler,
+  adminSedimentAssetsHandler,
+  adminSedimentDepositsHandler,
+  adminTwinOverviewHandler,
+  adminTwinAllocationsHandler,
+  adminPoolOverviewHandler,
+  adminPoolParticipantsHandler,
+  adminPoolPeriodsHandler,
+  adminInviteOverviewHandler,
+  adminInviteLogHandler,
+  adminInviteTemplatesHandler,
+  adminInviteTemplateCreateHandler,
+  adminInviteTemplateUpdateHandler,
 } from "./handlers/admin.handler";
 import { capitalFundsHandler } from "./handlers/capital.handler";
 import {
@@ -131,13 +147,28 @@ const CUSTOM_ROUTES: Record<string, RouteHandler> = {
   "GET:/capital/funds": capitalFundsHandler,
 
   // Admin routes
+  "POST:/admin/auth/login": adminLoginHandler,
   "GET:/admin/stats": adminStatsHandler,
   "GET:/admin/users": adminUsersHandler,
+  "GET:/admin/users/demographics": adminUsersDemographicsHandler,
+  "GET:/admin/twin/overview": adminTwinOverviewHandler,
+  "GET:/admin/twin/allocations": adminTwinAllocationsHandler,
+  "GET:/admin/pool/overview": adminPoolOverviewHandler,
+  "GET:/admin/pool/participants": adminPoolParticipantsHandler,
+  "GET:/admin/pool/periods": adminPoolPeriodsHandler,
+  "GET:/admin/network/invites/overview": adminInviteOverviewHandler,
+  "GET:/admin/network/invites/log": adminInviteLogHandler,
+  "GET:/admin/network/invite-templates": adminInviteTemplatesHandler,
+  "POST:/admin/network/invite-templates": adminInviteTemplateCreateHandler,
   "GET:/admin/network/closure": adminNetworkClosureHandler,
   "GET:/admin/missions/list": adminMissionsListHandler,
-  "POST:/admin/missions/create": adminMissionsCreateHandler,
-  "GET:/admin/admins/list": adminAdminsListHandler,
-  "POST:/admin/admins/assign": adminAdminsAssignHandler,
+  "GET:/admin/missions/overview": adminMissionsOverviewHandler,
+  "GET:/admin/missions/jobs/health": adminMissionsJobsHealthHandler,
+  "GET:/admin/missions/completions": adminMissionCompletionsHandler,
+  "GET:/admin/sediment/overview": adminSedimentOverviewHandler,
+  "GET:/admin/sediment/job": adminSedimentJobHandler,
+  "GET:/admin/sediment/assets": adminSedimentAssetsHandler,
+  "GET:/admin/sediment/deposits": adminSedimentDepositsHandler,
 };
 
 export function resolveHandler(method: string, segments: string[]): RouteHandler | null {
@@ -148,6 +179,15 @@ export function resolveHandler(method: string, segments: string[]): RouteHandler
   if (CUSTOM_ROUTES[key]) return CUSTOM_ROUTES[key];
 
   // Admin dynamic routes
+  if (
+    method === "GET" &&
+    segments[0] === "admin" &&
+    segments[1] === "users" &&
+    segments.length === 3 &&
+    segments[2] !== "demographics"
+  ) {
+    return (req) => adminUserDetailHandler(req, segments[2]);
+  }
   if (
     method === "PATCH" &&
     segments[0] === "admin" &&
@@ -167,19 +207,19 @@ export function resolveHandler(method: string, segments: string[]): RouteHandler
   if (
     method === "PATCH" &&
     segments[0] === "admin" &&
-    segments[1] === "missions" &&
-    segments.length === 3
-  ) {
-    return (req) => adminMissionsUpdateHandler(req, segments[2]);
-  }
-  if (
-    method === "DELETE" &&
-    segments[0] === "admin" &&
-    segments[1] === "admins" &&
-    segments[2] === "revoke" &&
+    segments[1] === "network" &&
+    segments[2] === "invite-templates" &&
     segments[3]
   ) {
-    return (req) => adminAdminsRevokeHandler(req, segments[3]);
+    return (req) => adminInviteTemplateUpdateHandler(req, segments[3]);
+  }
+  if (
+    method === "PATCH" &&
+    segments[0] === "admin" &&
+    segments[1] === "missions" &&
+    segments[3] === "status"
+  ) {
+    return (req) => adminMissionStatusHandler(req, segments[2]);
   }
 
   return null;

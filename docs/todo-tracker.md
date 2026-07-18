@@ -9,6 +9,7 @@
 | ID | محل | توضیح |
 |----|-----|--------|
 | `backend-admin-auth` | `src/config/dev-admin-auth.ts`, `src/config/mock-hints.ts`, `src/lib/api/server/dev-admin-auth.ts` | حذف login فیک ادمین با موبایل/OTP وقتی بک‌اند login ادمین را پشتیبانی کند |
+| `backend-admin-users` | `src/types/admin.ts`, `src/lib/mock/admin.ts`, `docs/admin-panel-development.md` | جایگزینی mock کاربران/آمار/پروفایل/TWIN با API واقعی admin |
 | `backend-referrer-status` | `src/lib/storage/referrer-registration.ts`, `src/components/organisms/network/NetworkTreeWidget.tsx` | جایگزینی localStorage با API وضعیت ثبت کد معرف |
 | `upline-referrer` | `src/types/mlm.ts` | نمایش نام/سطح معرف بالاسری بعد از آماده شدن API |
 | `backend-invite-templates` | `src/lib/network/invite-templates.ts`, `src/components/organisms/network/InviteModal.tsx` | جایگزینی ۳ تمپلیت mock با `GET /network/invite-templates` |

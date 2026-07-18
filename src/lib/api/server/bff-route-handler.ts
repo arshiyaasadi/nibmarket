@@ -3,7 +3,7 @@ import { proxyRequestToBackend } from "@/lib/api/server/services/backend-api-ser
 import { resolveHandler } from "@/lib/api/server/route-registry";
 import { proxyToBackend } from "@/lib/api/server/proxy-handler";
 import { tryHandleDevAdminAuth } from "@/lib/api/server/dev-admin-auth";
-import { sessionEstablishHandler } from "@/lib/api/server/handlers/auth.handler";
+import { logoutHandler, sessionEstablishHandler } from "@/lib/api/server/handlers/auth.handler";
 import { isDevAdminAuthEnabled } from "@/config/dev-admin-auth";
 import { internalServerError } from "@/lib/api/server/session";
 import { logger } from "@/lib/errors/logger";
@@ -13,6 +13,8 @@ type Params = Promise<{ path: string[] }>;
 
 const LOCAL_ONLY_ROUTES: Record<string, (req: Request) => Promise<Response>> = {
   "POST:/auth/session/establish": sessionEstablishHandler,
+  // BFF owns session cookies — always clear locally (do not proxy to external backend).
+  "POST:/auth/logout": logoutHandler,
 };
 
 async function tryLocalHandler(

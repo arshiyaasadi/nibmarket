@@ -2,10 +2,9 @@ import { NextResponse } from "next/server";
 import {
   DEV_ADMIN,
   isDevAdminAuthEnabled,
-  isDevAdminMobile,
-  isDevAdminOtp,
+  isDevAdminPassword,
+  isDevAdminUsername,
 } from "@/config/dev-admin-auth";
-import { normalizeMobile, normalizeOtp } from "@/lib/normalization/digits";
 import {
   COOKIE_OPTS,
   REFRESH_COOKIE_OPTS,
@@ -64,36 +63,41 @@ export function getDevAdminProfile() {
   };
 }
 
-/** Short-circuit auth routes for the dev admin mobile + OTP pair. */
+function unauthorized(msg = "Invalid credentials") {
+  return NextResponse.json({ error: msg }, { status: 401 });
+}
+
+function badRequest(msg: string) {
+  return NextResponse.json({ error: msg }, { status: 400 });
+}
+
+/** Validate username/password and issue admin session. */
+export async function handleAdminLogin(req: Request): Promise<Response> {
+  const body = (await req.json().catch(() => ({}))) as { username?: string; password?: string };
+  const username = String(body.username ?? "").trim();
+  const password = String(body.password ?? "");
+
+  if (!username || !password) {
+    return badRequest("username and password are required");
+  }
+
+  if (isDevAdminAuthEnabled() && isDevAdminUsername(username) && isDevAdminPassword(password)) {
+    return buildDevAdminAuthResponse();
+  }
+
+  return unauthorized();
+}
+
+/** Short-circuit admin auth login in dev before other handlers. */
 export async function tryHandleDevAdminAuth(
   routeKey: string,
   req: Request,
 ): Promise<Response | null> {
   if (!isDevAdminAuthEnabled()) return null;
 
-  const body = (await req
-    .clone()
-    .json()
-    .catch(() => ({}))) as Record<string, unknown>;
-  const mobile = normalizeMobile(String(body.mobile ?? ""));
-
-  switch (routeKey) {
-    case "POST:/auth/check-mobile":
-      if (!isDevAdminMobile(mobile)) return null;
-      return NextResponse.json({ exists: true, status: "active" });
-
-    case "POST:/auth/otp/send":
-      if (!isDevAdminMobile(mobile)) return null;
-      return NextResponse.json({ success: true, expiresIn: 120 });
-
-    case "POST:/auth/otp/verify": {
-      if (!isDevAdminMobile(mobile)) return null;
-      const code = normalizeOtp(String(body.code ?? ""));
-      if (!isDevAdminOtp(code)) return null;
-      return buildDevAdminAuthResponse();
-    }
-
-    default:
-      return null;
+  if (routeKey === "POST:/admin/auth/login") {
+    return handleAdminLogin(req);
   }
+
+  return null;
 }
