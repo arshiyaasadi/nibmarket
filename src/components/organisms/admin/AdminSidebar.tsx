@@ -36,7 +36,7 @@ export function AdminSidebar() {
 
   return (
     <aside
-      className="border-border bg-surface fixed start-0 top-0 z-40 flex h-screen w-56 flex-col border-e"
+      className="border-border bg-surface fixed inset-y-0 start-0 z-50 flex h-screen w-56 flex-col border-e"
       dir="rtl"
     >
       <div className="border-border flex h-14 items-center border-b px-4">

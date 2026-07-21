@@ -1,3 +1,4 @@
+import { extractApiErrorMessage } from "@/lib/api/error-message";
 import { BFF_API_BASE, ENDPOINTS } from "@/lib/api/endpoints";
 import type { WalletSummary } from "@/types/mlm";
 import type { AuthSliceActions } from "@/store/types/store.types";
@@ -21,7 +22,7 @@ async function establishAuthSession(session: AuthSessionPayload): Promise<void> 
 
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(String(data.message ?? data.error ?? "session_establish_failed"));
+    throw new Error(extractApiErrorMessage(data, "session_establish_failed"));
   }
 }
 

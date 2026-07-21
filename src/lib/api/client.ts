@@ -1,5 +1,6 @@
 import { ApiException } from "@/types/api";
 import { BFF_API_BASE } from "@/lib/api/endpoints";
+import { readApiErrorMessage } from "@/lib/api/error-message";
 import { normalizeAuthSessionPayload, toAuthStorePayload } from "@/lib/auth/session-payload";
 import { useAuthSlice } from "@/store/slices/auth.slice";
 
@@ -51,8 +52,7 @@ async function requestInternal<T>(
   }
 
   if (!res.ok) {
-    const errorData = await res.json().catch(() => null);
-    const message = errorData?.message ?? errorData?.error ?? `${res.status} ${res.statusText}`;
+    const message = await readApiErrorMessage(res);
     throw new ApiException(res.status, message);
   }
 

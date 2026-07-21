@@ -12,10 +12,9 @@ const FORWARD_REQUEST_HEADERS = [
   "user-agent",
 ] as const;
 
-function pickForwardHeaders(req: Request, options?: { stripAuth?: boolean }): Headers {
+function pickForwardHeaders(req: Request): Headers {
   const headers = new Headers();
   for (const name of FORWARD_REQUEST_HEADERS) {
-    if (options?.stripAuth && (name === "authorization" || name === "cookie")) continue;
     const value = req.headers.get(name);
     if (value) headers.set(name, value);
   }
@@ -38,7 +37,6 @@ function copyResponseHeaders(source: Headers): Headers {
 export async function proxyRequestToBackend(
   req: Request,
   pathSegments: string[],
-  options?: { stripAuth?: boolean },
 ): Promise<Response> {
   const path = `/${pathSegments.join("/")}`;
   const url = new URL(req.url);
@@ -50,7 +48,7 @@ export async function proxyRequestToBackend(
 
   const init: RequestInit = {
     method: req.method,
-    headers: pickForwardHeaders(req, options),
+    headers: pickForwardHeaders(req),
     redirect: "manual",
   };
 
@@ -62,10 +60,6 @@ export async function proxyRequestToBackend(
   try {
     backendResponse = await fetch(targetUrl, init);
   } catch {
-    return internalServerError();
-  }
-
-  if (backendResponse.status >= 500) {
     return internalServerError();
   }
 

@@ -10,6 +10,7 @@ import { ROUTES } from "@/config/routes";
 import { redirectToPanelLogin } from "@/config/auth-redirect";
 import { BFF_API_BASE } from "@/lib/api/endpoints";
 import { normalizeMobile, normalizeSearchInput } from "@/lib/normalization/digits";
+import { extractApiErrorMessage } from "@/lib/api/error-message";
 import { applyAuthSession } from "@/lib/auth/apply-session";
 import { OtpInput } from "./OtpInput";
 
@@ -142,8 +143,8 @@ export function LoginForm() {
       const data = await res.json().catch(() => ({}));
       throw new FormApiError(
         res.status,
-        String(data.error ?? "error"),
-        String(data.message ?? data.error ?? "error"),
+        String((data as Record<string, unknown>).error ?? "error"),
+        extractApiErrorMessage(data),
       );
     }
     return res.json();

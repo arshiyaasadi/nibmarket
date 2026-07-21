@@ -4,7 +4,6 @@ import { resolveHandler } from "@/lib/api/server/route-registry";
 import { proxyToBackend } from "@/lib/api/server/proxy-handler";
 import { tryHandleDevAdminAuth } from "@/lib/api/server/dev-admin-auth";
 import { logoutHandler, sessionEstablishHandler } from "@/lib/api/server/handlers/auth.handler";
-import { isAdminOpenAccess } from "@/config/admin-auth";
 import { isDevAdminAuthEnabled } from "@/config/dev-admin-auth";
 import { internalServerError } from "@/lib/api/server/session";
 import { logger } from "@/lib/errors/logger";
@@ -54,8 +53,7 @@ export async function handleBffRequest(
     }
 
     if (isApiServiceMode()) {
-      const stripAuth = isAdminOpenAccess() && path[0] === "admin";
-      return await proxyRequestToBackend(req, path, { stripAuth });
+      return await proxyRequestToBackend(req, path);
     }
 
     // mock mode — local BFF handlers with in-memory fixtures

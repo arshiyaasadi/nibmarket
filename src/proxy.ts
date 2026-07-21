@@ -2,7 +2,6 @@
 // Docs: node_modules/next/dist/docs/01-app/02-guides/authentication.md
 
 import { NextRequest, NextResponse } from "next/server";
-import { isAdminOpenAccess } from "@/config/admin-auth";
 import { resolveAllowedRoles } from "@/config/roles";
 import { ROUTES } from "@/config/routes";
 import type { UserRole } from "@/types/mlm";
@@ -18,18 +17,12 @@ function loginRedirect(req: NextRequest, returnPath: string): NextResponse {
 export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Legacy admin login URL — use the main login flow (role comes from auth response).
   if (pathname === "/admin/login") {
     return loginRedirect(req, ROUTES.ADMIN.ROOT);
   }
 
-  if (isAdminOpenAccess() && pathname.startsWith("/admin")) {
-    return NextResponse.next();
-  }
-
   const allowedRoles = resolveAllowedRoles(pathname);
 
-  // Unguarded route — always pass through
   if (!allowedRoles) return NextResponse.next();
 
   const role = req.cookies.get("nib_role")?.value as UserRole | undefined;
@@ -49,5 +42,5 @@ export default async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:png|svg|ico)$).*)"],
+  matcher: ["/((?!api|_next|favicon.ico|.*\\.(?:png|svg|ico|webp|jpg|jpeg|gif)$).*)"],
 };
