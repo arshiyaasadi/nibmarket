@@ -151,7 +151,8 @@ export function LoginForm() {
 
   async function onAuthSuccess(data: unknown) {
     const session = await applyAuthSession(data, { setAuth, setWallet });
-    const fallback = session.role === "admin" ? ROUTES.ADMIN.ROOT : ROUTES.DASHBOARD;
+    const fallback =
+      session.role === "admin" || session.role === "manager" ? ROUTES.ADMIN.ROOT : ROUTES.DASHBOARD;
     router.push(searchParams.get("redirect") ?? fallback);
     router.refresh();
   }

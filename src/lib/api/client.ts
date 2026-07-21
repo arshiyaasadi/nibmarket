@@ -8,7 +8,7 @@ const BFF_BASE = BFF_API_BASE;
 
 type RequestOptions = Omit<RequestInit, "body"> & { body?: unknown };
 
-const AUTH_ATTEMPT_PATHS = new Set(["/auth/login", "/admin/auth/login"]);
+const AUTH_ATTEMPT_PATHS = new Set(["/auth/login"]);
 
 function buildAuthHeaders(path: string, headers?: HeadersInit): HeadersInit {
   const token = AUTH_ATTEMPT_PATHS.has(path) ? null : useAuthSlice.getState().token;
@@ -90,7 +90,18 @@ async function refreshSession(): Promise<boolean> {
   const data = await res.json().catch(() => null);
   const session = data ? normalizeAuthSessionPayload(data) : null;
 
-  if (session?.token && session.userId) {
+  if (session?.token && session.refreshToken && session.userId) {
+    await fetch(`${BFF_BASE}/auth/session/establish`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        token: session.token,
+        refreshToken: session.refreshToken,
+        role: session.role,
+      }),
+    }).catch(() => false);
+
     useAuthSlice.getState().setAuth(toAuthStorePayload(session));
   }
 

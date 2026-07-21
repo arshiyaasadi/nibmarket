@@ -36,6 +36,10 @@ export const ADMIN_ROLE_GUARDS: Record<string, UserRole[]> = {
   "/admin/reports": ["admin"],
 };
 
+export function isAdminRole(role: UserRole): boolean {
+  return role === "admin" || role === "manager";
+}
+
 export function canAccess(path: string, role: UserRole): boolean {
   const allowed = resolveAllowedRoles(path);
   if (!allowed) return true;

@@ -4,7 +4,7 @@ import { resolveHandler } from "@/lib/api/server/route-registry";
 import { proxyToBackend } from "@/lib/api/server/proxy-handler";
 import { tryHandleDevAdminAuth } from "@/lib/api/server/dev-admin-auth";
 import { logoutHandler, sessionEstablishHandler } from "@/lib/api/server/handlers/auth.handler";
-import { adminLoginHandler } from "@/lib/api/server/handlers/admin.handler";
+import { isAdminOpenAccess } from "@/config/admin-auth";
 import { isDevAdminAuthEnabled } from "@/config/dev-admin-auth";
 import { internalServerError } from "@/lib/api/server/session";
 import { logger } from "@/lib/errors/logger";
@@ -16,8 +16,6 @@ const LOCAL_ONLY_ROUTES: Record<string, (req: Request) => Promise<Response>> = {
   "POST:/auth/session/establish": sessionEstablishHandler,
   // BFF owns session cookies — always clear locally (do not proxy to external backend).
   "POST:/auth/logout": logoutHandler,
-  // Admin login is handled locally until backend exposes a stable contract.
-  "POST:/admin/auth/login": adminLoginHandler,
 };
 
 async function tryLocalHandler(
@@ -49,26 +47,15 @@ export async function handleBffRequest(
       return devAdminResponse;
     }
 
-    // Dev-admin sessions use locally signed tokens; keep /admin/* and refresh local
-    // so API mode does not proxy them to the external backend (which would 401).
-    if (isDevAdminAuthEnabled()) {
-      const isAdminPath = path[0] === "admin";
-      const isLocalAuthRefresh = routeKey === "POST:/auth/refresh";
-
-      if (isAdminPath) {
-        const local = await tryLocalHandler(req.method, path, req);
-        if (local) return local;
-      }
-
-      if (isLocalAuthRefresh) {
-        const local = await tryLocalHandler(req.method, path, req);
-        // Fall through to backend when refresh is not a local virtual session.
-        if (local && local.status !== 401) return local;
-      }
+    // Dev-admin virtual sessions: keep refresh local so API mode does not 401.
+    if (isDevAdminAuthEnabled() && routeKey === "POST:/auth/refresh") {
+      const local = await tryLocalHandler(req.method, path, req);
+      if (local && local.status !== 401) return local;
     }
 
     if (isApiServiceMode()) {
-      return await proxyRequestToBackend(req, path);
+      const stripAuth = isAdminOpenAccess() && path[0] === "admin";
+      return await proxyRequestToBackend(req, path, { stripAuth });
     }
 
     // mock mode — local BFF handlers with in-memory fixtures

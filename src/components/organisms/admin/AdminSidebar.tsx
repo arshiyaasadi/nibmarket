@@ -31,7 +31,7 @@ export function AdminSidebar() {
   const t = useTranslations("admin.nav");
 
   async function handleLogout() {
-    await performLogout("/admin/login");
+    await performLogout();
   }
 
   return (

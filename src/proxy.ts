@@ -2,23 +2,28 @@
 // Docs: node_modules/next/dist/docs/01-app/02-guides/authentication.md
 
 import { NextRequest, NextResponse } from "next/server";
+import { isAdminOpenAccess } from "@/config/admin-auth";
 import { resolveAllowedRoles } from "@/config/roles";
 import { ROUTES } from "@/config/routes";
 import type { UserRole } from "@/types/mlm";
 
+function loginRedirect(req: NextRequest, returnPath: string): NextResponse {
+  const url = req.nextUrl.clone();
+  url.pathname = ROUTES.LOGIN;
+  url.searchParams.set("returnUrl", returnPath);
+  url.searchParams.set("redirect", returnPath);
+  return NextResponse.redirect(url);
+}
+
 export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Admin login page — public; skip redirect unless session is already an admin/manager
+  // Legacy admin login URL — use the main login flow (role comes from auth response).
   if (pathname === "/admin/login") {
-    const token = req.cookies.get("nib_token")?.value;
-    const role = req.cookies.get("nib_role")?.value as UserRole | undefined;
-    const adminRoles: UserRole[] = ["admin", "manager"];
-    if (token && role && adminRoles.includes(role)) {
-      const url = req.nextUrl.clone();
-      url.pathname = "/admin";
-      return NextResponse.redirect(url);
-    }
+    return loginRedirect(req, ROUTES.ADMIN.ROOT);
+  }
+
+  if (isAdminOpenAccess() && pathname.startsWith("/admin")) {
     return NextResponse.next();
   }
 
@@ -31,21 +36,12 @@ export default async function proxy(req: NextRequest) {
   const token = req.cookies.get("nib_token")?.value;
 
   if (!token || !role) {
-    const url = req.nextUrl.clone();
-    // Admin routes redirect to admin login, others to regular login
-    if (pathname.startsWith("/admin")) {
-      url.pathname = "/admin/login";
-    } else {
-      url.pathname = ROUTES.LOGIN;
-      url.searchParams.set("returnUrl", pathname);
-      url.searchParams.set("redirect", pathname);
-    }
-    return NextResponse.redirect(url);
+    return loginRedirect(req, pathname);
   }
 
   if (!allowedRoles.includes(role)) {
     const url = req.nextUrl.clone();
-    url.pathname = pathname.startsWith("/admin") ? "/admin/login" : ROUTES.DASHBOARD;
+    url.pathname = ROUTES.DASHBOARD;
     return NextResponse.redirect(url);
   }
 
