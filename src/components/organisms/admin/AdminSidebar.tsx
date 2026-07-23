@@ -11,6 +11,7 @@ import {
   Coins,
   Trophy,
   Layers,
+  ArrowLeftRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { performLogout } from "@/lib/auth/session";
@@ -67,7 +68,14 @@ export function AdminSidebar() {
         })}
       </nav>
 
-      <div className="border-border border-t p-3">
+      <div className="border-border flex flex-col gap-1 border-t p-3">
+        <Link
+          href={ROUTES.DASHBOARD}
+          className="text-muted hover:bg-background hover:text-foreground flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors"
+        >
+          <ArrowLeftRight size={17} />
+          {t("clientPanel")}
+        </Link>
         <button
           onClick={handleLogout}
           className="text-muted hover:bg-background flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:text-red-500"

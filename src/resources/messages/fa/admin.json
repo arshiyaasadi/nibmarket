@@ -16,7 +16,8 @@
     "missions": "مأموریت‌ها",
     "sediment": "رسوب",
     "logout": "خروج",
-    "brandAdmin": "ADMIN"
+    "brandAdmin": "ADMIN",
+    "clientPanel": "پنل کاربری"
   },
   "users": {
     "title": "کاربران",

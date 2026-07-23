@@ -28,5 +28,6 @@
   "support": "پشتیبانی",
   "openMenu": "باز کردن منو",
   "closeMenu": "بستن منو",
-  "walletBalance": "موجودی"
+  "walletBalance": "موجودی",
+  "adminPanel": "پنل ادمین"
 }

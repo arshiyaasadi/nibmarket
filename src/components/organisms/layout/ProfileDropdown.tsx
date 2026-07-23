@@ -5,13 +5,24 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { LogOut, UserCircle, History, Link2, ChevronRight, ExternalLink } from "lucide-react";
+import {
+  LogOut,
+  UserCircle,
+  History,
+  Link2,
+  ChevronRight,
+  ExternalLink,
+  Shield,
+} from "lucide-react";
 import { BottomSheetPanel, Modal, ModalBody, Tabs } from "@/components/atoms";
 import { ThemeToggle } from "./ThemeToggle";
 import { performLogout } from "@/lib/auth/session";
 import { BFF_API_BASE } from "@/lib/api/endpoints";
 import { getPanelProfileUrl } from "@/config/sso";
+import { ROUTES } from "@/config/routes";
+import { isAdminRole } from "@/config/roles";
 import { useSession } from "@/hooks/use-session";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 import { cn, formatDisplayDate, formatDisplayDateTime } from "@/lib/utils";
@@ -31,8 +42,10 @@ type SheetView = "menu" | "info" | "sessions";
 
 export function ProfileDropdown() {
   const t = useTranslations("auth");
+  const tNav = useTranslations("nav");
   const isMobile = useIsMobile();
   const { fullName, role, inviteCode } = useSession();
+  const showAdminLink = role ? isAdminRole(role) : false;
 
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -163,6 +176,11 @@ export function ProfileDropdown() {
             </div>
 
             <div className="p-pad-atom-md flex flex-col">
+              {showAdminLink && (
+                <MenuLink icon={Shield} href={ROUTES.ADMIN.ROOT}>
+                  {tNav("adminPanel")}
+                </MenuLink>
+              )}
               <MenuButton icon={UserCircle} onClick={() => openProfile("info")}>
                 {t("viewProfile")}
               </MenuButton>
@@ -201,6 +219,11 @@ export function ProfileDropdown() {
                 </div>
 
                 <div className="flex flex-col gap-1">
+                  {showAdminLink && (
+                    <MenuLink icon={Shield} href={ROUTES.ADMIN.ROOT} sheet>
+                      {tNav("adminPanel")}
+                    </MenuLink>
+                  )}
                   <MenuButton icon={UserCircle} onClick={() => openProfile("info")} sheet>
                     {t("viewProfile")}
                   </MenuButton>
@@ -322,6 +345,32 @@ function MenuButton({
       <Icon className={cn("size-4 shrink-0", !danger && "text-muted")} />
       {children}
     </button>
+  );
+}
+
+function MenuLink({
+  icon: Icon,
+  children,
+  href,
+  sheet,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  children: React.ReactNode;
+  href: string;
+  sheet?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "gap-atom-md flex items-center text-right text-sm transition-colors",
+        sheet ? "rounded-2xl px-4 py-3.5" : "px-pad-atom-md py-atom-md rounded-lg",
+        "text-foreground hover:bg-surface-2",
+      )}
+    >
+      <Icon className="text-muted size-4 shrink-0" />
+      {children}
+    </Link>
   );
 }
 
