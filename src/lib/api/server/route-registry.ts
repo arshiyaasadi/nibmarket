@@ -86,6 +86,10 @@ import {
   walletSummaryHandler,
   walletTransactionsHandler,
 } from "./handlers/wallet.handler";
+import {
+  notificationsActivityHandler,
+  notificationsListHandler,
+} from "./handlers/notifications.handler";
 
 type RouteHandler = (req: Request) => Promise<Response>;
 
@@ -145,6 +149,9 @@ const CUSTOM_ROUTES: Record<string, RouteHandler> = {
   "GET:/subset-deposits/rules": subsetDepositRulesHandler,
 
   "GET:/capital/funds": capitalFundsHandler,
+
+  "GET:/notifications": notificationsListHandler,
+  "GET:/notifications/activity": notificationsActivityHandler,
 
   // Admin routes
   "POST:/admin/auth/login": adminLoginHandler,

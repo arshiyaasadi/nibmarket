@@ -32,6 +32,12 @@ export function resolveReturnUrl(fallback?: string | null): string {
 }
 
 export function redirectToPanelLogin(returnUrl?: string): void {
+  // UI_DEV_MODE keeps the developer inside the local app — never bounce to NIB panel.
+  if (process.env.NEXT_PUBLIC_UI_DEV_MODE === "1") {
+    redirectToLocalLogin(returnUrl);
+    return;
+  }
+
   storeReturnUrl(returnUrl);
   window.location.href = getPanelLoginUrl();
 }

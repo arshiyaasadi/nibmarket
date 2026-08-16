@@ -37,6 +37,7 @@ import {
   listAdminSedimentDeposits,
 } from "@/lib/mock/admin-sediment";
 import { handleAdminLogin } from "@/lib/api/server/dev-admin-auth";
+import { isMockDevelopmentMode } from "@/config/api-service";
 
 function unauthorized(msg = "Unauthorized") {
   return NextResponse.json({ error: msg }, { status: 401 });
@@ -49,6 +50,8 @@ function notFound(msg = "Not found") {
 }
 
 async function requireAdmin(): Promise<{ role: string } | null> {
+  if (isMockDevelopmentMode()) return { role: "admin" };
+
   const cookieStore = await cookies();
   const token = cookieStore.get("nib_token")?.value;
   if (!token) return null;
@@ -59,6 +62,8 @@ async function requireAdmin(): Promise<{ role: string } | null> {
 }
 
 async function requireSuperAdmin(): Promise<boolean> {
+  if (isMockDevelopmentMode()) return true;
+
   const cookieStore = await cookies();
   const token = cookieStore.get("nib_token")?.value;
   if (!token) return false;

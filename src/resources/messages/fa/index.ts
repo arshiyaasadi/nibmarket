@@ -10,6 +10,7 @@ import leaderboard from "./leaderboard.json";
 import pages from "./pages.json";
 import subsetDeposits from "./subsetDeposits.json";
 import admin from "./admin.json";
+import tour from "./tour.json";
 
 const messages = {
   common,
@@ -24,6 +25,7 @@ const messages = {
   pages,
   subsetDeposits,
   admin,
+  tour,
 };
 
 export default messages;

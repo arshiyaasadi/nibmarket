@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { resolveAllowedRoles } from "@/config/roles";
 import { ROUTES } from "@/config/routes";
+import { isMockDevelopmentMode } from "@/config/api-service";
 import type { UserRole } from "@/types/mlm";
 
 function loginRedirect(req: NextRequest, returnPath: string): NextResponse {
@@ -24,6 +25,10 @@ export default async function proxy(req: NextRequest) {
   const allowedRoles = resolveAllowedRoles(pathname);
 
   if (!allowedRoles) return NextResponse.next();
+
+  if (isMockDevelopmentMode()) {
+    return NextResponse.next();
+  }
 
   const role = req.cookies.get("nib_role")?.value as UserRole | undefined;
   const token = req.cookies.get("nib_token")?.value;

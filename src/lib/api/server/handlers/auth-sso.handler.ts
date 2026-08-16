@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { isMockDevelopmentMode } from "@/config/api-service";
 import { clientEnv } from "@/config/env.client";
 import { serverEnv } from "@/config/env.server";
 import { badRequest, unauthorized } from "@/lib/api/server/session";
 import { findOrCreateNibMarketUser } from "@/lib/mock/repositories/user.repository";
+import { MOCK_MOBILE, MOCK_USER_ID } from "@/lib/mock/fixtures";
 import { numericToRole } from "@/config/roles";
 import type { UserRole } from "@/types/mlm";
 import { buildAuthResponse } from "./auth.handler";
@@ -54,6 +56,17 @@ function mapExternalRole(value: string | number | undefined): UserRole {
 }
 
 async function checkSsoToken(entryToken: string) {
+  if (isMockDevelopmentMode()) {
+    return {
+      userId: MOCK_USER_ID,
+      role: "client" as const,
+      mobile: MOCK_MOBILE,
+      email: `${MOCK_MOBILE}@nibclub.local`,
+      fullName: "کاربر تستی",
+      accessToken: entryToken,
+    };
+  }
+
   if (!serverEnv.SSO_CHECK_TOKEN_URL) {
     throw new Error("SSO_CHECK_TOKEN_URL is not configured");
   }

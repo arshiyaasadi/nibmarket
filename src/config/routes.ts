@@ -40,5 +40,6 @@ export const ROUTES = {
     POOL: "/admin/pool",
     SEDIMENT: "/admin/sediment",
     REPORTS: "/admin/reports",
+    NOTIFICATIONS: "/admin/notifications",
   },
 } as const;

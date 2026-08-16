@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { PanelSidebar } from "@/components/organisms/layout/PanelSidebar";
 import { PanelHeader } from "@/components/organisms/layout/PanelHeader";
+import { PanelAdminTour } from "@/components/organisms/layout/PanelAdminTour";
 import { useSyncWalletStore } from "@/hooks/use-sync-wallet-store";
 
 export function PanelLayoutShell({ children }: { children: React.ReactNode }) {
@@ -13,6 +14,10 @@ export function PanelLayoutShell({ children }: { children: React.ReactNode }) {
     <div className="relative min-h-screen" dir="rtl">
       {/* Sidebar overlays content — no offset needed */}
       <PanelSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <Suspense fallback={null}>
+        <PanelAdminTour />
+      </Suspense>
 
       {/* Main: full width, small padding-start to clear collapsed icon sidebar */}
       <div className="">

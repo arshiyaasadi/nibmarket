@@ -19,6 +19,33 @@
     "brandAdmin": "ADMIN",
     "clientPanel": "پنل کاربری"
   },
+  "header": {
+    "notifications": "اعلان‌ها",
+    "notificationsEmpty": "اعلانی وجود ندارد",
+    "notificationsEmptyDescription": "پیام‌های سیستمی در بخش اعلان‌ها به شما نمایش داده می‌شود.",
+    "notificationsViewAll": "مشاهده همه اعلان‌ها",
+    "profile": "پروفایل",
+    "adminRole": "مدیر سیستم"
+  },
+  "notifications": {
+    "title": "اعلان‌ها",
+    "subtitle": "پیام‌های سیستمی و اطلاع‌رسانی‌های پنل مدیریت",
+    "tabAll": "همه",
+    "tabSystem": "سیستمی",
+    "tabUsers": "کاربران",
+    "tabMissions": "مأموریت‌ها",
+    "empty": "اعلانی در این دسته وجود ندارد",
+    "emptyDescription": "به محض ثبت پیام جدید، اینجا نمایش داده می‌شود.",
+    "phoneTitle": "دریافت پیام‌ها روی موبایل",
+    "phoneDescription": "شماره موبایل خود را ثبت کنید تا پیام‌های سیستمی روی همان شماره برای شما ارسال شود.",
+    "phoneLabel": "شماره موبایل",
+    "phonePlaceholder": "۰۹XXXXXXXXX",
+    "phoneSubmit": "ثبت شماره",
+    "phoneEdit": "تغییر شماره",
+    "phoneInvalid": "شماره موبایل معتبر نیست",
+    "phoneSaved": "شماره {mobile} برای دریافت پیام‌ها ثبت شد.",
+    "phoneRegistered": "شماره ثبت‌شده"
+  },
   "users": {
     "title": "کاربران",
     "subtitle": "مدیریت کاربران سیستم",

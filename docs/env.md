@@ -60,6 +60,8 @@ AUTH_SECRET=dev_only_auth_secret_for_nibclub_please_change
 | `APP_ENV` | بله | `development` یا `production` — preset سرور |
 | `NEXT_PUBLIC_APP_ENV` | بله | همان zone برای client bundle (باید با `APP_ENV` یکی باشد) |
 | `API_SERVICE_MODE` | بله | `mock` یا `api` |
+| `UI_DEV_MODE` | خیر | با مقدار `1` در development، API محلی ثابت و عبور خودکار از auth برای توسعه UI |
+| `NEXT_PUBLIC_UI_DEV_MODE` | خیر | همان فلگ برای مرورگر — جلوگیری از ریدایرکت به پنل خارجی |
 | `AUTH_SECRET` | بله | حداقل ۳۲ کاراکتر |
 | `APP_PORT` | خیر | پورت host در Docker (پیش‌فرض `3000`) |
 | `ENABLE_DEV_ADMIN_LOGIN` | خیر | فقط برای login جعلی در غیر-production |
@@ -88,6 +90,17 @@ NEXT_PUBLIC_PANEL_USER_ACCOUNT_URL=
 |-------|--------|
 | `mock` | BFF handlers + fixtures در حافظه |
 | `api` | proxy تمام `/api/v2/*` به backend خارجی |
+
+برای توسعه کامل UI بدون دسترسی به backend این فلگ‌ها را فعال کنید:
+
+```env
+UI_DEV_MODE=1
+NEXT_PUBLIC_UI_DEV_MODE=1
+```
+
+در این حالت مقدار `API_SERVICE_MODE` نادیده گرفته می‌شود، تمام درخواست‌ها داخل BFF به mockهای
+ثابت پاسخ داده می‌شوند، SSO به پنل خارجی زده نمی‌شود، و route guardهای پنل و ادمین بدون login
+قابل عبور هستند. این رفتار در `NODE_ENV=production` غیرفعال است.
 
 ---
 

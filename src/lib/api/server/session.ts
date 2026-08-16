@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { serverEnv } from "@/config/env.server";
+import { isMockDevelopmentMode } from "@/config/api-service";
+import { MOCK_USER_ID } from "@/lib/mock/fixtures";
 import type { UserRole } from "@/types/mlm";
 
 function shouldUseSecureCookies(): boolean {
@@ -115,7 +117,9 @@ export function verifySignedToken(
 }
 
 export function getCurrentUserId(req: Request): string | null {
-  return verifySignedToken(readSessionToken(req), "access")?.sub ?? null;
+  const userId = verifySignedToken(readSessionToken(req), "access")?.sub;
+  if (userId) return userId;
+  return isMockDevelopmentMode() ? MOCK_USER_ID : null;
 }
 
 export function readRefreshToken(req: Request): string | null {

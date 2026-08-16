@@ -7,6 +7,7 @@
 import { PROJECT } from "@/config/project";
 import { WalletBalanceChip } from "./WalletBalanceChip";
 import { ProfileDropdown } from "./ProfileDropdown";
+import { AdminPanelLink } from "./AdminPanelLink";
 
 interface PanelHeaderProps {
   onOpenMobile: () => void;
@@ -40,8 +41,9 @@ export function PanelHeader({ onOpenMobile: _onOpenMobile }: PanelHeaderProps) {
         {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Wallet + Profile */}
+        {/* Admin switch + Wallet + Profile */}
         <div className="gap-atom-md relative flex items-center">
+          <AdminPanelLink />
           <WalletBalanceChip />
           <ProfileDropdown />
         </div>

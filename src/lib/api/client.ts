@@ -68,6 +68,13 @@ async function handleUnauthorized(path: string): Promise<void> {
     return;
   }
 
+  // Admins visiting the client panel get 401 from client-only endpoints. That is a
+  // permission gap, not an expired session, so keep them signed in.
+  const role = useAuthSlice.getState().role;
+  if ((role === "admin" || role === "manager") && !path.startsWith("/admin")) {
+    return;
+  }
+
   const currentPath = window.location.pathname;
   if (currentPath.startsWith("/login")) return;
 

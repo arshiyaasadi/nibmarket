@@ -33,6 +33,7 @@ export const ADMIN_ROLE_GUARDS: Record<string, UserRole[]> = {
   "/admin/twin": ["manager", "admin"],
   "/admin/pool": ["manager", "admin"],
   "/admin/sediment": ["manager", "admin"],
+  "/admin/notifications": ["manager", "admin"],
   "/admin/reports": ["admin"],
 };
 

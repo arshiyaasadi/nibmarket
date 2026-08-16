@@ -4,6 +4,7 @@ import { BACKEND_API_VERSION as DEFAULT_BACKEND_VERSION } from "@/lib/api/endpoi
 export type ApiServiceMode = "mock" | "api";
 
 export function getApiServiceMode(): ApiServiceMode {
+  if (isMockDevelopmentMode()) return "mock";
   return serverEnv.API_SERVICE_MODE;
 }
 
@@ -13,6 +14,15 @@ export function isApiServiceMode(): boolean {
 
 export function isMockServiceMode(): boolean {
   return getApiServiceMode() === "mock";
+}
+
+/**
+ * UI-only development mode: all data stays inside the local BFF and auth guards
+ * may use the fixed mock identity. It is intentionally impossible in production.
+ */
+export function isMockDevelopmentMode(): boolean {
+  if (process.env.NODE_ENV === "production") return false;
+  return process.env.UI_DEV_MODE === "1" || process.env.NEXT_PUBLIC_UI_DEV_MODE === "1";
 }
 
 function getBackendApiVersion(): string {
