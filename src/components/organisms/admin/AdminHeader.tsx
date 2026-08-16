@@ -40,38 +40,50 @@ export function AdminHeader() {
   }, [notificationsOpen]);
 
   const iconButtonCls =
-    "text-muted hover:bg-background hover:text-foreground flex size-9 items-center justify-center rounded-xl transition-colors";
+    "text-muted hover:text-foreground flex size-9 items-center justify-center rounded-xl transition-colors hover:bg-white/15";
 
   return (
-    <header
-      className="border-border bg-surface/80 sticky top-0 z-40 flex h-14 items-center gap-3 border-b px-6 backdrop-blur-md"
-      dir="rtl"
-    >
-      <div className="flex-1" />
+    <header className="sticky top-0 z-[1200] w-full" dir="rtl">
+      {/* Glass bar */}
+      <div className="relative mx-3 mt-3 flex h-14 items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-4 shadow-lg shadow-black/5 backdrop-blur-2xl backdrop-saturate-150 dark:border-white/10 dark:bg-white/5">
+        {/* Sheen top highlight */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent dark:via-white/20"
+        />
+        {/* Subtle inner glow */}
+        <div
+          aria-hidden="true"
+          className="dark:from-white/8 pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/20 via-transparent to-transparent"
+        />
 
-      <Link
-        href={`${ROUTES.DASHBOARD}?${PANEL_FROM_ADMIN_QUERY}=1`}
-        data-tour="admin-client-panel"
-        className="text-muted hover:bg-background hover:text-foreground flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors"
-      >
-        <ArrowLeftRight size={17} />
-        {tNav("clientPanel")}
-      </Link>
+        <span className="text-primary relative text-sm font-bold">باشگاه مشتریان نوین</span>
 
-      <div className="relative" ref={notificationsRef}>
+        <div className="flex-1" />
+
+        <Link
+          href={`${ROUTES.DASHBOARD}?${PANEL_FROM_ADMIN_QUERY}=1`}
+          data-tour="admin-client-panel"
+          className="text-muted hover:text-foreground relative flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors hover:bg-white/15"
+        >
+          <ArrowLeftRight size={17} />
+          {tNav("clientPanel")}
+        </Link>
+
+        <div className="relative" ref={notificationsRef}>
         <button
           type="button"
           onClick={() => setNotificationsOpen((open) => !open)}
           aria-label={t("notifications")}
           aria-expanded={notificationsOpen}
           data-tour="admin-notifications"
-          className={cn(iconButtonCls, notificationsOpen && "bg-background text-foreground")}
+          className={cn(iconButtonCls, notificationsOpen && "bg-white/20 text-foreground")}
         >
           <Bell size={19} />
         </button>
 
         {notificationsOpen && (
-          <div className="border-border bg-surface absolute end-0 top-[calc(100%+0.5rem)] w-72 rounded-2xl border shadow-xl shadow-black/10">
+          <div className="border-border bg-surface absolute end-0 top-[calc(100%+0.75rem)] w-72 rounded-2xl border shadow-xl shadow-black/10">
             <div className="border-border border-b px-4 py-3">
               <p className="text-foreground text-sm font-semibold">{t("notifications")}</p>
             </div>
@@ -90,11 +102,16 @@ export function AdminHeader() {
             </Link>
           </div>
         )}
-      </div>
+        </div>
 
-      <button type="button" aria-label={t("profile")} className={iconButtonCls}>
-        <UserCircle size={21} />
-      </button>
+        <button
+          type="button"
+          aria-label={t("profile")}
+          className={cn(iconButtonCls, "relative")}
+        >
+          <UserCircle size={21} />
+        </button>
+      </div>
     </header>
   );
 }

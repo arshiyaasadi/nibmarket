@@ -49,6 +49,24 @@ export interface AdminUserListItem {
   createdAt: string;
 }
 
+/** GET /admin/users/geo — one member pinned on the density map */
+export interface AdminUserGeoPoint {
+  id: string;
+  fullName: string;
+  mobile: string;
+  city: string;
+  province: string;
+  lat: number;
+  lng: number;
+  status: AdminUserStatus;
+}
+
+/** GET /admin/users/geo — response */
+export interface AdminUserGeoResponse {
+  points: AdminUserGeoPoint[];
+  total: number;
+}
+
 /** GET /admin/users — paginated response */
 export interface AdminUsersListResponse {
   data: AdminUserListItem[];

@@ -19,6 +19,7 @@ import {
   adminLoginHandler,
   adminUsersHandler,
   adminUsersDemographicsHandler,
+  adminUsersGeoHandler,
   adminUserDetailHandler,
   adminUserStatusHandler,
   adminUserRoleHandler,
@@ -158,6 +159,7 @@ const CUSTOM_ROUTES: Record<string, RouteHandler> = {
   "GET:/admin/stats": adminStatsHandler,
   "GET:/admin/users": adminUsersHandler,
   "GET:/admin/users/demographics": adminUsersDemographicsHandler,
+  "GET:/admin/users/geo": adminUsersGeoHandler,
   "GET:/admin/twin/overview": adminTwinOverviewHandler,
   "GET:/admin/twin/allocations": adminTwinAllocationsHandler,
   "GET:/admin/pool/overview": adminPoolOverviewHandler,
@@ -186,12 +188,13 @@ export function resolveHandler(method: string, segments: string[]): RouteHandler
   if (CUSTOM_ROUTES[key]) return CUSTOM_ROUTES[key];
 
   // Admin dynamic routes
+  const RESERVED_ADMIN_USER_SEGMENTS = new Set(["demographics", "geo"]);
   if (
     method === "GET" &&
     segments[0] === "admin" &&
     segments[1] === "users" &&
     segments.length === 3 &&
-    segments[2] !== "demographics"
+    !RESERVED_ADMIN_USER_SEGMENTS.has(segments[2])
   ) {
     return (req) => adminUserDetailHandler(req, segments[2]);
   }

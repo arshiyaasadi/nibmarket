@@ -37,6 +37,7 @@ import {
   listAdminSedimentDeposits,
 } from "@/lib/mock/admin-sediment";
 import { handleAdminLogin } from "@/lib/api/server/dev-admin-auth";
+import { getAdminUserGeoPoints } from "@/lib/mock/user-geo";
 import { isMockDevelopmentMode } from "@/config/api-service";
 
 function unauthorized(msg = "Unauthorized") {
@@ -98,6 +99,18 @@ export async function adminUsersDemographicsHandler(_req: Request): Promise<Resp
   const auth = await requireAdmin();
   if (!auth) return unauthorized();
   return NextResponse.json(await getAdminUsersDemographics());
+}
+
+/**
+ * The density map is fixture-only in every mode, so it accepts any authenticated
+ * session: in API mode `nib_token` holds a backend token that is not locally verifiable.
+ */
+export async function adminUsersGeoHandler(_req: Request): Promise<Response> {
+  if (!isMockDevelopmentMode()) {
+    const cookieStore = await cookies();
+    if (!cookieStore.get("nib_token")?.value) return unauthorized();
+  }
+  return NextResponse.json(getAdminUserGeoPoints());
 }
 
 export async function adminUserDetailHandler(_req: Request, userId: string): Promise<Response> {

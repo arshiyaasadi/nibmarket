@@ -15,6 +15,9 @@ import {
   ChevronRight,
   ExternalLink,
   Shield,
+  Info,
+  MonitorSmartphone,
+  BadgeCheck,
 } from "lucide-react";
 import { BottomSheetPanel, Modal, ModalBody, Tabs } from "@/components/atoms";
 import { ThemeToggle } from "./ThemeToggle";
@@ -27,6 +30,7 @@ import { useSession } from "@/hooks/use-session";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 import { cn, formatDisplayDate, formatDisplayDateTime } from "@/lib/utils";
 import type { LoginActivity } from "@/types/mlm";
+import packageInfo from "../../../../package.json";
 
 type ProfileDetails = {
   fullName: string;
@@ -38,7 +42,8 @@ type ProfileDetails = {
   recentSessions: LoginActivity[];
 };
 
-type SheetView = "menu" | "info" | "sessions";
+type ProfileTab = "info" | "sessions" | "application";
+type SheetView = "menu" | ProfileTab;
 
 export function ProfileDropdown() {
   const t = useTranslations("auth");
@@ -51,7 +56,7 @@ export function ProfileDropdown() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetView, setSheetView] = useState<SheetView>("menu");
-  const [activeTab, setActiveTab] = useState<"info" | "sessions">("info");
+  const [activeTab, setActiveTab] = useState<ProfileTab>("info");
   const [profileDetails, setProfileDetails] = useState<ProfileDetails | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
 
@@ -90,13 +95,13 @@ export function ProfileDropdown() {
     return () => document.removeEventListener("mousedown", onOutside);
   }, []);
 
-  function openProfile(tab: "info" | "sessions" = "info") {
+  function openProfile(tab: ProfileTab = "info") {
     setOpen(false);
     setActiveTab(tab);
-    void fetchProfile();
+    if (tab !== "application") void fetchProfile();
 
     if (isMobile) {
-      setSheetView(tab === "sessions" ? "sessions" : "info");
+      setSheetView(tab);
       setSheetOpen(true);
       return;
     }
@@ -146,13 +151,16 @@ export function ProfileDropdown() {
     );
 
   const sessionsContent = <SessionsTab recentSessions={profileDetails?.recentSessions ?? []} />;
+  const applicationContent = <ApplicationInfoTab />;
 
   const sheetTitle =
     sheetView === "menu"
       ? fullName || t("viewProfile")
       : sheetView === "info"
         ? t("profileTitle")
-        : t("sessionsTab");
+        : sheetView === "sessions"
+          ? t("sessionsTab")
+          : t("applicationTab");
 
   return (
     <>
@@ -186,6 +194,9 @@ export function ProfileDropdown() {
               </MenuButton>
               <MenuButton icon={History} onClick={() => openProfile("sessions")}>
                 {t("sessionsMenuItem")}
+              </MenuButton>
+              <MenuButton icon={Info} onClick={() => openProfile("application")}>
+                {t("applicationMenuItem")}
               </MenuButton>
               <MenuButton icon={LogOut} onClick={handleLogout} danger>
                 {t("logout")}
@@ -230,6 +241,9 @@ export function ProfileDropdown() {
                   <MenuButton icon={History} onClick={() => openProfile("sessions")} sheet>
                     {t("sessionsMenuItem")}
                   </MenuButton>
+                  <MenuButton icon={Info} onClick={() => openProfile("application")} sheet>
+                    {t("applicationMenuItem")}
+                  </MenuButton>
                   <MenuButton icon={LogOut} onClick={handleLogout} danger sheet>
                     {t("logout")}
                   </MenuButton>
@@ -246,6 +260,7 @@ export function ProfileDropdown() {
               ) : (
                 sessionsContent
               ))}
+            {sheetView === "application" && applicationContent}
           </div>
         </BottomSheetPanel>
       )}
@@ -262,22 +277,25 @@ export function ProfileDropdown() {
               items={[
                 { key: "info", label: t("profileInfoTab") },
                 { key: "sessions", label: t("sessionsTab") },
+                { key: "application", label: t("applicationTab") },
               ]}
               active={activeTab}
               onChange={(key) => {
-                setActiveTab(key as "info" | "sessions");
+                setActiveTab(key as ProfileTab);
                 if (key === "sessions" && !profileDetails) void fetchProfile();
               }}
             />
 
-            {loadingProfile && !profileDetails ? (
+            {activeTab !== "application" && loadingProfile && !profileDetails ? (
               <div className="flex h-24 items-center justify-center">
                 <div className="border-primary h-5 w-5 animate-spin rounded-full border-2 border-t-transparent" />
               </div>
             ) : activeTab === "info" ? (
               profileContent
-            ) : (
+            ) : activeTab === "sessions" ? (
               sessionsContent
+            ) : (
+              applicationContent
             )}
           </ModalBody>
         </Modal>
@@ -457,6 +475,46 @@ function ProfileField({
       <dd className="text-foreground min-w-0 truncate text-end text-xs font-medium" dir={dir}>
         {value || "—"}
       </dd>
+    </div>
+  );
+}
+
+function ApplicationInfoTab() {
+  const t = useTranslations("auth");
+  const environment =
+    process.env.NEXT_PUBLIC_APP_ENV === "production"
+      ? t("applicationEnvironmentProduction")
+      : t("applicationEnvironmentDevelopment");
+
+  const fields = [
+    { label: t("applicationName"), value: t("applicationNameValue") },
+    { label: t("applicationVersion"), value: packageInfo.version, dir: "ltr" as const },
+    { label: t("applicationPlatform"), value: t("applicationPlatformValue") },
+    { label: t("applicationEnvironment"), value: environment },
+  ];
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="border-primary/15 bg-primary/5 flex items-center gap-3 rounded-xl border p-3">
+        <div className="bg-primary/10 flex size-10 shrink-0 items-center justify-center rounded-xl">
+          <MonitorSmartphone className="text-primary size-5" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-foreground text-sm font-medium">{t("applicationNameValue")}</p>
+          <p className="text-muted mt-0.5 text-[11px]">{t("applicationDescription")}</p>
+        </div>
+      </div>
+
+      <dl className="divide-border/70 border-border/60 divide-y rounded-xl border">
+        {fields.map((field) => (
+          <ProfileField key={field.label} {...field} />
+        ))}
+      </dl>
+
+      <div className="text-success bg-success/5 border-success/15 flex items-center gap-2 rounded-xl border px-3 py-2.5 text-xs">
+        <BadgeCheck className="size-4 shrink-0" />
+        <span>{t("applicationUpToDate")}</span>
+      </div>
     </div>
   );
 }

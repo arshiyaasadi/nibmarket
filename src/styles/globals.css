@@ -216,6 +216,216 @@ body {
   font-family: var(--font-sans);
 }
 
+/* ── User density map (leaflet) ──────────────────────────────── */
+/* Leaflet panes/controls climb to z-index 1000; contain them so the app chrome stays on top. */
+.leaflet-container {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+  font-family: var(--font-sans);
+  background-color: var(--color-surface-2);
+}
+
+.nib-map-shell:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  padding: 0.75rem;
+  border-radius: 0;
+  background-color: var(--color-background);
+}
+
+.nib-map-shell:fullscreen .leaflet-container {
+  border-radius: 1rem;
+}
+
+/*
+ * Leaflet positions markers with an inline `transform`, so hover states must never
+ * use `transform` — they are silently dropped. Rings and colors are used instead.
+ */
+.nib-map-pin {
+  border: 3px solid #fff;
+  border-radius: 9999px;
+  background-color: var(--color-primary);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 35%);
+  transition:
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.nib-map-pin:hover,
+.nib-map-pin:focus-visible {
+  background-color: color-mix(in srgb, var(--color-primary) 70%, #fff);
+  box-shadow:
+    0 0 0 5px color-mix(in srgb, var(--color-primary) 30%, transparent),
+    0 2px 8px rgb(0 0 0 / 35%);
+  outline: none;
+}
+
+.nib-map-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid rgb(255 255 255 / 85%);
+  border-radius: 9999px;
+  background-color: color-mix(in srgb, var(--color-primary) 85%, transparent);
+  color: #fff;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 22%);
+  transition:
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+/* Map counters use Latin digits and a neutral font for reliable optical centring. */
+.nib-map-cluster span {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding-top: 1px;
+  direction: ltr;
+  font-family: Arial, system-ui, sans-serif;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.nib-map-cluster.is-compact span {
+  font-size: var(--text-xs);
+}
+
+.nib-map-cluster:hover {
+  background-color: var(--color-primary);
+  box-shadow:
+    0 0 0 6px color-mix(in srgb, var(--color-primary) 22%, transparent),
+    0 4px 14px rgb(0 0 0 / 25%);
+}
+
+/*
+ * Leaflet gives tooltips no `left`/`top`, so under `dir="rtl"` their static position
+ * falls back to the right edge of the pane and they drift far from the marker.
+ */
+.leaflet-container .leaflet-tooltip {
+  left: 0;
+  top: 0;
+}
+
+.leaflet-tooltip.nib-map-tooltip-wrap {
+  direction: rtl;
+  padding: 0.4375rem 0.625rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.625rem;
+  background-color: var(--color-surface);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 14%);
+}
+
+.leaflet-tooltip.nib-map-tooltip-wrap::before {
+  border-top-color: var(--color-surface);
+}
+
+.nib-map-tooltip {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.6875rem;
+  line-height: 1.7;
+}
+
+.nib-map-tooltip strong {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.nib-map-tooltip span {
+  color: var(--color-muted);
+}
+
+/* Member card — anchored beside the pin, so the popup tip is dropped. */
+.nib-map-popup .leaflet-popup-content-wrapper {
+  direction: rtl;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background-color: var(--color-surface);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 14%);
+}
+
+.nib-map-popup .leaflet-popup-content {
+  margin: 0;
+  width: auto !important;
+}
+
+.nib-map-popup .leaflet-popup-tip-container {
+  display: none;
+}
+
+.nib-map-popup .leaflet-popup-close-button {
+  inset-inline-end: auto;
+  inset-inline-start: 0.25rem;
+  color: var(--color-muted);
+}
+
+.nib-map-card {
+  display: flex;
+  flex-direction: column;
+  padding: 0.625rem 0.75rem 0.5rem;
+  font-size: 0.6875rem;
+  line-height: 1.7;
+}
+
+.nib-map-card__name {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.nib-map-card__rows {
+  display: flex;
+  flex-direction: column;
+  margin: 0.25rem 0 0;
+}
+
+.nib-map-card__rows > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.nib-map-card__rows dt {
+  color: var(--color-muted);
+  font-weight: 400;
+}
+
+.nib-map-card__rows dd {
+  margin: 0;
+  font-weight: 400;
+}
+
+.nib-map-card__action {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-primary);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  text-align: center;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.nib-map-card__action:hover {
+  color: color-mix(in srgb, var(--color-primary) 80%, #000);
+}
+
+.nib-map-card__action.is-soon {
+  color: var(--color-muted);
+  cursor: default;
+}
+
 /* ── Guided tour (driver.js) ─────────────────────────────────── */
 .driver-popover.nib-tour {
   direction: rtl;

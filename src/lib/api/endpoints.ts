@@ -80,6 +80,7 @@ export const ENDPOINTS = {
     USERS: {
       LIST: "/admin/users",
       DEMOGRAPHICS: "/admin/users/demographics",
+      GEO: "/admin/users/geo",
       DETAIL: (userId: string) => `/admin/users/${userId}` as const,
       UPDATE_STATUS: (userId: string) => `/admin/users/${userId}/status` as const,
       UPDATE_ROLE: (userId: string) => `/admin/users/${userId}/role` as const,

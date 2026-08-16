@@ -41,5 +41,6 @@ export const ROUTES = {
     SEDIMENT: "/admin/sediment",
     REPORTS: "/admin/reports",
     NOTIFICATIONS: "/admin/notifications",
+    USER_MAP: "/admin/map",
   },
 } as const;

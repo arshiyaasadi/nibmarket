@@ -48,11 +48,16 @@ type NodeColors = {
   textSecondary: string
 }
 
-const LABEL_WIDTH = 50
-const LABEL_GAP = 10
-const NODE_SIZE_X = 148
+/**
+ * The label box is wide on purpose and its text is right-aligned, so the name grows
+ * leftwards from a fixed edge instead of being clipped to a narrow box.
+ */
+const LABEL_BOX_WIDTH = 220
+const LABEL_GAP = 12
+const LABEL_SHIFT = 34
+const NODE_SIZE_X = 164
 const NODE_SIZE_Y = 64
-const MAX_NAME_CHARS = 12
+const MAX_NAME_CHARS = 22
 
 function getTreeDepth(node: NetworkTreeNode): number {
   if (!node.children?.length) return 1
@@ -94,8 +99,9 @@ function renderOrgChartNode(colors: NodeColors, selfLabel: string, levelLabel: (
     const radius = isSelf ? 9 : 7
     const displayName = truncateName(String(nodeDatum.name || '—'))
     const subtitle = isSelf ? selfLabel : showLevel ? levelLabel(String(level)) : null
-    const labelX = -(LABEL_WIDTH + LABEL_GAP)
-    const labelHeight = subtitle ? 34 : 18
+    // The box ends one gap before the dot, so text never touches the branch joint.
+    const labelX = -(LABEL_BOX_WIDTH + LABEL_GAP + radius)
+    const labelHeight = subtitle ? 36 : 20
 
     return (
       <g className='network-org-node'>
@@ -108,10 +114,14 @@ function renderOrgChartNode(colors: NodeColors, selfLabel: string, levelLabel: (
         <foreignObject
           x={labelX}
           y={-labelHeight / 2}
-          width={LABEL_WIDTH}
+          width={LABEL_BOX_WIDTH}
           height={labelHeight}
           style={{ overflow: 'visible' }}
         >
+          {/*
+            The wrapper stays LTR so `flex-end` resolves to the right edge — under RTL
+            it would flip to the left and clip the name against the narrow side.
+          */}
           <div
             style={{
               display: 'flex',
@@ -121,15 +131,17 @@ function renderOrgChartNode(colors: NodeColors, selfLabel: string, levelLabel: (
               gap: 1,
               width: '100%',
               height: '100%',
-              direction: 'rtl',
-              textAlign: 'right',
-              lineHeight: 1.3,
+              direction: 'ltr',
+              lineHeight: 1.35,
               pointerEvents: 'none',
               fontFamily: 'IRANSans, system-ui, sans-serif',
             }}
           >
             <span
               style={{
+                maxWidth: '100%',
+                direction: 'rtl',
+                textAlign: 'right',
                 fontSize: 12,
                 fontWeight: 400,
                 color: isSelf ? colors.primaryDark : colors.textPrimary,
@@ -143,7 +155,9 @@ function renderOrgChartNode(colors: NodeColors, selfLabel: string, levelLabel: (
             {subtitle ? (
               <span
                 style={{
-                  fontSize: 11,
+                  direction: 'rtl',
+                  textAlign: 'right',
+                  fontSize: 10,
                   fontWeight: 300,
                   color: isSelf ? colors.primaryMain : colors.textSecondary,
                   whiteSpace: 'nowrap',
@@ -308,7 +322,8 @@ export default function NetworkOrgChart({
 
       const fitZoom = initialZoom ?? computeFitZoom(width, height, treeDepth, embedded)
       const estimatedTreeHeight = treeDepth * NODE_SIZE_Y
-      const labelOffset = (LABEL_WIDTH + LABEL_GAP) * 0.22
+      // Labels hang to the left of every dot, so the tree is nudged right to stay centred.
+      const labelOffset = LABEL_SHIFT
       const translateY = Math.max(24, (height - estimatedTreeHeight * fitZoom) / 2 + 20)
       const translateX = width / 2 + labelOffset
 
