@@ -6,23 +6,26 @@ export function numericToRole(n: number): UserRole {
   return "client";
 }
 
+/** Panel (client app) routes — managers/admins may also browse them. */
+const PANEL_ROLES: UserRole[] = ["client", "manager", "admin"];
+
 // Route → allowed roles. Absent key = public.
 export const ROLE_GUARDS: Record<string, UserRole[]> = {
-  "/dashboard": ["client", "manager", "admin"],
-  "/dashboard/network": ["client"],
-  "/dashboard/wallet": ["client"],
-  "/dashboard/subset-deposits": ["client"],
-  "/dashboard/reports/subsets": ["client"],
-  "/dashboard/reports/income": ["client"],
-  "/dashboard/leaderboard": ["client"],
-  "/dashboard/missions": ["client"],
-  "/dashboard/capital": ["client"],
-  "/dashboard/notifications": ["client"],
-  "/dashboard/competition/participate": ["client"],
-  "/dashboard/competition/records": ["client"],
-  "/dashboard/competition/prizes": ["client"],
-  "/dashboard/rules": ["client"],
-  "/dashboard/support": ["client"],
+  "/dashboard": PANEL_ROLES,
+  "/dashboard/network": PANEL_ROLES,
+  "/dashboard/wallet": PANEL_ROLES,
+  "/dashboard/subset-deposits": PANEL_ROLES,
+  "/dashboard/reports/subsets": PANEL_ROLES,
+  "/dashboard/reports/income": PANEL_ROLES,
+  "/dashboard/leaderboard": PANEL_ROLES,
+  "/dashboard/missions": PANEL_ROLES,
+  "/dashboard/capital": PANEL_ROLES,
+  "/dashboard/notifications": PANEL_ROLES,
+  "/dashboard/competition/participate": PANEL_ROLES,
+  "/dashboard/competition/records": PANEL_ROLES,
+  "/dashboard/competition/prizes": PANEL_ROLES,
+  "/dashboard/rules": PANEL_ROLES,
+  "/dashboard/support": PANEL_ROLES,
 };
 
 export const ADMIN_ROLE_GUARDS: Record<string, UserRole[]> = {
