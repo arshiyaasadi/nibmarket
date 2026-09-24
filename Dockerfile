@@ -1,6 +1,9 @@
-# syntax=docker/dockerfile:1
-
-ARG NODE_BASE_IMAGE=node:22-bookworm-slim
+# No "# syntax=docker/dockerfile:…" — that pulls docker/dockerfile from Docker Hub
+# and often gets 403 (CloudFront) on restricted networks (e.g. IR).
+#
+# Base image: prefer a Hub mirror. Override at build time if needed:
+#   NODE_BASE_IMAGE=node:22-bookworm-slim docker compose ... build
+ARG NODE_BASE_IMAGE=mirror.gcr.io/library/node:22-bookworm-slim
 
 FROM ${NODE_BASE_IMAGE} AS base
 WORKDIR /app

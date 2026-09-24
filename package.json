@@ -17,9 +17,12 @@
     "bootstrap:live": "bash scripts/bootstrap-live-server.sh",
     "bootstrap:live:ssh": "bash scripts/bootstrap-live-server.sh --ssh-only",
     "bootstrap:live:deploy": "bash scripts/bootstrap-live-server.sh --deploy-only",
+    "sync:live": "bash scripts/sync-live.sh",
+    "sync:live:files": "bash scripts/sync-live.sh --rsync-only",
     "cd:force": "bash scripts/server-cd.sh --force"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.10",
     "@tanstack/react-query": "^5.101.1",
     "@tanstack/react-table": "^8.21.3",
     "@types/d3": "^7.4.3",

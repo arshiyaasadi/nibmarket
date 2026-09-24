@@ -1,0 +1,91 @@
+/* Landing-only utilities (scoped under .landing-root) — do not affect panel chrome. */
+
+.landing-root {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+  font-family: "IRANSans", ui-sans-serif, system-ui, sans-serif;
+}
+
+.landing-root .glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.landing-root .glass-dark {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.landing-root .neon-glow {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+.landing-root .neon-glow-cyan {
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+}
+
+.landing-root .text-glow {
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+@keyframes landing-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes landing-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 8px rgba(192, 192, 192, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 16px rgba(192, 192, 192, 0.6));
+  }
+}
+
+@keyframes landing-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.landing-root .animate-fade-in {
+  animation: landing-fade-in 0.5s linear forwards;
+}
+
+.landing-root .animate-glow {
+  animation: landing-glow 2s ease-in-out infinite;
+}
+
+.landing-root .animate-float {
+  animation: landing-float 3s ease-in-out infinite;
+}
+
+.landing-root .animate-pulse-slow {
+  animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.landing-root::-webkit-scrollbar {
+  width: 10px;
+}
+
+.landing-root::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.landing-root::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 5px;
+}

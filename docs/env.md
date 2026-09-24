@@ -138,11 +138,15 @@ The live host is only reachable over WireGuard. Cloud CI cannot SSH into it, so 
 
 After you push to Azure `main`, wait ~2 minutes or run `/opt/MLM_Front/scripts/server-cd.sh --force` on the host.
 
-First-time setup (from a machine with WireGuard ON):
+First-time setup / every deploy **without Azure** (WireGuard ON):
 
 ```bash
-yarn bootstrap:live
+yarn sync:live
 ```
+
+This rsyncs the repo to `/opt/MLM_Front`, installs Docker via apt if needed, and builds both stacks. Existing `.env.production` / `.env.v2` on the server are kept.
+
+Optional Azure git poll CD (`mlm-cd.timer`) only works if the server can still fetch from Azure; prefer `yarn sync:live` when Azure access is gone.
 
 Docker install uses Ubuntu `apt` (`docker.io` + `docker-compose-v2`) because `get.docker.com` often returns 403 from restricted networks.
 
