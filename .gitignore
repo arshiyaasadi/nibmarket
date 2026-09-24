@@ -40,3 +40,13 @@ yarn-error.log*
 
 sudo_pass.txt
 git_credentials.txt
+live_ssh_pass.txt
+live_server.env
+.cd-git-credentials
+.cd-state/
+
+# local remote-work timesheet agent (do not push)
+doorkari-agent.txt
+.cursor/rules/doorkari-timesheet.mdc
+form doorkari 3 - عرشیا اسدی.xlsx
+form doorkari - عرشیا اسدی.xlsx

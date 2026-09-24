@@ -4,8 +4,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { resolveAllowedRoles } from "@/config/roles";
 import { ROUTES } from "@/config/routes";
-import { isMockDevelopmentMode } from "@/config/api-service";
 import type { UserRole } from "@/types/mlm";
+
+/** Inline — do not import api-service (pulls zod/env into the proxy bundle). */
+function isMockDevelopmentMode(): boolean {
+  if (process.env.FORCE_UI_DEV_MODE === "1" || process.env.NEXT_PUBLIC_FORCE_UI_DEV_MODE === "1") {
+    return true;
+  }
+  if (process.env.NODE_ENV === "production") return false;
+  return process.env.UI_DEV_MODE === "1" || process.env.NEXT_PUBLIC_UI_DEV_MODE === "1";
+}
 
 function loginRedirect(req: NextRequest, returnPath: string): NextResponse {
   const url = req.nextUrl.clone();

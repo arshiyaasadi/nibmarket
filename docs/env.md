@@ -121,11 +121,30 @@ docker compose -f docker-compose.prod.yml up -d --build
 
 ### Compose
 
-- `docker-compose.yml` — پشت شبکه nginx
-- `docker-compose.prod.yml` — port mapping (پیش‌فرض `deploy.sh`)
-- `docker-compose.dev.yml` — hot reload؛ `NEXT_PUBLIC_*` در runtime از `.env`
+- `docker-compose.yml` — behind nginx network (legacy single stack)
+- `docker-compose.prod.yml` — **production** on live host (`mlm_front_prod`, port `3000`, nibmarket DNS)
+- `docker-compose.v2.yml` — **v2 / UI** on live host (`mlm_front_v2`, port `3001`, mocks + auth bypass)
+- `docker-compose.dev.yml` — hot reload; `NEXT_PUBLIC_*` in runtime from `.env`
 
-هر دو فایل prod فقط `APP_ENV` را به‌عنوان build arg می‌فرستند؛ URLها از preset داخل کد می‌آیند.
+Live host env files (gitignored on server): `.env.production`, `.env.v2` (seeded from `*.example`).
+
+### Continuous deploy (WireGuard)
+
+The live host is only reachable over WireGuard. Cloud CI cannot SSH into it, so CD runs **on the server**:
+
+- `scripts/server-cd.sh` — fetch `main`, rebuild both stacks when SHA changes
+- `deploy/mlm-cd.timer` — every 2 minutes
+- Version stamp: `NEXT_PUBLIC_GIT_SHA` → UI shows `0.1.0+<sha>`
+
+After you push to Azure `main`, wait ~2 minutes or run `/opt/MLM_Front/scripts/server-cd.sh --force` on the host.
+
+First-time setup (from a machine with WireGuard ON):
+
+```bash
+yarn bootstrap:live
+```
+
+Docker install uses Ubuntu `apt` (`docker.io` + `docker-compose-v2`) because `get.docker.com` often returns 403 from restricted networks.
 
 ### `deploy.sh`
 

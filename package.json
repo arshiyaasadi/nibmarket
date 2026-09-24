@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:ui": "UI_DEV_MODE=1 NEXT_PUBLIC_UI_DEV_MODE=1 next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint src",
@@ -12,7 +13,11 @@
     "type-check": "tsc --noEmit",
     "test:api": "API_TEST_SKIP=0 tsx --test tests/api/contract.test.ts",
     "test:api:parity": "API_TEST_SKIP=0 tsx --test tests/api/parity.test.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "bootstrap:live": "bash scripts/bootstrap-live-server.sh",
+    "bootstrap:live:ssh": "bash scripts/bootstrap-live-server.sh --ssh-only",
+    "bootstrap:live:deploy": "bash scripts/bootstrap-live-server.sh --deploy-only",
+    "cd:force": "bash scripts/server-cd.sh --force"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.1",

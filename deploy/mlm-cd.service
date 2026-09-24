@@ -1,0 +1,16 @@
+[Unit]
+Description=MLM Front continuous deploy (poll git + rebuild prod + v2)
+After=network-online.target docker.service
+Wants=network-online.target docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/MLM_Front
+Environment=PROJECT_DIR=/opt/MLM_Front
+Environment=GIT_BRANCH=main
+ExecStart=/opt/MLM_Front/scripts/server-cd.sh
+User=novin
+Group=novin
+
+# Allow docker without interactive sudo when user is in docker group
+# If docker requires root, install a sudoers drop-in for this script only.

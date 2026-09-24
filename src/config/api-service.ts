@@ -17,10 +17,14 @@ export function isMockServiceMode(): boolean {
 }
 
 /**
- * UI-only development mode: all data stays inside the local BFF and auth guards
- * may use the fixed mock identity. It is intentionally impossible in production.
+ * UI-only mode: local BFF mocks + auth bypass.
+ * - Local/dev: `UI_DEV_MODE=1` / `NEXT_PUBLIC_UI_DEV_MODE=1`
+ * - Live "v2" stack: `FORCE_UI_DEV_MODE=1` (compose.v2) even when NODE_ENV=production
  */
 export function isMockDevelopmentMode(): boolean {
+  if (process.env.FORCE_UI_DEV_MODE === "1" || process.env.NEXT_PUBLIC_FORCE_UI_DEV_MODE === "1") {
+    return true;
+  }
   if (process.env.NODE_ENV === "production") return false;
   return process.env.UI_DEV_MODE === "1" || process.env.NEXT_PUBLIC_UI_DEV_MODE === "1";
 }

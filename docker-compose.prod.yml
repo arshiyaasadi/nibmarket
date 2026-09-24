@@ -1,22 +1,28 @@
-# Alias for production with host port mapping (used by deploy.sh)
-# Run: docker compose -f docker-compose.prod.yml up --build -d
-# Zone: set APP_ENV in .env (development | production). Rebuild after changing it.
-# Requires the external "nginx" network: docker network create nginx
+# Production stack on live host (nibmarket DNS via APP_ENV=production presets)
+# Run: docker compose -p mlm-prod -f docker-compose.prod.yml up -d --build
+# Port: APP_PORT from .env.production (default 3000)
+# Requires: docker network create nginx
 
 x-app-build: &app-build
   context: .
+  dockerfile: Dockerfile
   target: production
   args:
-    APP_ENV: ${APP_ENV:-development}
-    NEXT_PUBLIC_APP_ENV: ${APP_ENV:-development}
+    APP_ENV: ${APP_ENV:-production}
+    NEXT_PUBLIC_APP_ENV: ${NEXT_PUBLIC_APP_ENV:-production}
+    GIT_SHA: ${GIT_SHA:-unknown}
+    NEXT_PUBLIC_GIT_SHA: ${GIT_SHA:-unknown}
+    BUILD_TIME: ${BUILD_TIME:-}
 
 services:
   app:
+    container_name: mlm_front_prod
     build: *app-build
     ports:
       - "${APP_PORT:-3000}:3000"
     env_file:
-      - .env
+      - path: .env.production
+        required: false
     restart: unless-stopped
     networks:
       - nginx

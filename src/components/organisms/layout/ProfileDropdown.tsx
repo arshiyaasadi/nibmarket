@@ -32,6 +32,9 @@ import { cn, formatDisplayDate, formatDisplayDateTime } from "@/lib/utils";
 import type { LoginActivity } from "@/types/mlm";
 import packageInfo from "../../../../package.json";
 
+const gitSha = process.env.NEXT_PUBLIC_GIT_SHA;
+const displayVersion = gitSha ? `${packageInfo.version}+${gitSha}` : packageInfo.version;
+
 type ProfileDetails = {
   fullName: string;
   mobile: string;
@@ -488,7 +491,7 @@ function ApplicationInfoTab() {
 
   const fields = [
     { label: t("applicationName"), value: t("applicationNameValue") },
-    { label: t("applicationVersion"), value: packageInfo.version, dir: "ltr" as const },
+    { label: t("applicationVersion"), value: displayVersion, dir: "ltr" as const },
     { label: t("applicationPlatform"), value: t("applicationPlatformValue") },
     { label: t("applicationEnvironment"), value: environment },
   ];

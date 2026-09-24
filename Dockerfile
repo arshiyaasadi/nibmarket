@@ -21,17 +21,30 @@ EXPOSE 3000
 CMD ["yarn", "dev"]
 
 FROM base AS builder
-# Zone selects URL presets (src/config/env-presets.ts). Override individual
-# NEXT_PUBLIC_* vars via compose/env if needed — they are not ARG defaults here.
+# Zone selects URL presets (src/config/env-presets.ts).
 ARG APP_ENV=development
 ARG NEXT_PUBLIC_APP_ENV=development
+ARG FORCE_UI_DEV_MODE=
+ARG NEXT_PUBLIC_FORCE_UI_DEV_MODE=
+ARG GIT_SHA=unknown
+ARG NEXT_PUBLIC_GIT_SHA=unknown
+ARG BUILD_TIME=
 
 ENV NODE_ENV=production \
   APP_ENV=$APP_ENV \
-  NEXT_PUBLIC_APP_ENV=$NEXT_PUBLIC_APP_ENV
+  NEXT_PUBLIC_APP_ENV=$NEXT_PUBLIC_APP_ENV \
+  FORCE_UI_DEV_MODE=$FORCE_UI_DEV_MODE \
+  NEXT_PUBLIC_FORCE_UI_DEV_MODE=$NEXT_PUBLIC_FORCE_UI_DEV_MODE \
+  GIT_SHA=$GIT_SHA \
+  NEXT_PUBLIC_GIT_SHA=$NEXT_PUBLIC_GIT_SHA \
+  BUILD_TIME=$BUILD_TIME
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# Stamp deploy version (also served at /build-info.json)
+RUN node -e "const fs=require('fs');const p=require('./package.json');fs.mkdirSync('public',{recursive:true});fs.writeFileSync('public/build-info.json',JSON.stringify({version:p.version,git:process.env.GIT_SHA||'unknown',builtAt:process.env.BUILD_TIME||new Date().toISOString()},null,2));"
+
 RUN yarn build
 RUN yarn install --frozen-lockfile --production=true
 

@@ -1,0 +1,36 @@
+# Azure DevOps / GitHub-compatible CD note
+#
+# The live host (club-docker) sits behind WireGuard. Cloud agents cannot SSH
+# into it reliably. Continuous deploy therefore runs ON the server:
+#
+#   scripts/server-cd.sh  +  deploy/mlm-cd.timer  (polls git every 2 minutes)
+#
+# Flow when you push to `main` on Azure DevOps (novin remote):
+#   1) Push from your machine (with or without WG)
+#   2) Within ~2 minutes the timer on club-docker fetches main
+#   3) If SHA changed → rebuilds mlm-prod (:3000) and mlm-v2 (:3001)
+#   4) In-app version becomes packageVersion+gitSha (NEXT_PUBLIC_GIT_SHA)
+#
+# Manual force on the server:
+#   /opt/MLM_Front/scripts/server-cd.sh --force
+#
+# Bootstrap / one-shot from a machine that CAN reach the host (WG on):
+#   yarn bootstrap:live
+#   yarn bootstrap:live:deploy
+#
+# This YAML is intentionally a no-op documentation stub so Azure Pipelines
+# does not try to SSH into a WireGuard-only host from the cloud.
+
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - script: |
+      echo "CD is server-side (mlm-cd.timer). Nothing to do in cloud agent."
+      echo "Push to main → live host polls Azure DevOps git within ~2 minutes."
+    displayName: "WireGuard-safe CD reminder"
