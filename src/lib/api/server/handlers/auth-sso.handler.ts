@@ -15,9 +15,11 @@ import { numericToRole } from "@/config/roles";
 import type { UserRole } from "@/types/mlm";
 import {
   decodeJwtPayload,
+  displayNameFromNibClaims,
   roleFromNibClaims,
   userIdFromNibClaims,
 } from "@/lib/auth/nib-jwt";
+import { displayPersonName } from "@/lib/person-name";
 import { buildAuthResponse } from "./auth.handler";
 
 const externalTokenSchema = z
@@ -157,6 +159,13 @@ export async function ssoCompleteHandler(req: Request): Promise<Response> {
   const claims = decodeJwtPayload(access);
   const userId = userIdFromNibClaims(claims);
   const role = roleFromNibClaims(claims, cookieRole);
+  const names = displayNameFromNibClaims(claims);
+  const fullName = displayPersonName({
+    firstName: names.firstName,
+    lastName: names.lastName,
+    fullName: names.fullName,
+    fallback: "",
+  });
 
   if (!userId) {
     return unauthorized("Invalid SSO access token");
@@ -167,7 +176,9 @@ export async function ssoCompleteHandler(req: Request): Promise<Response> {
     refreshToken: refresh,
     role,
     userId,
-    fullName: mobile || userId,
+    fullName,
+    firstName: names.firstName,
+    lastName: names.lastName,
     mobile: mobile || undefined,
   };
 

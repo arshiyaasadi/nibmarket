@@ -36,3 +36,27 @@ export function userIdFromNibClaims(payload: Record<string, unknown> | null): st
   const raw = payload.user_id ?? payload.userId ?? payload.sub ?? payload.id;
   return raw != null && String(raw).trim() ? String(raw) : "";
 }
+
+/** Best-effort display name from NIB JWT claims (never prefer phone). */
+export function displayNameFromNibClaims(payload: Record<string, unknown> | null): {
+  firstName?: string;
+  lastName?: string;
+  fullName: string;
+} {
+  if (!payload) return { fullName: "" };
+  const firstName = String(
+    payload.first_name ?? payload.firstName ?? payload.given_name ?? "",
+  ).trim();
+  const lastName = String(
+    payload.last_name ?? payload.lastName ?? payload.family_name ?? "",
+  ).trim();
+  const combined = `${firstName} ${lastName}`.trim();
+  const fullName = String(
+    combined || payload.full_name || payload.fullName || payload.name || "",
+  ).trim();
+  return {
+    firstName: firstName || undefined,
+    lastName: lastName || undefined,
+    fullName,
+  };
+}
