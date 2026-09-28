@@ -1,7 +1,7 @@
 import { clearQueryCache, getQueryClient } from "@/lib/query-client";
 import { BFF_API_BASE } from "@/lib/api/endpoints";
 import { ROUTES } from "@/config/routes";
-import { getPanelLoginUrlForLogout } from "@/config/sso";
+import { getPanelLoginUrlBare } from "@/config/sso";
 import { useAuthSlice } from "@/store/slices/auth.slice";
 import { useUiSlice } from "@/store/slices/ui.slice";
 
@@ -31,8 +31,8 @@ function redirectToLogoutIncomplete(reason: string): void {
 
 function redirectToPanelLoginAfterLogout(): void {
   if (typeof window === "undefined") return;
-  // panel…/login/?callbackUrl=https://club.nibdev.com (APP_URL home)
-  window.location.href = getPanelLoginUrlForLogout();
+  // Panel SSO without callbackUrl
+  window.location.href = getPanelLoginUrlBare();
 }
 
 /**
