@@ -63,14 +63,14 @@ export type NibLogoutResult = {
 
 /**
  * Invalidate session on NIB auth service (server-side).
- * GET with header Refresh: <refresh_token>
+ * GET with Authorization: Bearer <access_token>
  */
 export async function logoutNibAuth(
-  refresh: string | null | undefined,
+  accessToken: string | null | undefined,
 ): Promise<NibLogoutResult> {
-  const token = String(refresh ?? "").trim();
+  const token = String(accessToken ?? "").trim();
   if (!token) {
-    return { ok: true, reason: "no_refresh_token" };
+    return { ok: false, reason: "توکن دسترسی برای خروج یافت نشد." };
   }
 
   const url = getServerLogOutUrl();
@@ -80,7 +80,7 @@ export async function logoutNibAuth(
       method: "GET",
       headers: {
         accept: "application/json",
-        Refresh: token,
+        Authorization: `Bearer ${token}`,
       },
       cache: "no-store",
     });

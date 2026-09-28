@@ -78,11 +78,20 @@ export function createRegistrationToken(mobile: string): string {
 export function readSessionToken(req: Request): string | null {
   const authHeader = req.headers.get("Authorization");
   if (authHeader?.startsWith("Bearer ")) {
-    return authHeader.slice(7);
+    return authHeader.slice(7).trim() || null;
   }
 
   const cookieHeader = req.headers.get("cookie") ?? "";
-  return cookieHeader.match(/nib_token=([^;]+)/)?.[1] ?? null;
+  const raw =
+    cookieHeader.match(/(?:^|;\s*)nib_token=([^;]+)/)?.[1] ??
+    cookieHeader.match(/(?:^|;\s*)nib_auth=([^;]+)/)?.[1] ??
+    null;
+  if (!raw) return null;
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
 }
 
 export function verifySignedToken(

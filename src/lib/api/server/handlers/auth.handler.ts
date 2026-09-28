@@ -271,25 +271,24 @@ function clearAllAuthCookies(res: NextResponse): void {
 }
 
 /**
- * Browser → BFF → NIB auth log_out.
+ * Browser → BFF → NIB auth log_out (Authorization: Bearer access).
  * On success: clears all auth cookies.
- * On remote failure: still ends the club UI session (access cookies) but keeps
- * `nib_refresh` so "خروج مجدد" can retry the remote call.
+ * On remote failure: keeps cookies so "خروج مجدد" can retry with the same access token.
  */
 export async function logoutHandler(req: Request): Promise<Response> {
-  const refresh = readRefreshToken(req);
+  const access = readSessionToken(req);
   const { logoutNibAuth } = await import("@/lib/auth/nib-auth");
   const { isMockDevelopmentMode } = await import("@/config/api-service");
 
   // Local JWT / UI mock sessions never hit NIB auth.
-  const isLocalRefresh = Boolean(verifySignedToken(refresh, "refresh"));
+  const isLocalAccess = Boolean(verifySignedToken(access, "access"));
   const result =
-    isMockDevelopmentMode() || isLocalRefresh || !refresh
+    isMockDevelopmentMode() || isLocalAccess || !access
       ? { ok: true as const, reason: "ok" }
-      : await logoutNibAuth(refresh);
+      : await logoutNibAuth(access);
 
   if (!result.ok) {
-    const res = NextResponse.json(
+    return NextResponse.json(
       {
         ok: false,
         clubLoggedOut: true,
@@ -298,8 +297,6 @@ export async function logoutHandler(req: Request): Promise<Response> {
       },
       { status: 502 },
     );
-    clearAccessCookies(res);
-    return res;
   }
 
   const res = NextResponse.json({
