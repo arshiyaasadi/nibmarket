@@ -52,7 +52,7 @@ function appendCallbackUrl(base: string, callbackUrl: string): string {
   return `${base}${separator}callbackUrl=${encodeURIComponent(callbackUrl)}`;
 }
 
-/** Panel login URL without callbackUrl (used after logout). */
+/** Panel login URL without callbackUrl. */
 export function getPanelLoginUrlBare(): string {
   if (env.PANEL_LOGIN_URL) {
     return env.PANEL_LOGIN_URL;
@@ -61,6 +61,21 @@ export function getPanelLoginUrlBare(): string {
     return "/login/token";
   }
   return `${trimTrailingSlash(env.PANEL_BASE_URL)}/login/`;
+}
+
+/** Club public home (e.g. https://club.nibdev.com) — used as logout SSO callback. */
+export function getClubHomeUrl(): string {
+  return trimTrailingSlash(env.APP_URL || env.SITE_URL || "");
+}
+
+/**
+ * Panel login with callbackUrl pointing at club home (not /login/sso).
+ * Example: https://panel.nibdev.com/login/?callbackUrl=https%3A%2F%2Fclub.nibdev.com
+ */
+export function getPanelLoginUrlForLogout(): string {
+  const home = getClubHomeUrl();
+  if (!home) return getPanelLoginUrlBare();
+  return appendCallbackUrl(getPanelLoginUrlBare(), home);
 }
 
 export function getPanelLoginUrl(params?: SsoCallbackParams): string {
