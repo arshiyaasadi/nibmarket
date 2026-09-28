@@ -76,7 +76,13 @@ async function handleUnauthorized(path: string): Promise<void> {
   }
 
   const currentPath = window.location.pathname;
-  if (currentPath.startsWith("/login") || currentPath.startsWith("/session-expired")) return;
+  if (
+    currentPath.startsWith("/login") ||
+    currentPath.startsWith("/session-expired") ||
+    currentPath.startsWith("/logout-incomplete")
+  ) {
+    return;
+  }
 
   const [{ clearSessionLocally }, { redirectToSessionExpired }] = await Promise.all([
     import("@/lib/auth/session"),

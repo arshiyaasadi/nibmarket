@@ -54,20 +54,59 @@ export async function refreshNibAuthTokens(refresh: string): Promise<NibAuthToke
   return { access, refresh: nextRefresh };
 }
 
+export type NibLogoutResult = {
+  ok: boolean;
+  /** Human-readable reason when ok is false (Persian-friendly for UI). */
+  reason: string;
+  status?: number;
+};
+
 /**
  * Invalidate session on NIB auth service (server-side).
  * GET with header Refresh: <refresh_token>
  */
-export async function logoutNibAuth(refresh: string | null | undefined): Promise<void> {
+export async function logoutNibAuth(
+  refresh: string | null | undefined,
+): Promise<NibLogoutResult> {
   const token = String(refresh ?? "").trim();
-  if (!token) return;
+  if (!token) {
+    return { ok: true, reason: "no_refresh_token" };
+  }
 
-  await fetch(getServerLogOutUrl(), {
-    method: "GET",
-    headers: {
-      accept: "application/json",
-      Refresh: token,
-    },
-    cache: "no-store",
-  }).catch(() => {});
+  const url = getServerLogOutUrl();
+  let res: Response | null = null;
+  try {
+    res = await fetch(url, {
+      method: "GET",
+      headers: {
+        accept: "application/json",
+        Refresh: token,
+      },
+      cache: "no-store",
+    });
+  } catch {
+    return {
+      ok: false,
+      reason: "ارتباط با سرویس احراز هویت برقرار نشد.",
+    };
+  }
+
+  if (res.ok) {
+    return { ok: true, reason: "ok", status: res.status };
+  }
+
+  const bodyText = await res.text().catch(() => "");
+  let detail = "";
+  try {
+    const parsed = JSON.parse(bodyText) as { message?: unknown; detail?: unknown; error?: unknown };
+    detail = String(parsed.message ?? parsed.detail ?? parsed.error ?? "").trim();
+  } catch {
+    detail = bodyText.trim().slice(0, 200);
+  }
+
+  const reason = detail
+    ? `سرویس احراز هویت خطا داد (${res.status}): ${detail}`
+    : `سرویس احراز هویت با وضعیت ${res.status} پاسخ داد.`;
+
+  return { ok: false, reason, status: res.status };
 }

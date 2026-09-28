@@ -2,6 +2,7 @@ export const ROUTES = {
   HOME: "/",
   LOGIN: "/login",
   SESSION_EXPIRED: "/session-expired",
+  LOGOUT_INCOMPLETE: "/logout-incomplete",
   DASHBOARD: "/dashboard",
 
   NETWORK: {

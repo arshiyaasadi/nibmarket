@@ -124,7 +124,13 @@ export function getCurrentUserId(req: Request): string | null {
 
 export function readRefreshToken(req: Request): string | null {
   const cookieHeader = req.headers.get("cookie") ?? "";
-  return cookieHeader.match(/nib_refresh=([^;]+)/)?.[1] ?? null;
+  const raw = cookieHeader.match(/(?:^|;\s*)nib_refresh=([^;]+)/)?.[1] ?? null;
+  if (!raw) return null;
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
 }
 
 export function unauthorized(message = "Unauthorized"): Response {
