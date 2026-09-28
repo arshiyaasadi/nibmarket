@@ -2,10 +2,10 @@
 
 import { useId, useState } from 'react'
 import { motion, useSpring } from 'motion/react'
+import { AuthEntryButton } from '@/features/landing/components/AuthEntryButton'
 import { Button } from '@/features/landing/components/Button'
 import { Container } from '@/features/landing/components/Container'
 import { useTranslation } from '@/features/landing/hooks/useLandingTranslation'
-import { ROUTES } from '@/config/routes'
 
 interface CoinAnimationProps extends React.ComponentPropsWithoutRef<'div'> {
   mouseX: number
@@ -276,13 +276,9 @@ export function MLMHero() {
                 {t('hero.startEarning')}
               </Button>
               
-              <Button
-                href={ROUTES.LOGIN}
-                variant="outline"
-                className="border-gray-600 text-white hover:bg-white/10"
-              >
+              <AuthEntryButton className="inline-flex justify-center rounded-lg border border-gray-600 py-[calc(--spacing(2)-1px)] px-[calc(--spacing(3)-1px)] text-sm text-white transition-colors hover:bg-white/10">
                 {t('header.login')}
-              </Button>
+              </AuthEntryButton>
 
               <Button
                 href="#live-chart"

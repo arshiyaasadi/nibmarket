@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
 #
-# sync-live.sh — deploy WITHOUT Azure/git push
+# sync-live.sh — deploy WITHOUT Azure/git push (nibmarket live host)
 #
-# From your Mac (WireGuard ON so the host resolves):
-#   1) rsync project files → /opt/MLM_Front on the live host
-#   2) ensure Docker (Ubuntu apt) + nginx network
-#   3) seed .env.production / .env.v2 if missing (never overwrite existing)
-#   4) docker compose build+up for prod (:3000) and v2/UI (:3001)
+# From your Mac (WireGuard ON):
+#   1) rsync project → /opt/MLM_Front
+#   2) start remote-deploy.sh DETACHED on the server (survives closed terminal)
+#   3) on re-run: report current STAGE / STATUS instead of starting a duplicate
 #
 # Usage:
 #   yarn sync:live
-#   ./scripts/sync-live.sh
-#   ./scripts/sync-live.sh --rsync-only
+#   yarn sync:live --status          # only print remote stage
+#   yarn sync:live --follow          # stream remote log until done/failed
+#   yarn sync:live --rsync-only
+#   yarn sync:live --force           # kill stuck remote deploy and restart
 #   LIVE_SSH_HOST=<ip> yarn sync:live
+#
+# Ports on live host: prod :3002 only (UI / v2 stack is NOT built)
 #
 set -euo pipefail
 
@@ -21,24 +24,33 @@ SSH_USER="${LIVE_SSH_USER:-novin}"
 SSH_ALIAS="${LIVE_SSH_ALIAS:-nibmarket-live}"
 SSH_KEY="${LIVE_SSH_KEY:-${HOME}/.ssh/nibmarket_live_ed25519}"
 PROJECT_DIR="${LIVE_PROJECT_DIR:-/opt/MLM_Front}"
+PROD_PORT="${PROD_PORT:-3002}"
+NGINX_DOMAIN="${NGINX_DOMAIN:-club.nibmarket.ir}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PASS_FILE="${REPO_ROOT}/live_ssh_pass.txt"
 
 RSYNC_ONLY=0
-case "${1:-}" in
-  --rsync-only) RSYNC_ONLY=1 ;;
-  --help|-h)
-    sed -n '2,20p' "$0"
-    exit 0
-    ;;
-  "") ;;
-  *)
-    echo "Unknown option: $1 (use --rsync-only | --help)"
-    exit 1
-    ;;
-esac
+STATUS_ONLY=0
+FOLLOW=0
+FORCE=0
+for arg in "$@"; do
+  case "${arg}" in
+    --rsync-only) RSYNC_ONLY=1 ;;
+    --status) STATUS_ONLY=1 ;;
+    --follow) FOLLOW=1 ;;
+    --force) FORCE=1 ;;
+    --help|-h)
+      sed -n '2,22p' "$0"
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: ${arg} (use --status | --follow | --rsync-only | --force | --help)"
+      exit 1
+      ;;
+  esac
+done
 
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -58,7 +70,6 @@ read_pass() {
   fi
 }
 
-# Prefer SSH config Host alias when LIVE_SSH_HOST is unset
 if [[ -n "${LIVE_SSH_HOST:-}" ]]; then
   TARGET="${SSH_USER}@${LIVE_SSH_HOST}"
 elif grep -qE "^Host[[:space:]]+${SSH_ALIAS}([[:space:]]|$)" "${HOME}/.ssh/config" 2>/dev/null; then
@@ -69,7 +80,6 @@ fi
 
 read_pass
 
-# Build ssh / rsync transport
 USE_PASSWORD=0
 SSH_OPTS=(-o StrictHostKeyChecking=accept-new -o ServerAliveInterval=30 -o ConnectTimeout=15)
 if [[ -f "${SSH_KEY}" ]]; then
@@ -97,6 +107,51 @@ else
   exit 1
 fi
 
+print_remote_status() {
+  echo ">>> Remote deploy status (${PROJECT_DIR}/.cd-state/deploy-status)"
+  remote "bash '${PROJECT_DIR}/scripts/remote-deploy.sh' --status" 2>/dev/null \
+    || remote "cat '${PROJECT_DIR}/.cd-state/deploy-status' 2>/dev/null || echo 'STATUS=idle'"
+}
+
+remote_is_running() {
+  local status_blob
+  status_blob="$(remote "cat '${PROJECT_DIR}/.cd-state/deploy-status' 2>/dev/null || true")"
+  echo "${status_blob}" | grep -qE '^STATUS=running$' || return 1
+  local pid
+  pid="$(echo "${status_blob}" | grep -E '^PID=' | head -1 | cut -d= -f2-)"
+  [[ -n "${pid}" ]] || return 1
+  remote "kill -0 '${pid}' 2>/dev/null" >/dev/null 2>&1
+}
+
+follow_log() {
+  echo ">>> Following ${PROJECT_DIR}/.cd-state/deploy.log (Ctrl+C stops follow only — deploy keeps running)"
+  remote "tail -n 40 -f '${PROJECT_DIR}/.cd-state/deploy.log'" || true
+}
+
+if [[ "${STATUS_ONLY}" -eq 1 ]]; then
+  print_remote_status
+  exit 0
+fi
+
+if [[ "${FOLLOW}" -eq 1 ]] && [[ "${FORCE}" -eq 0 ]] && [[ "${RSYNC_ONLY}" -eq 0 ]]; then
+  print_remote_status
+  follow_log
+  exit 0
+fi
+
+# If a deploy is already running, report stage and exit (unless --force)
+if [[ "${FORCE}" -eq 0 ]] && [[ "${RSYNC_ONLY}" -eq 0 ]]; then
+  if remote_is_running; then
+    echo ">>> A remote deploy is already running (terminal disconnect does not stop it)."
+    print_remote_status
+    echo ""
+    echo "    yarn sync:live --status   # stage only"
+    echo "    yarn sync:live --follow   # stream log"
+    echo "    yarn sync:live --force    # kill + restart after new rsync"
+    exit 0
+  fi
+fi
+
 echo ">>> Remote dir: ${PROJECT_DIR}"
 remote 'echo "--- connected as $(whoami)@$(hostname)"'
 
@@ -109,6 +164,24 @@ if [[ -n "${SSH_PASS}" ]]; then
   remote "echo '${SSH_PASS}' | sudo -S -p '' mkdir -p '${PROJECT_DIR}' && echo '${SSH_PASS}' | sudo -S -p '' chown -R \$(whoami):\$(id -gn) '${PROJECT_DIR}'"
 else
   remote "sudo mkdir -p '${PROJECT_DIR}' && sudo chown -R \$(whoami):\$(id -gn) '${PROJECT_DIR}'"
+fi
+
+if [[ "${FORCE}" -eq 1 ]]; then
+  echo ">>> --force: stopping previous remote deploy if any"
+  remote PROJECT_DIR="${PROJECT_DIR}" 'bash -s' <<'KILL_EOF'
+set +e
+STATE="${PROJECT_DIR}/.cd-state"
+if [[ -f "${STATE}/deploy.pid" ]]; then
+  old="$(cat "${STATE}/deploy.pid")"
+  kill "${old}" 2>/dev/null
+  sleep 1
+  kill -9 "${old}" 2>/dev/null
+fi
+rm -f "${STATE}/deploy.lock" "${STATE}/deploy.pid"
+if [[ -f "${STATE}/deploy-status" ]]; then
+  sed -i 's/^STATUS=.*/STATUS=idle/' "${STATE}/deploy-status" 2>/dev/null || true
+fi
+KILL_EOF
 fi
 
 echo ">>> rsync project → ${TARGET}:${PROJECT_DIR}/"
@@ -144,127 +217,61 @@ rsync -az --delete \
 echo ">>> Sync complete"
 
 if [[ "${RSYNC_ONLY}" -eq 1 ]]; then
-  echo ">>> --rsync-only: skipping Docker"
+  echo ">>> --rsync-only: skipping Docker / nginx"
   exit 0
 fi
 
-echo ">>> Remote Docker + dual stack (prod :3000, v2/UI :3001)"
+echo ">>> Starting DETACHED remote deploy (survives closed terminal)"
+echo "    prod :${PROD_PORT} | nginx ${NGINX_DOMAIN} | UI stack skipped"
+
 remote \
   SUDO_PASS="${SSH_PASS}" \
   PROJECT_DIR="${PROJECT_DIR}" \
   GIT_SHA="${GIT_SHA}" \
   BUILD_TIME="${BUILD_TIME}" \
+  PROD_PORT="${PROD_PORT}" \
+  NGINX_DOMAIN="${NGINX_DOMAIN}" \
+  CERTBOT_EMAIL="${CERTBOT_EMAIL:-}" \
   'bash -s' <<'REMOTE_EOF'
 set -euo pipefail
-
-sudo_run() {
-  if [[ -n "${SUDO_PASS:-}" ]]; then
-    echo "${SUDO_PASS}" | sudo -S -p '' "$@"
-  else
-    sudo "$@"
-  fi
-}
-
 cd "${PROJECT_DIR}"
-chmod +x scripts/*.sh 2>/dev/null || true
+chmod +x scripts/*.sh scripts/lib/*.sh 2>/dev/null || true
+mkdir -p .cd-state
 
-echo "=== Docker (apt) ==="
-if ! command -v docker >/dev/null 2>&1; then
-  sudo_run apt-get update -y
-  sudo_run DEBIAN_FRONTEND=noninteractive apt-get install -y docker.io docker-compose-v2 \
-    || sudo_run DEBIAN_FRONTEND=noninteractive apt-get install -y docker.io docker-compose
-fi
-if ! command -v docker >/dev/null 2>&1; then
-  echo "Error: docker missing after apt"
+if [[ ! -f scripts/remote-deploy.sh ]]; then
+  echo "Error: scripts/remote-deploy.sh missing after rsync"
   exit 1
 fi
-if getent group docker >/dev/null 2>&1; then
-  sudo_run usermod -aG docker "$(whoami)" || true
-fi
-sudo_run systemctl enable --now docker 2>/dev/null || true
 
-compose_run() {
-  if docker info >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
-    docker compose "$@"
-  elif docker compose version >/dev/null 2>&1; then
-    sudo_run docker compose "$@"
-  elif command -v docker-compose >/dev/null 2>&1; then
-    if docker info >/dev/null 2>&1; then
-      docker-compose "$@"
-    else
-      sudo_run docker-compose "$@"
-    fi
-  else
-    echo "Error: no compose binary"
-    exit 1
+# Detach: nohup + disown so SSH hangup does not kill the build
+# Logging is owned by remote-deploy.sh (.cd-state/deploy.log)
+nohup env \
+  SUDO_PASS="${SUDO_PASS:-}" \
+  PROJECT_DIR="${PROJECT_DIR}" \
+  GIT_SHA="${GIT_SHA}" \
+  BUILD_TIME="${BUILD_TIME}" \
+  PROD_PORT="${PROD_PORT}" \
+  NGINX_DOMAIN="${NGINX_DOMAIN}" \
+  CERTBOT_EMAIL="${CERTBOT_EMAIL:-}" \
+  bash "${PROJECT_DIR}/scripts/remote-deploy.sh" \
+  >/dev/null 2>&1 &
+
+echo $! > .cd-state/deploy.pid
+disown || true
+# Give remote-deploy a moment to write STATUS=running
+for _ in 1 2 3 4 5; do
+  sleep 1
+  if [[ -f .cd-state/deploy-status ]]; then
+    break
   fi
-}
-
-echo "=== nginx network ==="
-if ! sudo_run docker network inspect nginx >/dev/null 2>&1; then
-  sudo_run docker network create nginx
-fi
-
-seed_secret() {
-  local file="$1"
-  if grep -q 'AUTH_SECRET=<generate' "${file}" 2>/dev/null || grep -qE '^AUTH_SECRET=$' "${file}" 2>/dev/null; then
-    SECRET="$(openssl rand -hex 24 2>/dev/null || head -c 48 /dev/urandom | xxd -p | tr -d '\n' | head -c 48)"
-    sed -i.bak "s|^AUTH_SECRET=.*|AUTH_SECRET=${SECRET}|" "${file}" && rm -f "${file}.bak"
-  fi
-}
-
-[[ -f .env.production ]] || { cp .env.production.example .env.production; seed_secret .env.production; echo "--- seeded .env.production"; }
-[[ -f .env.v2 ]] || { cp .env.v2.example .env.v2; echo "--- seeded .env.v2"; }
-[[ -f .env ]] || cp .env.production .env
-
-export GIT_SHA BUILD_TIME NEXT_PUBLIC_GIT_SHA="${GIT_SHA}"
-
-# Avoid Docker Hub / CloudFront 403: no dockerfile frontend syntax, use GCR mirror for node
-export NODE_BASE_IMAGE="${NODE_BASE_IMAGE:-mirror.gcr.io/library/node:22-bookworm-slim}"
-echo "=== Pulling base image: ${NODE_BASE_IMAGE} ==="
-pull_base() {
-  if docker info >/dev/null 2>&1; then
-    docker pull "$1"
-  else
-    sudo_run docker pull "$1"
-  fi
-}
-if ! pull_base "${NODE_BASE_IMAGE}"; then
-  for alt in \
-    "docker.arvancloud.ir/library/node:22-bookworm-slim" \
-    "registry.docker.ir/library/node:22-bookworm-slim" \
-    "node:22-bookworm-slim"
-  do
-    echo "--- retry base image: ${alt}"
-    if pull_base "${alt}"; then
-      export NODE_BASE_IMAGE="${alt}"
-      break
-    fi
-  done
-fi
-echo "--- Using NODE_BASE_IMAGE=${NODE_BASE_IMAGE}"
-
-echo "=== prod (:3000) ==="
-set -a
-# shellcheck disable=SC1091
-source <(grep -E '^(APP_ENV|NEXT_PUBLIC_APP_ENV|APP_PORT)=' .env.production | sed 's/\r$//' || true)
-set +a
-compose_run -p mlm-prod -f docker-compose.prod.yml --env-file .env.production up -d --build --remove-orphans
-
-echo "=== v2/UI (:3001) ==="
-set -a
-# shellcheck disable=SC1091
-source <(grep -E '^(APP_ENV|NEXT_PUBLIC_APP_ENV|APP_PORT)=' .env.v2 | sed 's/\r$//' || true)
-set +a
-export FORCE_UI_DEV_MODE=1 NEXT_PUBLIC_FORCE_UI_DEV_MODE=1
-compose_run -p mlm-v2 -f docker-compose.v2.yml --env-file .env.v2 up -d --build --remove-orphans
-
-compose_run -p mlm-prod -f docker-compose.prod.yml ps || true
-compose_run -p mlm-v2 -f docker-compose.v2.yml ps || true
-echo ">>> Deploy done. version=${GIT_SHA}"
+done
+echo "--- detached pid=$(cat .cd-state/deploy.pid)"
+cat .cd-state/deploy-status 2>/dev/null || echo "STATUS=running STAGE=starting"
 REMOTE_EOF
 
 echo ""
-echo ">>> Done (password_fallback=${USE_PASSWORD})."
-echo "    Re-deploy: yarn sync:live"
-echo "    prod :3000 | v2/UI :3001"
+echo ">>> Deploy is running on the server (you can close this terminal)."
+echo "    Re-check stage:  yarn sync:live --status"
+echo "    Stream log:      yarn sync:live --follow"
+echo "    Force restart:   yarn sync:live --force"
+echo "    password_fallback=${USE_PASSWORD}"

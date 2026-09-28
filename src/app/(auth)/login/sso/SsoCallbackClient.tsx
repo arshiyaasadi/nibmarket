@@ -3,9 +3,8 @@
 import { useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
-import { buildLoginRedirectUrl, resolveReturnUrl } from "@/config/auth-redirect";
-import { resolveSsoEntryToken } from "@/lib/auth-token";
-import { exchangeSsoToken } from "@/lib/auth-exchange";
+import { buildSessionExpiredUrl, resolveReturnUrl } from "@/config/auth-redirect";
+import { completeSsoSession } from "@/lib/auth-exchange";
 import { applyAuthSession } from "@/lib/auth/apply-session";
 import { useAuthActions } from "@/store/hooks/use-auth";
 import { useAuthSlice } from "@/store/slices/auth.slice";
@@ -31,21 +30,16 @@ export function SsoCallbackClient() {
         return;
       }
 
-      const entryToken = resolveSsoEntryToken(searchParams);
-      if (!entryToken) {
-        router.replace(buildLoginRedirectUrl(returnUrl));
-        return;
-      }
-
       try {
-        const data = await exchangeSsoToken(entryToken);
+        const data = await completeSsoSession();
         if (cancelled) return;
         await applyAuthSession(data, { setAuth, setWallet });
         router.replace(returnUrl);
         router.refresh();
       } catch {
         if (cancelled) return;
-        router.replace(buildLoginRedirectUrl(returnUrl));
+        // Do not bounce straight to panel SSO — show expired page to break loops.
+        router.replace(buildSessionExpiredUrl(returnUrl));
       }
     }
 

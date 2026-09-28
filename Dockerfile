@@ -3,6 +3,9 @@
 #
 # Base image: prefer a Hub mirror. Override at build time if needed:
 #   NODE_BASE_IMAGE=node:22-bookworm-slim docker compose ... build
+#
+# Production uses Next.js `output: "standalone"` so we never run a second
+# `yarn install --production` (that step re-fetches the registry and hangs on slow nets).
 ARG NODE_BASE_IMAGE=mirror.gcr.io/library/node:22-bookworm-slim
 
 FROM ${NODE_BASE_IMAGE} AS base
@@ -14,7 +17,7 @@ RUN corepack enable
 
 FROM base AS deps
 COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+RUN yarn install --frozen-lockfile --network-timeout 600000
 
 FROM base AS development
 COPY --from=deps /app/node_modules ./node_modules
@@ -49,21 +52,19 @@ COPY . .
 RUN node -e "const fs=require('fs');const p=require('./package.json');fs.mkdirSync('public',{recursive:true});fs.writeFileSync('public/build-info.json',JSON.stringify({version:p.version,git:process.env.GIT_SHA||'unknown',builtAt:process.env.BUILD_TIME||new Date().toISOString()},null,2));"
 
 RUN yarn build
-RUN yarn install --frozen-lockfile --production=true
 
 FROM base AS production
 ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 --ingroup nodejs --no-create-home nextjs
 
-COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 ENV HOME=/app
-CMD ["node", "node_modules/next/dist/bin/next", "start"]
+CMD ["node", "server.js"]

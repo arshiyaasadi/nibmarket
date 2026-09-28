@@ -15,6 +15,7 @@ export const ENDPOINTS = {
     LOGOUT: "/auth/logout",
     REFRESH: "/auth/refresh",
     SSO_EXCHANGE: "/auth/sso/exchange",
+    SSO_COMPLETE: "/auth/sso/complete",
     REGISTER_OTP_SEND: "/auth/register/otp/send",
     REGISTER_OTP_VERIFY: "/auth/register/otp/verify",
     REGISTER: "/auth/register",

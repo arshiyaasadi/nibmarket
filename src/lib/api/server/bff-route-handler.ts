@@ -3,7 +3,8 @@ import { proxyRequestToBackend } from "@/lib/api/server/services/backend-api-ser
 import { resolveHandler } from "@/lib/api/server/route-registry";
 import { proxyToBackend } from "@/lib/api/server/proxy-handler";
 import { tryHandleDevAdminAuth } from "@/lib/api/server/dev-admin-auth";
-import { logoutHandler, sessionEstablishHandler } from "@/lib/api/server/handlers/auth.handler";
+import { logoutHandler, refreshHandler, sessionEstablishHandler } from "@/lib/api/server/handlers/auth.handler";
+import { ssoCompleteHandler } from "@/lib/api/server/handlers/auth-sso.handler";
 import { adminUsersGeoHandler } from "@/lib/api/server/handlers/admin.handler";
 import { isDevAdminAuthEnabled } from "@/config/dev-admin-auth";
 import { internalServerError } from "@/lib/api/server/session";
@@ -14,8 +15,10 @@ type Params = Promise<{ path: string[] }>;
 
 const LOCAL_ONLY_ROUTES: Record<string, (req: Request) => Promise<Response>> = {
   "POST:/auth/session/establish": sessionEstablishHandler,
-  // BFF owns session cookies — always clear locally (do not proxy to external backend).
+  // BFF owns session cookies + NIB auth proxy (never hit from browser).
   "POST:/auth/logout": logoutHandler,
+  "POST:/auth/refresh": refreshHandler,
+  "POST:/auth/sso/complete": ssoCompleteHandler,
   // The density map has no backend counterpart — it is served from fixtures in every mode.
   "GET:/admin/users/geo": adminUsersGeoHandler,
 };

@@ -10,7 +10,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function SsoCallbackPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background" dir="rtl">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8" dir="rtl">
       <div className="w-full max-w-md rounded-2xl bg-surface p-pad-mol-md shadow-lg">
         <Suspense>
           <SsoCallbackClient />

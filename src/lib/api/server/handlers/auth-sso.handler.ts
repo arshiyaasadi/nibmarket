@@ -3,11 +3,21 @@ import { z } from "zod";
 import { isMockDevelopmentMode } from "@/config/api-service";
 import { clientEnv } from "@/config/env.client";
 import { serverEnv } from "@/config/env.server";
-import { badRequest, unauthorized } from "@/lib/api/server/session";
+import {
+  badRequest,
+  COOKIE_OPTS,
+  REFRESH_COOKIE_OPTS,
+  unauthorized,
+} from "@/lib/api/server/session";
 import { findOrCreateNibMarketUser } from "@/lib/mock/repositories/user.repository";
 import { MOCK_MOBILE, MOCK_USER_ID } from "@/lib/mock/fixtures";
 import { numericToRole } from "@/config/roles";
 import type { UserRole } from "@/types/mlm";
+import {
+  decodeJwtPayload,
+  roleFromNibClaims,
+  userIdFromNibClaims,
+} from "@/lib/auth/nib-jwt";
 import { buildAuthResponse } from "./auth.handler";
 
 const externalTokenSchema = z
@@ -124,4 +134,46 @@ export async function ssoExchangeHandler(req: Request): Promise<Response> {
     response.cookies.delete(clientEnv.NEXT_PUBLIC_SSO_ENTRY_COOKIE);
   }
   return response;
+}
+
+/**
+ * Complete SSO after NIB redirect.
+ * Reads cookies set by NIB (nib_auth / nib_refresh / nib_user_role / nib_username)
+ * and establishes httpOnly panel session cookies — no browser call to auth.nib*.
+ */
+export async function ssoCompleteHandler(req: Request): Promise<Response> {
+  const access =
+    readCookie(req, clientEnv.NEXT_PUBLIC_SSO_ENTRY_COOKIE) ??
+    readCookie(req, "nib_auth") ??
+    readCookie(req, "nib_token");
+  const refresh = readCookie(req, "nib_refresh");
+  const cookieRole = readCookie(req, "nib_user_role") ?? readCookie(req, "nib_role");
+  const mobile = readCookie(req, "nib_username") ?? "";
+
+  if (!access || !refresh) {
+    return badRequest("SSO cookies missing (nib_auth / nib_refresh)");
+  }
+
+  const claims = decodeJwtPayload(access);
+  const userId = userIdFromNibClaims(claims);
+  const role = roleFromNibClaims(claims, cookieRole);
+
+  if (!userId) {
+    return unauthorized("Invalid SSO access token");
+  }
+
+  const payload = {
+    token: access,
+    refreshToken: refresh,
+    role,
+    userId,
+    fullName: mobile || userId,
+    mobile: mobile || undefined,
+  };
+
+  const res = NextResponse.json(payload);
+  res.cookies.set("nib_token", access, COOKIE_OPTS);
+  res.cookies.set("nib_refresh", refresh, REFRESH_COOKIE_OPTS);
+  res.cookies.set("nib_role", role, COOKIE_OPTS);
+  return res;
 }

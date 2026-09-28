@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { LoginForm } from "./LoginForm";
+import { LoginEntryClient } from "./LoginEntryClient";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("auth");
@@ -18,7 +18,7 @@ export default async function LoginPage() {
           {t("login")}
         </h1>
         <Suspense>
-          <LoginForm />
+          <LoginEntryClient />
         </Suspense>
       </div>
     </div>

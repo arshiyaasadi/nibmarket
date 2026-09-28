@@ -13,7 +13,7 @@ import {
   registerOtpVerifyHandler,
   refreshHandler,
 } from "./handlers/auth.handler";
-import { ssoExchangeHandler } from "./handlers/auth-sso.handler";
+import { ssoCompleteHandler, ssoExchangeHandler } from "./handlers/auth-sso.handler";
 import {
   adminStatsHandler,
   adminLoginHandler,
@@ -99,6 +99,7 @@ const CUSTOM_ROUTES: Record<string, RouteHandler> = {
   "POST:/auth/login": loginHandler,
   "POST:/auth/logout": logoutHandler,
   "POST:/auth/sso/exchange": ssoExchangeHandler,
+  "POST:/auth/sso/complete": ssoCompleteHandler,
   "POST:/auth/otp/send": otpSendHandler,
   "POST:/auth/otp/verify": otpVerifyHandler,
   "POST:/auth/register/otp/send": registerOtpSendHandler,

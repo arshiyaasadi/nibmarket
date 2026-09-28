@@ -1,10 +1,9 @@
 'use client'
 
 import { motion } from 'motion/react'
+import { AuthEntryButton } from '@/features/landing/components/AuthEntryButton'
 import { Container } from '@/features/landing/components/Container'
-import { Button } from '@/features/landing/components/Button'
 import { useTranslation } from '@/features/landing/hooks/useLandingTranslation'
-import { ROUTES } from '@/config/routes'
 
 const funds = [
   {
@@ -257,15 +256,9 @@ export function NibMarketFunds() {
               {t('nibMarketFunds.cta.description')}
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
-              <Button
-                href={ROUTES.LOGIN}
-                variant="solid"
-                color="cyan"
-                className="min-w-[140px] bg-gradient-to-r from-cyan-500 to-emerald-500 text-white hover:from-cyan-600 hover:to-emerald-600"
-              >
-                {t('nibMarketFunds.cta.login')}
-              </Button>
-              
+              <AuthEntryButton className="inline-flex min-w-[140px] justify-center rounded-lg bg-gradient-to-r from-cyan-500 to-emerald-500 px-3 py-2 text-sm font-semibold text-white transition-colors hover:from-cyan-600 hover:to-emerald-600">
+                {t('header.login')}
+              </AuthEntryButton>
             </div>
           </div>
         </motion.div>

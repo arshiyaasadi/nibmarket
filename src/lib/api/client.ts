@@ -76,17 +76,18 @@ async function handleUnauthorized(path: string): Promise<void> {
   }
 
   const currentPath = window.location.pathname;
-  if (currentPath.startsWith("/login")) return;
+  if (currentPath.startsWith("/login") || currentPath.startsWith("/session-expired")) return;
 
-  const [{ clearSessionLocally }, { redirectToLocalLogin }] = await Promise.all([
+  const [{ clearSessionLocally }, { redirectToSessionExpired }] = await Promise.all([
     import("@/lib/auth/session"),
     import("@/config/auth-redirect"),
   ]);
   clearSessionLocally();
-  redirectToLocalLogin(`${window.location.pathname}${window.location.search}`);
+  redirectToSessionExpired(`${window.location.pathname}${window.location.search}`);
 }
 
 async function refreshSession(): Promise<boolean> {
+  // Always refresh through BFF — server talks to auth.nib* (never the browser).
   const res = await fetch(`${BFF_BASE}/auth/refresh`, {
     method: "POST",
     credentials: "include",
@@ -97,19 +98,14 @@ async function refreshSession(): Promise<boolean> {
   const data = await res.json().catch(() => null);
   const session = data ? normalizeAuthSessionPayload(data) : null;
 
-  if (session?.token && session.refreshToken && session.userId) {
-    await fetch(`${BFF_BASE}/auth/session/establish`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        token: session.token,
-        refreshToken: session.refreshToken,
-        role: session.role,
+  if (session?.token && session.refreshToken) {
+    useAuthSlice.getState().setAuth(
+      toAuthStorePayload({
+        ...session,
+        userId: session.userId || useAuthSlice.getState().userId || "",
+        fullName: session.fullName || useAuthSlice.getState().fullName || "",
       }),
-    }).catch(() => false);
-
-    useAuthSlice.getState().setAuth(toAuthStorePayload(session));
+    );
   }
 
   return Boolean(session?.token);

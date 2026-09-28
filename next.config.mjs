@@ -4,6 +4,8 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Smaller Docker runtime: no second yarn install after build
+  output: "standalone",
   experimental: {
     optimizePackageImports: ["lucide-react"],
   },

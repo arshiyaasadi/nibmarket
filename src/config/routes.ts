@@ -1,6 +1,7 @@
 export const ROUTES = {
   HOME: "/",
   LOGIN: "/login",
+  SESSION_EXPIRED: "/session-expired",
   DASHBOARD: "/dashboard",
 
   NETWORK: {

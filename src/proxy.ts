@@ -16,8 +16,9 @@ function isMockDevelopmentMode(): boolean {
 }
 
 function loginRedirect(req: NextRequest, returnPath: string): NextResponse {
+  // Avoid auto-SSO loops: unauthenticated panel routes land on an interstitial page.
   const url = req.nextUrl.clone();
-  url.pathname = ROUTES.LOGIN;
+  url.pathname = ROUTES.SESSION_EXPIRED;
   url.searchParams.set("returnUrl", returnPath);
   url.searchParams.set("redirect", returnPath);
   return NextResponse.redirect(url);

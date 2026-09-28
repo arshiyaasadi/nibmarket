@@ -17,8 +17,14 @@
     "bootstrap:live": "bash scripts/bootstrap-live-server.sh",
     "bootstrap:live:ssh": "bash scripts/bootstrap-live-server.sh --ssh-only",
     "bootstrap:live:deploy": "bash scripts/bootstrap-live-server.sh --deploy-only",
+    "sync:dev": "bash scripts/sync-dev.sh",
+    "sync:dev:files": "bash scripts/sync-dev.sh --rsync-only",
+    "sync:dev:status": "bash scripts/sync-dev.sh --status",
+    "sync:dev:follow": "bash scripts/sync-dev.sh --follow",
     "sync:live": "bash scripts/sync-live.sh",
     "sync:live:files": "bash scripts/sync-live.sh --rsync-only",
+    "sync:live:status": "bash scripts/sync-live.sh --status",
+    "sync:live:follow": "bash scripts/sync-live.sh --follow",
     "cd:force": "bash scripts/server-cd.sh --force"
   },
   "dependencies": {

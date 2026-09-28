@@ -1,6 +1,6 @@
 # V2 / UI stack on live host — mocks + auth bypass (FORCE_UI_DEV_MODE)
 # Run: docker compose -p mlm-v2 -f docker-compose.v2.yml --env-file .env.v2 up -d --build
-# Port: APP_PORT from .env.v2 (default 3001)
+# Port: APP_PORT from .env.v2 (default 3003)
 # Requires: docker network create nginx
 
 x-app-build: &app-build
@@ -22,7 +22,7 @@ services:
     container_name: mlm_front_v2
     build: *app-build
     ports:
-      - "${APP_PORT:-3001}:3000"
+      - "${APP_PORT:-3003}:3000"
     env_file:
       - path: .env.v2
         required: false

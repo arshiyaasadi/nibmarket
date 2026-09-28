@@ -1,3 +1,4 @@
+import { LEGACY_LOCAL_LOGIN_ENABLED } from "@/config/auth-flow";
 import { getPanelLoginUrl } from "@/config/sso";
 import { ROUTES } from "@/config/routes";
 
@@ -7,6 +8,7 @@ export function sanitizeReturnUrl(value: string | null | undefined): string {
   if (!value) return ROUTES.DASHBOARD;
   if (!value.startsWith("/") || value.startsWith("//")) return ROUTES.DASHBOARD;
   if (value.startsWith("/login")) return ROUTES.DASHBOARD;
+  if (value.startsWith("/session-expired")) return ROUTES.DASHBOARD;
   return value;
 }
 
@@ -31,13 +33,11 @@ export function resolveReturnUrl(fallback?: string | null): string {
   return sanitizeReturnUrl(fallback);
 }
 
+/**
+ * Start NIB Market SSO (panel.nibdev.com / panel.nibmarket.com).
+ * Callback URL is this club panel (`NEXT_PUBLIC_APP_URL` + `/login/sso/`), not the backend API.
+ */
 export function redirectToPanelLogin(returnUrl?: string): void {
-  // UI_DEV_MODE keeps the developer inside the local app — never bounce to NIB panel.
-  if (process.env.NEXT_PUBLIC_UI_DEV_MODE === "1") {
-    redirectToLocalLogin(returnUrl);
-    return;
-  }
-
   storeReturnUrl(returnUrl);
   window.location.href = getPanelLoginUrl();
 }
@@ -53,7 +53,38 @@ export function buildLoginRedirectUrl(returnUrl?: string): string {
   return `${ROUTES.LOGIN}?${params.toString()}`;
 }
 
-/** Local login page — use after logout or session expiry (not external SSO). */
+export function buildSessionExpiredUrl(returnUrl?: string): string {
+  const safeReturnUrl = sanitizeReturnUrl(returnUrl);
+  if (safeReturnUrl === ROUTES.DASHBOARD) return ROUTES.SESSION_EXPIRED;
+
+  const params = new URLSearchParams({
+    returnUrl: safeReturnUrl,
+    redirect: safeReturnUrl,
+  });
+  return `${ROUTES.SESSION_EXPIRED}?${params.toString()}`;
+}
+
+/**
+ * After API 401 / session expiry: stay on club and show expired page.
+ * Do NOT auto-bounce to panel SSO (avoids club ↔ NIB redirect loops).
+ */
+export function redirectToSessionExpired(returnUrl?: string): void {
+  window.location.href = buildSessionExpiredUrl(returnUrl);
+}
+
+/**
+ * Intentional local login entry (legacy OTP) or SSO when legacy is offline.
+ * Prefer redirectToSessionExpired for 401 handling.
+ */
 export function redirectToLocalLogin(returnUrl?: string): void {
+  if (!LEGACY_LOCAL_LOGIN_ENABLED) {
+    redirectToSessionExpired(returnUrl);
+    return;
+  }
   window.location.href = buildLoginRedirectUrl(returnUrl);
+}
+
+/** Landing / CTA entry — always external SSO while legacy login is offline. */
+export function startAuthEntry(returnUrl: string = ROUTES.DASHBOARD): void {
+  redirectToPanelLogin(returnUrl);
 }

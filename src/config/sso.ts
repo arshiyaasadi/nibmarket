@@ -20,7 +20,7 @@ export function getSsoCallbackUrl(): string {
 
 function appendCallbackUrl(base: string, callbackUrl: string): string {
   const separator = base.includes("?") ? "&" : "?";
-  return `${base}${separator}callbackUrl=${callbackUrl}`;
+  return `${base}${separator}callbackUrl=${encodeURIComponent(callbackUrl)}`;
 }
 
 export function getPanelLoginUrl(): string {

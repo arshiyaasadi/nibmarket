@@ -400,27 +400,15 @@ printf '%s\n%s\n' "${GIT_USER}" "${GIT_PASS}" > "${PROJECT_DIR}/.cd-git-credenti
 chmod 600 "${PROJECT_DIR}/.cd-git-credentials"
 echo "--- Wrote .cd-git-credentials for server-cd.sh"
 
-echo "=== [6/6] Dual deploy: prod (:3000) + v2/UI (:3001) ==="
+echo "=== [6/6] Dual deploy: prod (:3002) + v2/UI (:3003) ==="
 export GIT_SHA="${SYNCED}"
 export BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 export NEXT_PUBLIC_GIT_SHA="${SYNCED}"
-
-set -a
-# shellcheck disable=SC1091
-source <(grep -E '^(APP_ENV|NEXT_PUBLIC_APP_ENV|APP_PORT)=' .env.production | sed 's/\r$//' || true)
-set +a
-compose_run -p mlm-prod -f docker-compose.prod.yml --env-file .env.production up -d --build --remove-orphans
-
-set -a
-# shellcheck disable=SC1091
-source <(grep -E '^(APP_ENV|NEXT_PUBLIC_APP_ENV|APP_PORT)=' .env.v2 | sed 's/\r$//' || true)
-set +a
-export FORCE_UI_DEV_MODE=1
-export NEXT_PUBLIC_FORCE_UI_DEV_MODE=1
-compose_run -p mlm-v2 -f docker-compose.v2.yml --env-file .env.v2 up -d --build --remove-orphans
-
-compose_run -p mlm-prod -f docker-compose.prod.yml ps || true
-compose_run -p mlm-v2 -f docker-compose.v2.yml ps || true
+export PROD_PORT=3002 UI_PORT=3003 NGINX_DOMAIN=club.nibmarket.ir
+chmod +x "${PROJECT_DIR}/scripts/remote-deploy.sh" 2>/dev/null || true
+# Prefer the detachable remote-deploy path (same as yarn sync:live)
+SUDO_PASS="${SUDO_PASS}" PROJECT_DIR="${PROJECT_DIR}" GIT_SHA="${SYNCED}" BUILD_TIME="${BUILD_TIME}" \
+  bash "${PROJECT_DIR}/scripts/remote-deploy.sh"
 
 echo "=== CD timer (poll git every 2m — works behind WireGuard) ==="
 chmod +x "${PROJECT_DIR}/scripts/server-cd.sh" 2>/dev/null || true
@@ -441,7 +429,7 @@ else
 fi
 
 echo ">>> Remote bootstrap + deploy finished."
-echo ">>> prod → host :3000 (nibmarket DNS) | v2/UI → host :3001"
+echo ">>> prod → host :3002 (club.nibmarket.ir) | v2/UI → host :3003"
 echo ">>> CD: systemctl status mlm-cd.timer"
 REMOTE_EOF
 }

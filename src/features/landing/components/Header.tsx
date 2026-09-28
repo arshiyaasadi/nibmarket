@@ -10,10 +10,10 @@ import {
 } from '@headlessui/react'
 import { AnimatePresence, motion } from 'motion/react'
 
+import { AuthEntryButton } from '@/features/landing/components/AuthEntryButton'
 import { Button } from '@/features/landing/components/Button'
 import { Container } from '@/features/landing/components/Container'
 import { useTranslation } from '@/features/landing/hooks/useLandingTranslation'
-import { ROUTES } from '@/config/routes'
 
 function MenuIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
@@ -195,13 +195,9 @@ export function Header() {
                             </MobileNavLink>
                           </div>
                           <div className="mt-8">
-                            <Button
-                              href={ROUTES.LOGIN}
-                              variant="outline"
-                              className="w-full border-gray-600 text-white hover:bg-white/10"
-                            >
+                            <AuthEntryButton className="inline-flex w-full justify-center rounded-lg border border-gray-600 py-[calc(--spacing(2)-1px)] px-[calc(--spacing(3)-1px)] text-sm text-white transition-colors hover:bg-white/10">
                               {t('header.login')}
-                            </Button>
+                            </AuthEntryButton>
                           </div>
                         </PopoverPanel>
                       </>
@@ -211,13 +207,9 @@ export function Header() {
               )}
             </Popover>
             <div className="max-lg:hidden">
-              <Button
-                href={ROUTES.LOGIN}
-                variant="outline"
-                className="border-gray-600 text-white hover:bg-white/10"
-              >
+              <AuthEntryButton className="inline-flex justify-center rounded-lg border border-gray-600 py-[calc(--spacing(2)-1px)] px-[calc(--spacing(3)-1px)] text-sm text-white transition-colors hover:bg-white/10">
                 {t('header.login')}
-              </Button>
+              </AuthEntryButton>
             </div>
           </div>
         </Container>

@@ -18,6 +18,8 @@ const serverSchema = z.object({
   /** @deprecated Use BACKEND_API_BASE_URL + BACKEND_API_VERSION instead. */
   BACKEND_API_URL: z.string().url().optional(),
   SSO_CHECK_TOKEN_URL: optionalUrl,
+  /** NIB account auth host — refresh / logout (server-side only). */
+  AUTH_BASE_URL: z.string().url(),
   AUTH_SECRET: z.string().min(32, "AUTH_SECRET باید حداقل ۳۲ کاراکتر باشد"),
   ACCESS_TOKEN_TTL_SECONDS: z
     .string()
@@ -39,6 +41,7 @@ function buildPlaceholder(appEnv: AppEnv): ServerEnv {
     BACKEND_API_BASE_URL: preset.backendApiBaseUrl,
     BACKEND_API_VERSION: preset.backendApiVersion,
     SSO_CHECK_TOKEN_URL: preset.ssoCheckTokenUrl,
+    AUTH_BASE_URL: preset.authBaseUrl,
     AUTH_SECRET: "docker-build-placeholder-secret-32ch",
     ACCESS_TOKEN_TTL_SECONDS: 900,
     REFRESH_TOKEN_TTL_SECONDS: 2_592_000,
@@ -65,6 +68,10 @@ function createServerEnv(): ServerEnv {
     BACKEND_API_VERSION: resolveEnvValue(process.env.BACKEND_API_VERSION, preset.backendApiVersion),
     BACKEND_API_URL: process.env.BACKEND_API_URL,
     SSO_CHECK_TOKEN_URL: resolveEnvValue(process.env.SSO_CHECK_TOKEN_URL, preset.ssoCheckTokenUrl),
+    AUTH_BASE_URL: resolveEnvValue(
+      process.env.AUTH_BASE_URL ?? process.env.NEXT_PUBLIC_AUTH_BASE_URL,
+      preset.authBaseUrl,
+    ),
     AUTH_SECRET: process.env.AUTH_SECRET,
     ACCESS_TOKEN_TTL_SECONDS: process.env.ACCESS_TOKEN_TTL_SECONDS,
     REFRESH_TOKEN_TTL_SECONDS: process.env.REFRESH_TOKEN_TTL_SECONDS,

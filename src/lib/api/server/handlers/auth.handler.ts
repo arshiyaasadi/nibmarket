@@ -214,9 +214,42 @@ export async function forgotResetHandler(req: Request): Promise<Response> {
   return NextResponse.json({ success: true });
 }
 
-// POST /auth/refresh — issue new access token using refresh cookie
+// POST /auth/refresh — NIB account refresh (server-side) with local JWT fallback
 export async function refreshHandler(req: Request): Promise<Response> {
-  const refreshClaims = verifySignedToken(readRefreshToken(req), "refresh");
+  const cookieRefresh = readRefreshToken(req);
+  const body = (await req.json().catch(() => ({}))) as { refresh?: unknown };
+  const refreshToken = String(body.refresh ?? cookieRefresh ?? "").trim();
+
+  if (refreshToken) {
+    const { refreshNibAuthTokens } = await import("@/lib/auth/nib-auth");
+    const {
+      decodeJwtPayload,
+      roleFromNibClaims,
+      userIdFromNibClaims,
+    } = await import("@/lib/auth/nib-jwt");
+
+    const tokens = await refreshNibAuthTokens(refreshToken);
+    if (tokens) {
+      const claims = decodeJwtPayload(tokens.access);
+      const userId = userIdFromNibClaims(claims) || "unknown";
+      const role = roleFromNibClaims(claims, null);
+      const payload = {
+        token: tokens.access,
+        refreshToken: tokens.refresh,
+        role,
+        userId,
+        fullName: userId,
+      };
+      const res = NextResponse.json(payload);
+      res.cookies.set("nib_token", tokens.access, COOKIE_OPTS);
+      res.cookies.set("nib_refresh", tokens.refresh, REFRESH_COOKIE_OPTS);
+      res.cookies.set("nib_role", role, COOKIE_OPTS);
+      return res;
+    }
+  }
+
+  // Legacy local JWT refresh (mock / admin bypass)
+  const refreshClaims = verifySignedToken(cookieRefresh, "refresh");
   const userId = refreshClaims?.sub;
   if (!userId) return unauthorized();
   if (isSuperAdminId(userId)) return buildSuperAdminAuthResponse();
@@ -224,6 +257,25 @@ export async function refreshHandler(req: Request): Promise<Response> {
   const user = await findUserById(userId);
   if (!user || user.status !== "active") return unauthorized();
   return buildAuthResponse(user.id, req, false);
+}
+
+export async function logoutHandler(req: Request): Promise<Response> {
+  const refresh = readRefreshToken(req);
+  const { logoutNibAuth } = await import("@/lib/auth/nib-auth");
+  await logoutNibAuth(refresh);
+
+  const res = NextResponse.json({ ok: true });
+  for (const name of [
+    "nib_token",
+    "nib_role",
+    "nib_refresh",
+    "nib_auth",
+    "nib_user_role",
+    "nib_username",
+  ]) {
+    res.cookies.set(name, "", { ...COOKIE_OPTS, maxAge: 0 });
+  }
+  return res;
 }
 
 export async function registerOtpSendHandler(req: Request): Promise<Response> {
@@ -292,14 +344,6 @@ export async function registerHandler(req: Request): Promise<Response> {
     }
     throw error;
   }
-}
-
-export async function logoutHandler(_req: Request): Promise<Response> {
-  const res = NextResponse.json({ ok: true });
-  res.cookies.set("nib_token", "", { ...COOKIE_OPTS, maxAge: 0 });
-  res.cookies.set("nib_role", "", { ...COOKIE_OPTS, maxAge: 0 });
-  res.cookies.set("nib_refresh", "", { ...REFRESH_COOKIE_OPTS, maxAge: 0 });
-  return res;
 }
 
 export async function sessionEstablishHandler(req: Request): Promise<Response> {

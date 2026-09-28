@@ -12,8 +12,11 @@ export function clearSessionLocally(): void {
   useAuthSlice.getState().clearAuth();
 }
 
-/** Calls logout API then clears all client-side session data. */
-export async function performLogout(redirectTo: string = ROUTES.LOGIN): Promise<void> {
+/**
+ * Logout via BFF (server calls NIB auth log_out + clears httpOnly cookies).
+ * Default redirect is landing (`/`).
+ */
+export async function performLogout(redirectTo: string = ROUTES.HOME): Promise<void> {
   getQueryClient().cancelQueries();
 
   await fetch(`${BFF_API_BASE}/auth/logout`, {

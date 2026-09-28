@@ -2,8 +2,8 @@
 #
 # server-cd.sh — runs ON the live host (behind WireGuard).
 # Polls git remote; on new commits rebuilds BOTH stacks:
-#   - mlm-prod  (docker-compose.prod.yml + .env.production)  → port 3000
-#   - mlm-v2    (docker-compose.v2.yml   + .env.v2)          → port 3001
+#   - mlm-prod  (docker-compose.prod.yml + .env.production)  → port 3002
+#   - mlm-v2    (docker-compose.v2.yml   + .env.v2)          → port 3003
 #
 # Installed by bootstrap-live-server.sh as a systemd timer.
 # Manual: sudo /opt/MLM_Front/scripts/server-cd.sh
@@ -131,21 +131,21 @@ deploy_stacks() {
   source <(grep -E '^(APP_ENV|NEXT_PUBLIC_APP_ENV|APP_PORT)=' .env.production | sed 's/\r$//')
   set +a
   echo "${LOG_PREFIX} building production (GIT_SHA=${sha})"
+  if grep -qE '^APP_PORT=' .env.production 2>/dev/null; then
+    sed -i.bak "s|^APP_PORT=.*|APP_PORT=3002|" .env.production && rm -f .env.production.bak
+  fi
+  export APP_PORT=3002
   compose mlm-prod -f docker-compose.prod.yml --env-file .env.production up -d --build --remove-orphans
 
-  set -a
-  # shellcheck disable=SC1091
-  source <(grep -E '^(APP_ENV|NEXT_PUBLIC_APP_ENV|APP_PORT)=' .env.v2 | sed 's/\r$//')
-  set +a
-  export FORCE_UI_DEV_MODE=1
-  export NEXT_PUBLIC_FORCE_UI_DEV_MODE=1
-  echo "${LOG_PREFIX} building v2/UI (GIT_SHA=${sha})"
-  compose mlm-v2 -f docker-compose.v2.yml --env-file .env.v2 up -d --build --remove-orphans
+  # UI / v2 stack is intentionally not built on live anymore.
+  if [[ -f docker-compose.v2.yml ]]; then
+    echo "${LOG_PREFIX} stopping legacy UI stack if present"
+    compose mlm-v2 -f docker-compose.v2.yml down --remove-orphans 2>/dev/null || true
+  fi
 
   echo "${sha}" > "${LAST_SHA_FILE}"
   echo "${LOG_PREFIX} deployed ${sha} at ${built}"
   compose mlm-prod -f docker-compose.prod.yml ps || true
-  compose mlm-v2 -f docker-compose.v2.yml ps || true
 }
 
 # ---------- main ----------

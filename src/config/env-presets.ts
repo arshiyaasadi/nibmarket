@@ -11,6 +11,8 @@ export type EnvPreset = {
   siteUrl: string;
   backendApiBaseUrl: string;
   backendApiVersion: string;
+  /** NIB account auth host (refresh / logout). */
+  authBaseUrl: string;
   ssoCheckTokenUrl: string;
   ssoCallbackPath: string;
   ssoEntryCookie: string;
@@ -22,6 +24,7 @@ export type EnvPreset = {
 const SHARED = {
   appName: "Nib Club",
   backendApiVersion: "v2",
+  /** Callback lands on this Next.js panel — not the club backend API. */
   ssoCallbackPath: "/login/sso",
   ssoEntryCookie: "nib_auth",
 } as const;
@@ -39,16 +42,19 @@ function panelUrls(panelBase: string) {
 export const ENV_PRESETS: Record<AppEnv, EnvPreset> = {
   development: {
     ...SHARED,
-    appUrl: "https://api-club.nibdev.com",
-    siteUrl: "https://api-club.nibdev.com",
+    // Club panel public host (SSO callback) — NOT api-club
+    appUrl: "https://club.nibdev.com",
+    siteUrl: "https://club.nibdev.com",
     backendApiBaseUrl: "https://api-club.nibdev.com",
+    authBaseUrl: "https://auth.nibdev.com",
     ...panelUrls("https://panel.nibdev.com"),
   },
   production: {
     ...SHARED,
-    appUrl: "https://api-club.nibmarket.com",
-    siteUrl: "https://api-club.nibmarket.com",
+    appUrl: "https://club.nibmarket.ir",
+    siteUrl: "https://club.nibmarket.ir",
     backendApiBaseUrl: "https://api-club.nibmarket.com",
+    authBaseUrl: "https://auth.nibmarket.com",
     ...panelUrls("https://panel.nibmarket.com"),
   },
 };
