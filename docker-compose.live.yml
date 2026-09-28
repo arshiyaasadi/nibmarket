@@ -12,7 +12,7 @@ x-app-build: &app-build
     APP_ENV: ${APP_ENV:-production}
     NEXT_PUBLIC_APP_ENV: ${NEXT_PUBLIC_APP_ENV:-production}
     GIT_SHA: ${GIT_SHA:-unknown}
-    NEXT_PUBLIC_GIT_SHA: ${GIT_SHA:-unknown}
+    NEXT_PUBLIC_GIT_SHA: ${NEXT_PUBLIC_GIT_SHA:-${GIT_SHA:-unknown}}
     BUILD_TIME: ${BUILD_TIME:-}
 
 services:
