@@ -7,15 +7,16 @@ import { redirectToPanelLoginWithInvite } from "@/config/auth-redirect";
 import { ROUTES } from "@/config/routes";
 import {
   buildInviteWelcomePath,
+  normalizeFundId,
   normalizeInviteCode,
-  storePendingInviteCode,
+  storePendingInvite,
 } from "@/lib/invite/pending-invite";
 import { useAuthSlice } from "@/store/slices/auth.slice";
 
 export function InviteEntryClient() {
   const t = useTranslations("invite");
   const router = useRouter();
-  const params = useParams<{ code?: string }>();
+  const params = useParams<{ code?: string; fundId?: string }>();
   const [error, setError] = useState("");
   const [hydrated, setHydrated] = useState(() => useAuthSlice.persist.hasHydrated());
 
@@ -31,22 +32,25 @@ export function InviteEntryClient() {
     const code = normalizeInviteCode(
       typeof params.code === "string" ? decodeURIComponent(params.code) : "",
     );
+    const fundId = normalizeFundId(
+      typeof params.fundId === "string" ? decodeURIComponent(params.fundId) : "",
+    );
 
     if (!code) {
       setError(t("invalidCode"));
       return;
     }
 
-    storePendingInviteCode(code);
+    storePendingInvite({ code, fundId: fundId || undefined });
 
     const token = useAuthSlice.getState().token;
     if (token) {
-      router.replace(buildInviteWelcomePath(code));
+      router.replace(buildInviteWelcomePath(code, fundId || undefined));
       return;
     }
 
-    redirectToPanelLoginWithInvite(code);
-  }, [hydrated, params.code, router, t]);
+    redirectToPanelLoginWithInvite(code, fundId || undefined);
+  }, [hydrated, params.code, params.fundId, router, t]);
 
   if (error) {
     return (

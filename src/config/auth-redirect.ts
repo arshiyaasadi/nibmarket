@@ -3,8 +3,9 @@ import { getPanelLoginUrl } from "@/config/sso";
 import { ROUTES } from "@/config/routes";
 import {
   buildInviteWelcomePath,
+  normalizeFundId,
   normalizeInviteCode,
-  storePendingInviteCode,
+  storePendingInvite,
 } from "@/lib/invite/pending-invite";
 
 const SSO_RETURN_URL_KEY = "sso_returnUrl";
@@ -45,32 +46,41 @@ export function resolveReturnUrl(fallback?: string | null): string {
  */
 export function redirectToPanelLogin(
   returnUrl?: string,
-  options?: { inviteCode?: string | null },
+  options?: { inviteCode?: string | null; fundId?: string | null },
 ): void {
   const inviteCode = normalizeInviteCode(options?.inviteCode);
+  const fundId = normalizeFundId(options?.fundId) || undefined;
   const safeReturnUrl = sanitizeReturnUrl(
-    returnUrl ?? (inviteCode ? buildInviteWelcomePath(inviteCode) : undefined),
+    returnUrl ?? (inviteCode ? buildInviteWelcomePath(inviteCode, fundId) : undefined),
   );
 
   storeReturnUrl(safeReturnUrl);
-  if (inviteCode) storePendingInviteCode(inviteCode);
+  if (inviteCode) storePendingInvite({ code: inviteCode, fundId });
 
   window.location.href = getPanelLoginUrl({
     inviteCode: inviteCode || undefined,
+    fundId,
     returnUrl: safeReturnUrl,
   });
 }
 
 /**
- * SMS invite entry: go to panel login with callback that carries the referral code.
+ * SMS invite entry: go to panel login with callback that carries the referral code (+ optional fund).
  */
-export function redirectToPanelLoginWithInvite(inviteCode: string): void {
+export function redirectToPanelLoginWithInvite(
+  inviteCode: string,
+  fundId?: string | null,
+): void {
   const code = normalizeInviteCode(inviteCode);
   if (!code) {
     redirectToPanelLogin(ROUTES.DASHBOARD);
     return;
   }
-  redirectToPanelLogin(buildInviteWelcomePath(code), { inviteCode: code });
+  const fund = normalizeFundId(fundId) || undefined;
+  redirectToPanelLogin(buildInviteWelcomePath(code, fund), {
+    inviteCode: code,
+    fundId: fund,
+  });
 }
 
 export function buildLoginRedirectUrl(returnUrl?: string): string {

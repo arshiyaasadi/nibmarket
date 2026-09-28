@@ -15,6 +15,8 @@ export function getSsoCallbackPath(): string {
 export type SsoCallbackParams = {
   /** Upline invite / referral code from SMS invite link */
   inviteCode?: string | null;
+  /** Optional fund suggested in the invite SMS */
+  fundId?: string | null;
   /** Post-login path on club (e.g. /invite/welcome?code=…) */
   returnUrl?: string | null;
   redirect?: string | null;
@@ -28,10 +30,12 @@ export function getSsoCallbackUrl(params?: SsoCallbackParams): string {
 
   const search = new URLSearchParams();
   const inviteCode = String(params?.inviteCode ?? "").trim();
+  const fundId = String(params?.fundId ?? "").trim();
   const returnUrl = String(params?.returnUrl ?? "").trim();
   const redirect = String(params?.redirect ?? "").trim();
 
   if (inviteCode) search.set("inviteCode", inviteCode);
+  if (fundId) search.set("fundId", fundId);
   if (returnUrl) {
     search.set("returnUrl", returnUrl);
     search.set("redirect", redirect || returnUrl);
@@ -48,19 +52,20 @@ function appendCallbackUrl(base: string, callbackUrl: string): string {
   return `${base}${separator}callbackUrl=${encodeURIComponent(callbackUrl)}`;
 }
 
-export function getPanelLoginUrl(params?: SsoCallbackParams): string {
-  const callbackUrl = getSsoCallbackUrl(params);
-
+/** Panel login URL without callbackUrl (used after logout). */
+export function getPanelLoginUrlBare(): string {
   if (env.PANEL_LOGIN_URL) {
-    return appendCallbackUrl(env.PANEL_LOGIN_URL, callbackUrl);
+    return env.PANEL_LOGIN_URL;
   }
-
   if (!env.PANEL_BASE_URL) {
     return "/login/token";
   }
+  return `${trimTrailingSlash(env.PANEL_BASE_URL)}/login/`;
+}
 
-  const panelLoginUrl = `${trimTrailingSlash(env.PANEL_BASE_URL)}/login/`;
-  return appendCallbackUrl(panelLoginUrl, callbackUrl);
+export function getPanelLoginUrl(params?: SsoCallbackParams): string {
+  const callbackUrl = getSsoCallbackUrl(params);
+  return appendCallbackUrl(getPanelLoginUrlBare(), callbackUrl);
 }
 
 export function getPanelProfileUrl(): string | undefined {

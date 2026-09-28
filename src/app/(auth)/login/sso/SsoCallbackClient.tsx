@@ -8,9 +8,10 @@ import { completeSsoSession } from "@/lib/auth-exchange";
 import { applyAuthSession } from "@/lib/auth/apply-session";
 import {
   buildInviteWelcomePath,
-  consumePendingInviteCode,
+  consumePendingInvite,
+  normalizeFundId,
   normalizeInviteCode,
-  peekPendingInviteCode,
+  peekPendingInvite,
 } from "@/lib/invite/pending-invite";
 import { useAuthActions } from "@/store/hooks/use-auth";
 import { useAuthSlice } from "@/store/slices/auth.slice";
@@ -30,11 +31,18 @@ export function SsoCallbackClient() {
     [searchParams],
   );
 
+  const fundFromQuery = useMemo(
+    () => normalizeFundId(searchParams.get("fundId") ?? searchParams.get("fund")),
+    [searchParams],
+  );
+
   const returnUrl = useMemo(() => {
-    const inviteCode = inviteFromQuery || peekPendingInviteCode();
-    if (inviteCode) return buildInviteWelcomePath(inviteCode);
+    const pending = peekPendingInvite();
+    const inviteCode = inviteFromQuery || pending?.code || "";
+    const fundId = fundFromQuery || pending?.fundId;
+    if (inviteCode) return buildInviteWelcomePath(inviteCode, fundId);
     return resolveReturnUrl(searchParams.get("returnUrl") ?? searchParams.get("redirect"));
-  }, [inviteFromQuery, searchParams]);
+  }, [fundFromQuery, inviteFromQuery, searchParams]);
 
   useEffect(() => {
     if (started.current) return;
@@ -43,8 +51,7 @@ export function SsoCallbackClient() {
     let cancelled = false;
 
     async function handleCallback() {
-      // Consume after we've already derived returnUrl (also clears sessionStorage).
-      if (!inviteFromQuery) consumePendingInviteCode();
+      if (!inviteFromQuery) consumePendingInvite();
 
       const existingToken = useAuthSlice.getState().token;
       if (existingToken) {

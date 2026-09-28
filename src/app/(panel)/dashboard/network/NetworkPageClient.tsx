@@ -15,18 +15,27 @@ import { ROUTES } from "@/config/routes";
 import type { InviteStatus } from "@/types/mlm";
 import { formatDisplayDate } from "@/lib/utils";
 import { normalizeSearchInput } from "@/lib/normalization/digits";
+import { buildPublicInviteUrl } from "@/lib/invite/pending-invite";
 
 function InviteCard({ onVipInvite }: { onVipInvite: () => void }) {
   const t = useTranslations("network");
   const { inviteCode: sessionInviteCode } = useSession();
   const { data: referralData } = useDashboardReferral();
   const inviteCode = referralData?.inviteCode ?? sessionInviteCode;
-  const [copied, setCopied] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
-  const copy = useCallback(() => {
+  const copyCode = useCallback(() => {
     navigator.clipboard.writeText(inviteCode ?? "").catch(() => {});
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
+  }, [inviteCode]);
+
+  const copyLink = useCallback(() => {
+    if (!inviteCode) return;
+    navigator.clipboard.writeText(buildPublicInviteUrl(inviteCode)).catch(() => {});
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
   }, [inviteCode]);
 
   return (
@@ -43,23 +52,34 @@ function InviteCard({ onVipInvite }: { onVipInvite: () => void }) {
         </div>
 
         {inviteCode && (
-          <div className="border-border bg-background flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5">
-            <div>
-              <p className="text-muted text-[11px]">{t("inviteCardCodeLabel")}</p>
-              <p
-                className="text-foreground mt-0.5 font-mono text-sm font-bold tracking-widest"
-                dir="ltr"
-              >
-                {inviteCode}
-              </p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+            <div className="border-border bg-background flex min-w-0 flex-1 items-center rounded-xl border px-3 py-2.5">
+              <div className="min-w-0">
+                <p className="text-muted text-[11px]">{t("inviteCardCodeLabel")}</p>
+                <p
+                  className="text-foreground mt-0.5 truncate font-mono text-sm font-bold tracking-widest"
+                  dir="ltr"
+                >
+                  {inviteCode}
+                </p>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={copy}
-              className="border-border bg-surface text-muted hover:text-foreground rounded-lg border px-2.5 py-1.5 text-xs transition"
-            >
-              {copied ? t("copied") : t("copyCode")}
-            </button>
+            <div className="border-border bg-background flex shrink-0 flex-row gap-2 rounded-xl border p-2 sm:flex-col sm:justify-center">
+              <button
+                type="button"
+                onClick={copyCode}
+                className="border-border bg-surface text-muted hover:text-foreground flex-1 rounded-lg border px-2.5 py-1.5 text-xs transition sm:flex-none"
+              >
+                {copiedCode ? t("copied") : t("copyCode")}
+              </button>
+              <button
+                type="button"
+                onClick={copyLink}
+                className="border-border bg-surface text-muted hover:text-foreground flex-1 rounded-lg border px-2.5 py-1.5 text-xs transition sm:flex-none"
+              >
+                {copiedLink ? t("copied") : t("copyInviteLink")}
+              </button>
+            </div>
           </div>
         )}
 
