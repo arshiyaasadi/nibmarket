@@ -1,6 +1,7 @@
 import { clearQueryCache, getQueryClient } from "@/lib/query-client";
 import { BFF_API_BASE } from "@/lib/api/endpoints";
 import { ROUTES } from "@/config/routes";
+import { getPanelLoginUrl } from "@/config/sso";
 import { useAuthSlice } from "@/store/slices/auth.slice";
 import { useUiSlice } from "@/store/slices/ui.slice";
 
@@ -28,12 +29,18 @@ function redirectToLogoutIncomplete(reason: string): void {
     : ROUTES.LOGOUT_INCOMPLETE;
 }
 
+function redirectToPanelLoginAfterLogout(): void {
+  if (typeof window === "undefined") return;
+  // panel.nibdev.com/login/?callbackUrl=<club SSO callback>
+  window.location.href = getPanelLoginUrl();
+}
+
 /**
- * Logout via BFF: browser → club server → NIB auth log_out.
- * On success: clear local session and go home.
- * On service/network error: clear local UI session and show incomplete page with retry.
+ * 1) POST BFF /auth/logout (server → NIB auth)
+ * 2) Only after a response: clear local club session
+ * 3) Success → panel login with callbackUrl; failure → incomplete page + retry
  */
-export async function performLogout(redirectTo: string = ROUTES.HOME): Promise<void> {
+export async function performLogout(): Promise<void> {
   getQueryClient().cancelQueries();
 
   let result: LogoutApiResult | null = null;
@@ -63,13 +70,13 @@ export async function performLogout(redirectTo: string = ROUTES.HOME): Promise<v
     };
   }
 
-  // After any response (or network failure), end the in-app club session.
+  // Logout locally only after the API responded (or the request failed).
   clearSessionLocally();
 
   if (typeof window === "undefined") return;
 
   if (result?.ok) {
-    window.location.href = redirectTo;
+    redirectToPanelLoginAfterLogout();
     return;
   }
 
