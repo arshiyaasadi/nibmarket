@@ -6,6 +6,7 @@ import { ArrowRight, Coins, LayoutGrid, Network, Shield, Target, User, Wallet } 
 import { apiClient } from "@/lib/api/client";
 import { ENDPOINTS } from "@/lib/api/endpoints";
 import { ROUTES } from "@/config/routes";
+import { formatDisplayDate } from "@/lib/utils";
 import type { AdminUserProfileResponse, AdminUserStatus } from "@/types/admin";
 
 const STATUS_LABELS: Record<AdminUserStatus, string> = {
@@ -131,17 +132,17 @@ export default function UserProfileContent({ userId }: { userId: string }) {
               </span>
             }
           />
-          <InfoRow label="تاریخ تولد" value={user.birthDate ?? "—"} />
+          <InfoRow
+            label="تاریخ تولد"
+            value={user.birthDate ? formatDisplayDate(user.birthDate) : "—"}
+          />
           <InfoRow
             label="جنسیت"
             value={user.gender === "male" ? "مرد" : user.gender === "female" ? "زن" : "—"}
           />
           <InfoRow label="کد ملی" value={user.nationalId ?? "—"} />
           <InfoRow label="نیب مارکت" value={user.nibMarketLinked ? "متصل" : "متصل نیست"} />
-          <InfoRow
-            label="تاریخ عضویت"
-            value={new Date(user.createdAt).toLocaleDateString("fa-IR")}
-          />
+          <InfoRow label="تاریخ عضویت" value={formatDisplayDate(user.createdAt)} />
           {referrer && (
             <InfoRow label="معرف" value={`${referrer.fullName} (${referrer.inviteCode})`} />
           )}
@@ -247,7 +248,7 @@ export default function UserProfileContent({ userId }: { userId: string }) {
                     <td className="text-foreground py-3">{subset.fullName}</td>
                     <td className="text-muted py-3 tabular-nums">{subset.level}</td>
                     <td className="text-muted py-3 text-xs">
-                      {new Date(subset.joinDate).toLocaleDateString("fa-IR")}
+                      {formatDisplayDate(subset.joinDate)}
                     </td>
                     <td className="text-muted py-3 tabular-nums">{subset.subMembersCount}</td>
                   </tr>

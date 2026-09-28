@@ -13,6 +13,7 @@ import { AdminTableToolbar } from "@/components/molecules/AdminTableToolbar";
 import { AdminMissionJobsHealth } from "@/components/organisms/admin/missions/AdminMissionJobsHealth";
 import { normalizeAdminMissionList } from "@/lib/admin/mission-jobs";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { formatDisplayDateTime } from "@/lib/utils";
 import type {
   AdminMissionCompletionRow,
   AdminMissionCompletionsResponse,
@@ -32,9 +33,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 function formatDateTime(iso: string) {
-  return new Intl.DateTimeFormat("fa-IR", { dateStyle: "short", timeStyle: "short" }).format(
-    new Date(iso),
-  );
+  return formatDisplayDateTime(iso);
 }
 
 export default function MissionsPageContent() {

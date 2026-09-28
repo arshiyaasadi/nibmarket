@@ -12,7 +12,7 @@ import {
 } from "@/features/leaderboard/queries";
 import { useSubsetDeposits } from "@/features/dashboard/queries";
 import { InviteModal } from "@/components/organisms/network/InviteModal";
-import { formatDateRange } from "@/lib/utils";
+import { formatDateRange, formatDisplayDate } from "@/lib/utils";
 import type { CompetitionPeriod, HonorItem, LeaderboardEntry } from "@/types/mlm";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -401,7 +401,7 @@ function HonorCard({ honor }: { honor: HonorItem }) {
         <p className="text-foreground font-semibold">{honor.title}</p>
         <p className="text-muted mt-0.5 text-xs">{honor.description}</p>
         <p className="text-muted/70 mt-1 text-[11px]">
-          {t("honorAchievedAt")}: {honor.achievedAt}
+          {t("honorAchievedAt")}: {formatDisplayDate(honor.achievedAt)}
         </p>
       </div>
     </div>

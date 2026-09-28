@@ -96,10 +96,7 @@ export function logMockLoginSession(
     id: crypto.randomUUID(),
     ip: meta.ip ?? "127.0.0.1",
     device: "Web Browser",
-    createdAt: new Intl.DateTimeFormat("fa-IR", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(new Date()),
+    createdAt: new Date().toISOString(),
     status: meta.status ?? "success",
   });
   loginSessions.set(userId, sessions.slice(0, 10));

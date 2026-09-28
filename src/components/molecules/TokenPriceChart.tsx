@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { TrendingDown, TrendingUp } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
-import { cn } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import type { TokenPricePoint } from "@/types/mlm";
 
 type Props = {
@@ -20,18 +20,15 @@ type ChartRow = TokenPricePoint & {
 const CHART_HEIGHT = 140;
 
 function formatFaShortDate(iso: string) {
-  return new Date(`${iso}T12:00:00`).toLocaleDateString("fa-IR", {
+  return new Intl.DateTimeFormat("fa-IR", {
+    calendar: "persian",
     month: "short",
     day: "numeric",
-  });
+  }).format(new Date(`${iso}T12:00:00`));
 }
 
 function formatFaFullDate(iso: string) {
-  return new Date(`${iso}T12:00:00`).toLocaleDateString("fa-IR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
+  return formatDate(`${iso}T12:00:00`);
 }
 
 function formatRial(price: number) {

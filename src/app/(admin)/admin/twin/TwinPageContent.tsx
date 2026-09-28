@@ -11,6 +11,7 @@ import { AdminOverviewStatCard } from "@/components/molecules/AdminOverviewStatC
 import { AdminTableToolbar } from "@/components/molecules/AdminTableToolbar";
 import { DataTable } from "@/components/ui/DataTable";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { formatDisplayDate } from "@/lib/utils";
 import type {
   AdminTwinAllocationRow,
   AdminTwinAllocationsResponse,
@@ -102,9 +103,7 @@ export default function TwinPageContent() {
       accessorKey: "lastAllocationAt",
       header: t("columns.allocatedAt"),
       cell: ({ getValue }) => (
-        <span className="text-muted text-xs">
-          {new Date(String(getValue())).toLocaleDateString("fa-IR")}
-        </span>
+        <span className="text-muted text-xs">{formatDisplayDate(String(getValue()))}</span>
       ),
     },
   ];

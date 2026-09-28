@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { RefreshCw, Activity } from "lucide-react";
 import type { AdminMissionJobsHealthResponse, AdminMissionJobHealthStatus } from "@/types/admin";
+import { formatDisplayDateTime } from "@/lib/utils";
 
 const HEALTH_COLORS: Record<AdminMissionJobHealthStatus, string> = {
   healthy: "bg-green-500/10 text-green-600",
@@ -12,10 +13,7 @@ const HEALTH_COLORS: Record<AdminMissionJobHealthStatus, string> = {
 };
 
 function formatDateTime(value: string | null) {
-  if (!value) return "—";
-  return new Intl.DateTimeFormat("fa-IR", { dateStyle: "short", timeStyle: "short" }).format(
-    new Date(value),
-  );
+  return formatDisplayDateTime(value);
 }
 
 export function AdminMissionJobsHealth({

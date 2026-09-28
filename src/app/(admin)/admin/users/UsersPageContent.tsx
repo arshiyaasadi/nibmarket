@@ -12,6 +12,7 @@ import { AdminUserDemographicsCards } from "@/components/organisms/admin/users/A
 import { ChangeUserStatusModal } from "@/components/organisms/admin/users/ChangeUserStatusModal";
 import { UserRowActions } from "@/components/organisms/admin/users/UserRowActions";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { formatDisplayDate } from "@/lib/utils";
 import type {
   AdminUserKycStatus,
   AdminUserListItem,
@@ -145,10 +146,9 @@ export default function UsersPageContent() {
       {
         accessorKey: "createdAt",
         header: t("columns.joinedAt"),
-        cell: ({ getValue }) => {
-          const d = new Date(String(getValue()));
-          return <span className="text-muted text-xs">{d.toLocaleDateString("fa-IR")}</span>;
-        },
+        cell: ({ getValue }) => (
+          <span className="text-muted text-xs">{formatDisplayDate(String(getValue()))}</span>
+        ),
       },
       {
         id: "actions",

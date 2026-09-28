@@ -12,6 +12,7 @@ import { AdminTableToolbar } from "@/components/molecules/AdminTableToolbar";
 import { DataTable } from "@/components/ui/DataTable";
 import { AdminSedimentJobCard } from "@/components/organisms/admin/sediment/AdminSedimentJobCard";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { formatDisplayDateTime } from "@/lib/utils";
 import type {
   AdminNibMarketAssetRow,
   AdminNibMarketAssetsResponse,
@@ -38,9 +39,7 @@ const STATUS_FILTERS: Array<{ value: string; labelKey: string }> = [
 ];
 
 function formatDateTime(iso: string) {
-  return new Intl.DateTimeFormat("fa-IR", { dateStyle: "short", timeStyle: "short" }).format(
-    new Date(iso),
-  );
+  return formatDisplayDateTime(iso);
 }
 
 export default function SedimentPageContent() {

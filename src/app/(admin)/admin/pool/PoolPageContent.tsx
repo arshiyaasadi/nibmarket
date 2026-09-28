@@ -11,7 +11,7 @@ import { AdminOverviewStatCard } from "@/components/molecules/AdminOverviewStatC
 import { AdminTableToolbar } from "@/components/molecules/AdminTableToolbar";
 import { DataTable } from "@/components/ui/DataTable";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { formatDateRange } from "@/lib/utils";
+import { formatDate, formatDateRange } from "@/lib/utils";
 import type {
   AdminPoolOverviewResponse,
   AdminPoolParticipantRow,
@@ -252,8 +252,8 @@ export default function PoolPageContent() {
             <p className="text-foreground mt-1 text-sm font-semibold">{periodTitle}</p>
             <p className="text-muted mt-1 text-xs">
               {t("periodRange", {
-                start: new Date(overview.startDate).toLocaleDateString("fa-IR"),
-                end: new Date(overview.endDate).toLocaleDateString("fa-IR"),
+                start: formatDate(overview.startDate),
+                end: formatDate(overview.endDate),
               })}
             </p>
           </div>

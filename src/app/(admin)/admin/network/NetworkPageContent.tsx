@@ -12,6 +12,7 @@ import { AdminOverviewStatCard } from "@/components/molecules/AdminOverviewStatC
 import { AdminTableToolbar } from "@/components/molecules/AdminTableToolbar";
 import { InviteTemplateList } from "@/components/organisms/admin/network/InviteTemplateList";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { formatDisplayDateTime } from "@/lib/utils";
 import type {
   AdminInviteLogResponse,
   AdminInviteLogRow,
@@ -28,8 +29,7 @@ const LOG_STATUS_COLORS: Record<string, string> = {
 };
 
 function formatLogTime(iso: string) {
-  const d = new Date(iso);
-  return `${d.toLocaleDateString("fa-IR")} · ${d.toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit" })}`;
+  return formatDisplayDateTime(iso);
 }
 
 export default function NetworkPageContent() {
