@@ -221,8 +221,9 @@ export interface SendInviteRequest {
   lastName: string;
   mobile: string;
   fundId: string;
+  /** Filled template body for preview/SMS when backend accepts it */
   message?: string;
-  /** Selected template id from GET /network/invite-templates — TODO(backend-invite-templates) */
+  /** Selected template id from GET /network/invite-templates */
   templateId?: string;
 }
 

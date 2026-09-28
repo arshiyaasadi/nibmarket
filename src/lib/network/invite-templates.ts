@@ -1,30 +1,15 @@
 /**
- * Mock VIP invite message templates.
- *
- * TODO(backend-invite-templates): Replace with GET /network/invite-templates
- * once the backend exposes curated invite message templates (id, title, body
- * with placeholders for invitee first/last name and inviter name).
+ * VIP invite message templates from GET /network/invite-templates.
+ * Preview substitutes {firstName}, {lastName}, {inviterName} client-side.
  */
 
 export type InviteTemplate = {
   id: string;
-  titleKey: string;
-  bodyKey: string;
+  title: string;
+  body: string;
+  placeholders?: string[];
+  isActive?: boolean;
 };
-
-export const MOCK_INVITE_TEMPLATES: InviteTemplate[] = [
-  { id: "formal", titleKey: "inviteTemplateFormalTitle", bodyKey: "inviteTemplateFormalBody" },
-  {
-    id: "friendly",
-    titleKey: "inviteTemplateFriendlyTitle",
-    bodyKey: "inviteTemplateFriendlyBody",
-  },
-  {
-    id: "professional",
-    titleKey: "inviteTemplateProfessionalTitle",
-    bodyKey: "inviteTemplateProfessionalBody",
-  },
-];
 
 export function fillInviteTemplate(
   template: string,
@@ -34,4 +19,35 @@ export function fillInviteTemplate(
     .replaceAll("{firstName}", vars.firstName)
     .replaceAll("{lastName}", vars.lastName)
     .replaceAll("{inviterName}", vars.inviterName);
+}
+
+/** Normalize API payload (raw array or `{ data: [...] }`). */
+export function normalizeInviteTemplates(raw: unknown): InviteTemplate[] {
+  const list = Array.isArray(raw)
+    ? raw
+    : raw && typeof raw === "object" && Array.isArray((raw as { data?: unknown }).data)
+      ? (raw as { data: unknown[] }).data
+      : [];
+
+  return list
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const row = item as Record<string, unknown>;
+      const id = String(row.id ?? "").trim();
+      const title = String(row.title ?? "").trim();
+      const body = String(row.body ?? "").trim();
+      if (!id || !body) return null;
+      const isActive = row.isActive !== false;
+      const placeholders = Array.isArray(row.placeholders)
+        ? row.placeholders.map((p) => String(p))
+        : undefined;
+      return {
+        id,
+        title: title || id,
+        body,
+        placeholders,
+        isActive,
+      } satisfies InviteTemplate;
+    })
+    .filter((tpl): tpl is InviteTemplate => tpl != null && tpl.isActive !== false);
 }

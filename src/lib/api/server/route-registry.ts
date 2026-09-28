@@ -66,6 +66,7 @@ import {
 import { missionsActivityHandler, missionsListHandler } from "./handlers/missions.handler";
 import {
   getInviteQuotaHandler,
+  inviteTemplatesHandler,
   networkFundsHandler,
   networkInvitedHandler,
   networkSubsetsHandler,
@@ -124,6 +125,7 @@ const CUSTOM_ROUTES: Record<string, RouteHandler> = {
   "GET:/network/invited": networkInvitedHandler,
   "GET:/network/funds": networkFundsHandler,
   "GET:/network/invite-quota": getInviteQuotaHandler,
+  "GET:/network/invite-templates": inviteTemplatesHandler,
   "POST:/network/send-invite": sendInviteHandler,
   "POST:/network/submit-referrer": submitReferrerHandler,
 

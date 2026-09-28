@@ -38,6 +38,26 @@ export async function networkFundsHandler(): Promise<Response> {
   return NextResponse.json([]);
 }
 
+export async function inviteTemplatesHandler(req: Request): Promise<Response> {
+  const userId = getCurrentUserId(req);
+  if (!userId) return unauthorized();
+
+  const { listInviteTemplateDefinitions, ensureMockInviteLogs } = await import(
+    "@/lib/mock/invite-logs"
+  );
+  ensureMockInviteLogs();
+
+  const templates = listInviteTemplateDefinitions().map((tpl) => ({
+    id: tpl.id,
+    title: tpl.title,
+    body: tpl.body,
+    placeholders: tpl.placeholders.map((p) => p.replace(/^\{|\}$/g, "")),
+    isActive: true,
+  }));
+
+  return NextResponse.json(templates);
+}
+
 export async function sendInviteHandler(req: Request): Promise<Response> {
   const userId = getCurrentUserId(req);
   if (!userId) return unauthorized();

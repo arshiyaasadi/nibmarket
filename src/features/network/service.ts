@@ -2,6 +2,7 @@ import { apiClient } from "@/lib/api/client";
 import { ENDPOINTS } from "@/lib/api/endpoints";
 import { mapNetworkSubsets } from "@/lib/network/subset-mapper";
 import { normalizeInvitedList } from "@/lib/mock/network-normalize";
+import { normalizeInviteTemplates, type InviteTemplate } from "@/lib/network/invite-templates";
 import type {
   InvitedPerson,
   InviteQuota,
@@ -35,4 +36,9 @@ export const NetworkService = {
   getFunds: (): Promise<NetworkFund[]> => apiClient.get(ENDPOINTS.NETWORK.FUNDS),
 
   getInviteQuota: (): Promise<InviteQuota> => apiClient.get(ENDPOINTS.NETWORK.INVITE_QUOTA),
+
+  getInviteTemplates: async (): Promise<InviteTemplate[]> => {
+    const raw = await apiClient.get<unknown>(ENDPOINTS.NETWORK.INVITE_TEMPLATES);
+    return normalizeInviteTemplates(raw);
+  },
 };

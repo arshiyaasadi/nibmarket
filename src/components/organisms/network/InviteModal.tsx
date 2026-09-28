@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { X, Check } from "lucide-react";
-import { useSendInvite, useInviteQuota } from "@/features/network/queries";
+import { useSendInvite, useInviteQuota, useInviteTemplates } from "@/features/network/queries";
 import { useSession } from "@/hooks/use-session";
 import { normalizeMobile } from "@/lib/normalization/digits";
-import { fillInviteTemplate, MOCK_INVITE_TEMPLATES } from "@/lib/network/invite-templates";
+import { fillInviteTemplate } from "@/lib/network/invite-templates";
 import { fundsData } from "@/resources/data/funds";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +36,8 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
   const t = useTranslations("network");
   const { fullName } = useSession();
   const { data: quota } = useInviteQuota();
+  const { data: apiTemplates, isLoading: templatesLoading, isError: templatesError } =
+    useInviteTemplates();
 
   const [step, setStep] = useState<InviteStep>("form");
   const [visible, setVisible] = useState(false);
@@ -44,7 +46,7 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
   const [mobile, setMobile] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedFund, setSelectedFund] = useState<string | null>(null);
-  const [selectedTemplateId, setSelectedTemplateId] = useState(MOCK_INVITE_TEMPLATES[0].id);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [sendError, setSendError] = useState("");
 
   const { mutateAsync: sendInvite, isPending } = useSendInvite();
@@ -53,17 +55,24 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
 
   const templates = useMemo(
     () =>
-      MOCK_INVITE_TEMPLATES.map((tpl) => ({
+      (apiTemplates ?? []).map((tpl) => ({
         id: tpl.id,
-        title: t(tpl.titleKey),
-        body: fillInviteTemplate(t(tpl.bodyKey), {
+        title: tpl.title,
+        body: fillInviteTemplate(tpl.body, {
           firstName: firstName.trim() || "…",
           lastName: lastName.trim() || "…",
           inviterName,
         }),
       })),
-    [t, firstName, lastName, inviterName],
+    [apiTemplates, firstName, lastName, inviterName],
   );
+
+  useEffect(() => {
+    if (!templates.length) return;
+    if (!selectedTemplateId || !templates.some((tpl) => tpl.id === selectedTemplateId)) {
+      setSelectedTemplateId(templates[0]!.id);
+    }
+  }, [templates, selectedTemplateId]);
 
   const selectedTemplate = templates.find((tpl) => tpl.id === selectedTemplateId) ?? templates[0];
 
@@ -101,16 +110,16 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
   };
 
   const submitInvite = async () => {
-    if (!selectedFund || !selectedTemplateId) return;
+    if (!selectedFund || !selectedTemplate) return;
     setSendError("");
     try {
-      // Message template is UI-only for now; send payload unchanged.
       await sendInvite({
         firstName,
         lastName,
         mobile,
         fundId: selectedFund,
-        templateId: selectedTemplateId,
+        templateId: selectedTemplate.id,
+        message: selectedTemplate.body,
       });
       setStep("success");
     } catch (err: unknown) {
@@ -292,36 +301,42 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
                 <p className="text-muted mt-1 text-xs">{t("modalStepMessageDesc")}</p>
               </div>
 
-              <div className="flex flex-col gap-2">
-                {templates.map((tpl) => {
-                  const selected = selectedTemplateId === tpl.id;
-                  return (
-                    <button
-                      key={tpl.id}
-                      type="button"
-                      onClick={() => setSelectedTemplateId(tpl.id)}
-                      className={cn(
-                        "rounded-xl border px-3 py-3 text-right transition",
-                        selected
-                          ? "border-primary bg-primary/5"
-                          : "border-border bg-surface hover:border-primary/40",
-                      )}
-                    >
-                      <p
+              {templatesLoading ? (
+                <p className="text-muted text-sm">{t("modalTemplatesLoading")}</p>
+              ) : templatesError || templates.length === 0 ? (
+                <p className="text-sm text-red-500">{t("modalTemplatesError")}</p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {templates.map((tpl) => {
+                    const selected = selectedTemplateId === tpl.id;
+                    return (
+                      <button
+                        key={tpl.id}
+                        type="button"
+                        onClick={() => setSelectedTemplateId(tpl.id)}
                         className={cn(
-                          "text-sm font-semibold",
-                          selected ? "text-primary" : "text-foreground",
+                          "rounded-xl border px-3 py-3 text-right transition",
+                          selected
+                            ? "border-primary bg-primary/5"
+                            : "border-border bg-surface hover:border-primary/40",
                         )}
                       >
-                        {tpl.title}
-                      </p>
-                      <p className="text-muted mt-1.5 line-clamp-2 text-xs leading-5 whitespace-pre-line">
-                        {tpl.body}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
+                        <p
+                          className={cn(
+                            "text-sm font-semibold",
+                            selected ? "text-primary" : "text-foreground",
+                          )}
+                        >
+                          {tpl.title}
+                        </p>
+                        <p className="text-muted mt-1.5 line-clamp-2 text-xs leading-5 whitespace-pre-line">
+                          {tpl.body}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
               {selectedTemplate && (
                 <div className="border-border bg-surface-2/50 rounded-xl border px-3 py-3">
@@ -344,7 +359,7 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
                 <button
                   type="button"
                   onClick={submitInvite}
-                  disabled={!selectedFund || isPending}
+                  disabled={!selectedFund || !selectedTemplate || isPending || templatesLoading}
                   className="bg-primary flex-1 rounded-xl py-2.5 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   {isPending ? t("modalSending") : t("modalSendInvite")}

@@ -86,3 +86,11 @@ export function useInviteQuota() {
     staleTime: 30_000,
   });
 }
+
+export function useInviteTemplates() {
+  return useQuery({
+    queryKey: ["network", "invite-templates"],
+    queryFn: () => NetworkService.getInviteTemplates(),
+    staleTime: 120_000,
+  });
+}

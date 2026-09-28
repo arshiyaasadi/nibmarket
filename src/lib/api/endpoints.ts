@@ -36,6 +36,7 @@ export const ENDPOINTS = {
     INVITED: "/network/invited",
     FUNDS: "/network/funds",
     INVITE_QUOTA: "/network/invite-quota",
+    INVITE_TEMPLATES: "/network/invite-templates",
   },
   REPORTS: {
     SUBSETS: "/reports/subsets",
