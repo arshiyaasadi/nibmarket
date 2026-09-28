@@ -27,14 +27,14 @@
 │  features/*/service.ts  (apiClient calls)               │
 │  store/slices/          (Zustand — auth + ui)           │
 ├────────────────────────────────────────────────────────┤
-│  apiClient  →  /api/v1/*  (BFF — Next.js Route Handler) │
+│  apiClient  →  /api/v2/*  (BFF — Next.js Route Handler) │
 ├────────────────────────────────────────────────────────┤
 │  route-registry → handlers → repositories → Prisma      │
 │  PrismaClient → PostgreSQL (`shared/database/schema.sql`)│
 └────────────────────────────────────────────────────────┘
 ```
 
-**اصل کلیدی:** client هرگز مستقیم به backend نمی‌رسد. تمام traffic از `/api/v1` عبور می‌کند.
+**اصل کلیدی:** client هرگز مستقیم به backend نمی‌رسد. تمام traffic از `/api/v2` عبور می‌کند.
 Prisma فقط در server route handlers استفاده می‌شود و migration/seed همچنان از لایه SQL-first ریشه پروژه انجام می‌شود.
 
 ---
@@ -60,7 +60,7 @@ src/
 │   │   └── layout.tsx
 │   ├── (auth)/
 │   │   └── login/            ← فرم لاگین
-│   ├── api/v1/[...path]/     ← BFF catch-all proxy
+│   ├── api/v2/[...path]/     ← BFF catch-all proxy
 │   │   └── route.ts
 │   ├── layout.tsx            ← root layout (AppProviders + next-intl)
 │   └── page.tsx              ← redirect به /dashboard
@@ -158,7 +158,7 @@ src/
 ## Auth Flow
 
 ```
-1. کاربر     POST /api/v1/auth/login  {mobile, password}
+1. کاربر     POST /api/v2/auth/login  {mobile, password}
 2. Server    loginHandler (auth.handler.ts)
              ├── Mock:  NextResponse.json(MOCK_USER) + set httpOnly cookies
              └── Real:  backendFetch("/auth/login") → map role → set cookies
@@ -203,7 +203,7 @@ DATABASE_URL=postgresql://nibclub_user:nibclub_dev_pass@localhost:5432/nibclub
 ```
 
 رفتار در حالت فعلی:
-1. `apiClient` فقط `/api/v1/*` را صدا می‌زند.
+1. `apiClient` فقط `/api/v2/*` را صدا می‌زند.
 2. `route-registry.ts` مسیر را به handler متناظر وصل می‌کند.
 3. handler از repository استفاده می‌کند.
 4. repository با Prisma از PostgreSQL می‌خواند.
@@ -226,7 +226,7 @@ DATABASE_URL=postgresql://nibclub_user:nibclub_dev_pass@localhost:5432/nibclub
 
 ## قوانین اصلی
 
-1. **No direct backend** — تمام `fetch` به `/api/v1/*`
+1. **No direct backend** — تمام `fetch` به `/api/v2/*`
 2. **DATABASE_URL = server-only** — هرگز `NEXT_PUBLIC_` نمی‌گیرد
 3. **No hardcoded strings** — فقط `t("key")` از next-intl
 4. **State split**: server state = React Query، UI state = Zustand، local = useState

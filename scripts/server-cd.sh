@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 #
 # server-cd.sh — runs ON the live host (behind WireGuard).
-# Polls git remote; on new commits rebuilds BOTH stacks:
-#   - mlm-prod  (docker-compose.prod.yml + .env.production)  → port 3002
-#   - mlm-v2    (docker-compose.v2.yml   + .env.v2)          → port 3003
+# Polls git remote; on new commits rebuilds the live stack:
+#   - mlm-live  (docker-compose.live.yml + .env.live)  → port 3002
 #
 # Installed by bootstrap-live-server.sh as a systemd timer.
 # Manual: sudo /opt/MLM_Front/scripts/server-cd.sh
@@ -16,6 +15,10 @@ STATE_DIR="${PROJECT_DIR}/.cd-state"
 LAST_SHA_FILE="${STATE_DIR}/last-deployed-sha"
 LOCK_FILE="${STATE_DIR}/deploy.lock"
 LOG_PREFIX="[mlm-cd]"
+COMPOSE_FILE="docker-compose.live.yml"
+COMPOSE_PROJECT="mlm-live"
+ENV_FILE=".env.live"
+LIVE_PORT=3002
 
 cd "${PROJECT_DIR}"
 mkdir -p "${STATE_DIR}"
@@ -48,28 +51,21 @@ compose() {
   docker_cmd compose -p "${project}" "$@"
 }
 
-ensure_env_files() {
-  if [[ ! -f .env.production ]]; then
-    if [[ -f .env.production.example ]]; then
-      cp .env.production.example .env.production
+ensure_env_file() {
+  if [[ ! -f "${ENV_FILE}" ]]; then
+    if [[ -f .env.live.example ]]; then
+      cp .env.live.example "${ENV_FILE}"
       SECRET="$(openssl rand -hex 24 2>/dev/null || head -c 48 /dev/urandom | xxd -p | tr -d '\n' | head -c 48)"
-      sed -i.bak "s|^AUTH_SECRET=.*|AUTH_SECRET=${SECRET}|" .env.production && rm -f .env.production.bak
-      echo "${LOG_PREFIX} seeded .env.production"
+      sed -i.bak "s|^AUTH_SECRET=.*|AUTH_SECRET=${SECRET}|" "${ENV_FILE}" && rm -f "${ENV_FILE}.bak"
+      echo "${LOG_PREFIX} seeded ${ENV_FILE}"
+    elif [[ -f .env.production ]]; then
+      cp .env.production "${ENV_FILE}"
+      echo "${LOG_PREFIX} migrated .env.production → ${ENV_FILE}"
     elif [[ -f .env ]]; then
-      cp .env .env.production
-      echo "${LOG_PREFIX} copied .env → .env.production"
+      cp .env "${ENV_FILE}"
+      echo "${LOG_PREFIX} copied .env → ${ENV_FILE}"
     else
-      echo "${LOG_PREFIX} ERROR: missing .env.production"
-      exit 1
-    fi
-  fi
-
-  if [[ ! -f .env.v2 ]]; then
-    if [[ -f .env.v2.example ]]; then
-      cp .env.v2.example .env.v2
-      echo "${LOG_PREFIX} seeded .env.v2"
-    else
-      echo "${LOG_PREFIX} ERROR: missing .env.v2"
+      echo "${LOG_PREFIX} ERROR: missing ${ENV_FILE}"
       exit 1
     fi
   fi
@@ -84,7 +80,6 @@ auth_fetch_url() {
     exit 1
   fi
 
-  # Already has credentials embedded
   if [[ "${origin}" == *"@"* && "${origin}" == https://* ]]; then
     printf '%s' "${origin}"
     return
@@ -99,7 +94,6 @@ auth_fetch_url() {
     return
   fi
 
-  # Fall back to bare origin (SSH remote or credential helper)
   printf '%s' "${origin}"
 }
 
@@ -116,36 +110,32 @@ acquire_lock() {
   trap 'rm -f "${LOCK_FILE}"' EXIT
 }
 
-deploy_stacks() {
+deploy_stack() {
   local sha="$1"
   local built
   built="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   export GIT_SHA="${sha}"
   export BUILD_TIME="${built}"
 
-  ensure_env_files
+  ensure_env_file
 
-  # Export APP_ENV from each env file for compose build args
   set -a
   # shellcheck disable=SC1091
-  source <(grep -E '^(APP_ENV|NEXT_PUBLIC_APP_ENV|APP_PORT)=' .env.production | sed 's/\r$//')
+  source <(grep -E '^(APP_ENV|NEXT_PUBLIC_APP_ENV|APP_PORT)=' "${ENV_FILE}" | sed 's/\r$//')
   set +a
-  echo "${LOG_PREFIX} building production (GIT_SHA=${sha})"
-  if grep -qE '^APP_PORT=' .env.production 2>/dev/null; then
-    sed -i.bak "s|^APP_PORT=.*|APP_PORT=3002|" .env.production && rm -f .env.production.bak
+  echo "${LOG_PREFIX} building live (GIT_SHA=${sha})"
+  if grep -qE '^APP_PORT=' "${ENV_FILE}" 2>/dev/null; then
+    sed -i.bak "s|^APP_PORT=.*|APP_PORT=${LIVE_PORT}|" "${ENV_FILE}" && rm -f "${ENV_FILE}.bak"
   fi
-  export APP_PORT=3002
-  compose mlm-prod -f docker-compose.prod.yml --env-file .env.production up -d --build --remove-orphans
+  export APP_PORT="${LIVE_PORT}"
+  compose "${COMPOSE_PROJECT}" -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" up -d --build --remove-orphans
 
-  # UI / v2 stack is intentionally not built on live anymore.
-  if [[ -f docker-compose.v2.yml ]]; then
-    echo "${LOG_PREFIX} stopping legacy UI stack if present"
-    compose mlm-v2 -f docker-compose.v2.yml down --remove-orphans 2>/dev/null || true
-  fi
+  # One-shot cleanup of legacy containers
+  docker_cmd rm -f mlm_front_v2 mlm_front_prod mlm_front 2>/dev/null || true
 
   echo "${sha}" > "${LAST_SHA_FILE}"
   echo "${LOG_PREFIX} deployed ${sha} at ${built}"
-  compose mlm-prod -f docker-compose.prod.yml ps || true
+  compose "${COMPOSE_PROJECT}" -f "${COMPOSE_FILE}" ps || true
 }
 
 # ---------- main ----------
@@ -175,9 +165,8 @@ fi
 echo "${LOG_PREFIX} new revision: ${LOCAL_SHA:0:8} → ${REMOTE_SHA:0:8}"
 "${GIT[@]}" reset --hard "${REMOTE_SHA}"
 
-# Ensure nginx network exists
 if ! docker_cmd network inspect nginx >/dev/null 2>&1; then
   docker_cmd network create nginx
 fi
 
-deploy_stacks "${REMOTE_SHA:0:12}"
+deploy_stack "${REMOTE_SHA:0:12}"

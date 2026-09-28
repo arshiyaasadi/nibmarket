@@ -15,7 +15,7 @@
 #   yarn sync:live --force           # kill stuck remote deploy and restart
 #   LIVE_SSH_HOST=<ip> yarn sync:live
 #
-# Ports on live host: prod :3002 only (UI / v2 stack is NOT built)
+# Ports on live host: live stack :3002 only
 #
 set -euo pipefail
 
@@ -24,7 +24,7 @@ SSH_USER="${LIVE_SSH_USER:-novin}"
 SSH_ALIAS="${LIVE_SSH_ALIAS:-nibmarket-live}"
 SSH_KEY="${LIVE_SSH_KEY:-${HOME}/.ssh/nibmarket_live_ed25519}"
 PROJECT_DIR="${LIVE_PROJECT_DIR:-/opt/MLM_Front}"
-PROD_PORT="${PROD_PORT:-3002}"
+LIVE_PORT="${LIVE_PORT:-${PROD_PORT:-3002}}"
 NGINX_DOMAIN="${NGINX_DOMAIN:-club.nibmarket.ir}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -203,8 +203,8 @@ rsync -az --delete \
   --exclude 'tsconfig.tsbuildinfo' \
   --exclude '.env' \
   --exclude '.env.local' \
+  --exclude '.env.live' \
   --exclude '.env.production' \
-  --exclude '.env.v2' \
   --exclude 'live_ssh_pass.txt' \
   --exclude 'sudo_pass.txt' \
   --exclude 'git_credentials.txt' \
@@ -222,14 +222,14 @@ if [[ "${RSYNC_ONLY}" -eq 1 ]]; then
 fi
 
 echo ">>> Starting DETACHED remote deploy (survives closed terminal)"
-echo "    prod :${PROD_PORT} | nginx ${NGINX_DOMAIN} | UI stack skipped"
+echo "    live :${LIVE_PORT} | nginx ${NGINX_DOMAIN}"
 
 remote \
   SUDO_PASS="${SSH_PASS}" \
   PROJECT_DIR="${PROJECT_DIR}" \
   GIT_SHA="${GIT_SHA}" \
   BUILD_TIME="${BUILD_TIME}" \
-  PROD_PORT="${PROD_PORT}" \
+  LIVE_PORT="${LIVE_PORT}" \
   NGINX_DOMAIN="${NGINX_DOMAIN}" \
   CERTBOT_EMAIL="${CERTBOT_EMAIL:-}" \
   'bash -s' <<'REMOTE_EOF'
@@ -250,7 +250,7 @@ nohup env \
   PROJECT_DIR="${PROJECT_DIR}" \
   GIT_SHA="${GIT_SHA}" \
   BUILD_TIME="${BUILD_TIME}" \
-  PROD_PORT="${PROD_PORT}" \
+  LIVE_PORT="${LIVE_PORT}" \
   NGINX_DOMAIN="${NGINX_DOMAIN}" \
   CERTBOT_EMAIL="${CERTBOT_EMAIL:-}" \
   bash "${PROJECT_DIR}/scripts/remote-deploy.sh" \

@@ -8,7 +8,7 @@
 #   3) Add a Host entry to ~/.ssh/config for easy `ssh nibmarket-live`
 #   4) On the server: install Docker (+ compose) if missing, create nginx network
 #   5) Clone (or update) the Azure DevOps repo into PROJECT_DIR
-#   6) Seed .env from .env.production.example when missing
+#   6) Seed .env.live from .env.live.example when missing
 #   7) Build & start with docker compose (production)
 #
 # Required local files (repo root, gitignored):
@@ -35,7 +35,7 @@ SSH_KEY="${LIVE_SSH_KEY:-${HOME}/.ssh/nibmarket_live_ed25519}"
 PROJECT_DIR="${LIVE_PROJECT_DIR:-/opt/MLM_Front}"
 GIT_REPO_URL="${LIVE_GIT_REPO:-https://azure.nibdev.com/GeneralCollection/Club/_git/MLM_Front}"
 GIT_BRANCH="${LIVE_GIT_BRANCH:-main}"
-COMPOSE_FILE="${LIVE_COMPOSE_FILE:-docker-compose.prod.yml}"
+COMPOSE_FILE="${LIVE_COMPOSE_FILE:-docker-compose.live.yml}"
 DEPLOY_APP_ENV="${LIVE_APP_ENV:-production}"
 # -------------------------------------------------
 
@@ -359,7 +359,7 @@ GIT=(git -C "${PROJECT_DIR}" -c "safe.directory=${PROJECT_DIR}")
 SYNCED="$("${GIT[@]}" rev-parse --short HEAD)"
 echo "--- Synced to: ${SYNCED}"
 
-echo "=== [5/6] Env files (production + v2/UI) ==="
+echo "=== [5/6] Env files (live) ==="
 seed_secret() {
   local file="$1"
   if grep -q 'AUTH_SECRET=<generate' "${file}" 2>/dev/null || grep -qE '^AUTH_SECRET=$' "${file}" 2>/dev/null; then
@@ -369,30 +369,25 @@ seed_secret() {
   fi
 }
 
-if [[ ! -f .env.production ]]; then
-  if [[ -f .env.production.example ]]; then
-    cp .env.production.example .env.production
+if [[ ! -f .env.live ]]; then
+  if [[ -f .env.live.example ]]; then
+    cp .env.live.example .env.live
+  elif [[ -f .env.production ]]; then
+    cp .env.production .env.live
   elif [[ -f .env ]]; then
-    cp .env .env.production
+    cp .env .env.live
   else
-    cp .env.example .env.production 2>/dev/null || true
+    cp .env.example .env.live 2>/dev/null || true
   fi
-  seed_secret .env.production
-  echo "--- Seeded .env.production (nibmarket DNS / APP_ENV=production)"
+  seed_secret .env.live
+  echo "--- Seeded .env.live (nibmarket DNS / APP_ENV=production)"
 else
-  echo "--- Keeping existing .env.production"
-fi
-
-if [[ ! -f .env.v2 ]]; then
-  cp .env.v2.example .env.v2
-  echo "--- Seeded .env.v2 (UI / FORCE_UI_DEV_MODE)"
-else
-  echo "--- Keeping existing .env.v2"
+  echo "--- Keeping existing .env.live"
 fi
 
 # Legacy alias for older docs/scripts
 if [[ ! -f .env ]]; then
-  cp .env.production .env
+  cp .env.live .env
 fi
 
 # Git credentials for on-server CD poller (WireGuard-safe)
@@ -400,11 +395,11 @@ printf '%s\n%s\n' "${GIT_USER}" "${GIT_PASS}" > "${PROJECT_DIR}/.cd-git-credenti
 chmod 600 "${PROJECT_DIR}/.cd-git-credentials"
 echo "--- Wrote .cd-git-credentials for server-cd.sh"
 
-echo "=== [6/6] Dual deploy: prod (:3002) + v2/UI (:3003) ==="
+echo "=== [6/6] Live deploy (:3002) ==="
 export GIT_SHA="${SYNCED}"
 export BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 export NEXT_PUBLIC_GIT_SHA="${SYNCED}"
-export PROD_PORT=3002 UI_PORT=3003 NGINX_DOMAIN=club.nibmarket.ir
+export LIVE_PORT=3002 NGINX_DOMAIN=club.nibmarket.ir
 chmod +x "${PROJECT_DIR}/scripts/remote-deploy.sh" 2>/dev/null || true
 # Prefer the detachable remote-deploy path (same as yarn sync:live)
 SUDO_PASS="${SUDO_PASS}" PROJECT_DIR="${PROJECT_DIR}" GIT_SHA="${SYNCED}" BUILD_TIME="${BUILD_TIME}" \
@@ -429,7 +424,7 @@ else
 fi
 
 echo ">>> Remote bootstrap + deploy finished."
-echo ">>> prod → host :3002 (club.nibmarket.ir) | v2/UI → host :3003"
+echo ">>> live → host :3002 (club.nibmarket.ir) | container mlm_front_live"
 echo ">>> CD: systemctl status mlm-cd.timer"
 REMOTE_EOF
 }
@@ -461,4 +456,4 @@ echo "    ssh ${SSH_ALIAS}"
 echo "    # or: ssh -i ${SSH_KEY} ${SSH_USER}@${SSH_HOST}"
 echo "    Project: ${PROJECT_DIR}"
 echo "    Re-deploy later: ./scripts/bootstrap-live-server.sh --deploy-only"
-echo "    Or existing: DEPLOY_SSH_HOST=${SSH_ALIAS} DEPLOY_PROJECT_DIR=${PROJECT_DIR} DEPLOY_APP_ENV=production ./deploy.sh"
+echo "    Or existing: yarn sync:live"

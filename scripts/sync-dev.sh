@@ -23,7 +23,7 @@ SSH_KEY="${DEV_SSH_KEY:-}"
 PROJECT_DIR="${DEV_PROJECT_DIR:-/opt/MLM_Front}"
 APP_PORT_HOST="${DEV_APP_PORT:-3000}"
 # unused in remote path now — kept for override docs
-COMPOSE_HINT="docker-compose.yml → mlm_front"
+COMPOSE_HINT="docker-compose.dev.yml → mlm_front_dev"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -210,8 +210,8 @@ rsync -az --delete \
   --exclude 'tsconfig.tsbuildinfo' \
   --exclude '.env' \
   --exclude '.env.local' \
+  --exclude '.env.live' \
   --exclude '.env.production' \
-  --exclude '.env.v2' \
   --exclude 'live_ssh_pass.txt' \
   --exclude 'sudo_pass.txt' \
   --exclude 'git_credentials.txt' \

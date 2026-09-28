@@ -1,6 +1,6 @@
-# Production stack on live host (nibmarket / club.nibmarket.ir)
-# Run: docker compose -p mlm-prod -f docker-compose.prod.yml up -d --build
-# Port: APP_PORT from .env.production (default 3002)
+# Live zone — club.nibmarket.ir (APP_ENV=production)
+# Run: docker compose -p mlm-live -f docker-compose.live.yml --env-file .env.live up -d --build
+# Host port: APP_PORT from .env.live (default 3002)
 # Requires: docker network create nginx
 
 x-app-build: &app-build
@@ -17,12 +17,12 @@ x-app-build: &app-build
 
 services:
   app:
-    container_name: mlm_front_prod
+    container_name: mlm_front_live
     build: *app-build
     ports:
       - "${APP_PORT:-3002}:3000"
     env_file:
-      - path: .env.production
+      - path: .env.live
         required: false
     restart: unless-stopped
     networks:

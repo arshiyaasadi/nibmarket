@@ -3,9 +3,9 @@
 # remote-deploy.sh — runs ON the live host (nibmarket / club.nibmarket.ir).
 # Detached-safe: writes stage progress so a closed local terminal does not stop work.
 #
-# Builds ONLY the production stack (no UI / v2 stack).
+# Builds ONLY the live stack (docker-compose.live.yml).
 #
-# Stages: docker → network → env → base_image → build_prod → nginx → ssl → done
+# Stages: docker → network → env → base_image → build_live → nginx → ssl → done
 #
 # Usage (on server):
 #   PROJECT_DIR=/opt/MLM_Front GIT_SHA=abc BUILD_TIME=... bash scripts/remote-deploy.sh
@@ -19,9 +19,12 @@ STATUS_FILE="${STATE_DIR}/deploy-status"
 LOG_FILE="${STATE_DIR}/deploy.log"
 PID_FILE="${STATE_DIR}/deploy.pid"
 LOCK_FILE="${STATE_DIR}/deploy.lock"
-PROD_PORT="${PROD_PORT:-3002}"
+LIVE_PORT="${LIVE_PORT:-${PROD_PORT:-3002}}"
 NGINX_DOMAIN="${NGINX_DOMAIN:-club.nibmarket.ir}"
 CERTBOT_EMAIL="${CERTBOT_EMAIL:-}"
+COMPOSE_FILE="docker-compose.live.yml"
+COMPOSE_PROJECT="mlm-live"
+ENV_FILE=".env.live"
 
 cd "${PROJECT_DIR}"
 mkdir -p "${STATE_DIR}"
@@ -53,7 +56,7 @@ ERROR=${err}
 PID=$$
 GIT_SHA=${GIT_SHA:-unknown}
 BUILD_TIME=${BUILD_TIME:-}
-PROD_PORT=${PROD_PORT}
+LIVE_PORT=${LIVE_PORT}
 NGINX_DOMAIN=${NGINX_DOMAIN}
 UPDATED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 STARTED_AT=${STARTED_AT:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}
@@ -135,7 +138,7 @@ if ! sudo_run docker network inspect nginx >/dev/null 2>&1; then
   sudo_run docker network create nginx || fail "network" "docker network create nginx failed"
 fi
 
-write_status "env" "running" "Seeding + patching .env.production (auth/SSO URLs)"
+write_status "env" "running" "Seeding + patching ${ENV_FILE} (auth/SSO URLs)"
 seed_secret() {
   local file="$1"
   if grep -q 'AUTH_SECRET=<generate' "${file}" 2>/dev/null || grep -qE '^AUTH_SECRET=$' "${file}" 2>/dev/null; then
@@ -154,10 +157,16 @@ set_port() {
   fi
 }
 
-[[ -f .env.production ]] || { cp .env.production.example .env.production; seed_secret .env.production; }
-patch_zone_auth_env .env.production production
-set_port .env.production "${PROD_PORT}"
-[[ -f .env ]] || cp .env.production .env
+# Migrate legacy env filename if present
+if [[ ! -f "${ENV_FILE}" && -f .env.production ]]; then
+  cp .env.production "${ENV_FILE}"
+  echo "--- Migrated .env.production → ${ENV_FILE}"
+fi
+
+[[ -f "${ENV_FILE}" ]] || { cp .env.live.example "${ENV_FILE}"; seed_secret "${ENV_FILE}"; }
+patch_zone_auth_env "${ENV_FILE}" production
+set_port "${ENV_FILE}" "${LIVE_PORT}"
+[[ -f .env ]] || cp "${ENV_FILE}" .env
 
 export GIT_SHA="${GIT_SHA:-unknown}"
 export BUILD_TIME="${BUILD_TIME:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
@@ -190,20 +199,24 @@ if ! pull_base "${NODE_BASE_IMAGE}"; then
 fi
 echo "--- Using NODE_BASE_IMAGE=${NODE_BASE_IMAGE}"
 
-# Stop legacy UI stack if it still exists (no longer built)
-if [[ -f docker-compose.v2.yml ]]; then
-  echo "--- Stopping legacy UI stack (mlm-v2) if present"
-  compose_run -p mlm-v2 -f docker-compose.v2.yml down --remove-orphans 2>/dev/null || true
+# Stop legacy stacks / containers if present
+echo "--- Stopping legacy stacks if present"
+compose_run -p mlm-v2 -f docker-compose.v2.yml down --remove-orphans 2>/dev/null || true
+compose_run -p mlm-prod -f docker-compose.prod.yml down --remove-orphans 2>/dev/null || true
+if docker info >/dev/null 2>&1; then
+  docker rm -f mlm_front_v2 mlm_front_prod mlm_front 2>/dev/null || true
+else
+  sudo_run docker rm -f mlm_front_v2 mlm_front_prod mlm_front 2>/dev/null || true
 fi
 
-write_status "build_prod" "running" "Building production stack on :${PROD_PORT}"
+write_status "build_live" "running" "Building live stack on :${LIVE_PORT}"
 set -a
 # shellcheck disable=SC1091
-source <(grep -E '^(APP_ENV|NEXT_PUBLIC_APP_ENV|APP_PORT)=' .env.production | sed 's/\r$//' || true)
+source <(grep -E '^(APP_ENV|NEXT_PUBLIC_APP_ENV|APP_PORT)=' "${ENV_FILE}" | sed 's/\r$//' || true)
 set +a
-export APP_PORT="${PROD_PORT}"
-compose_run -p mlm-prod -f docker-compose.prod.yml --env-file .env.production up -d --build --remove-orphans \
-  || fail "build_prod" "docker compose prod build/up failed — see ${LOG_FILE}"
+export APP_PORT="${LIVE_PORT}"
+compose_run -p "${COMPOSE_PROJECT}" -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" up -d --build --remove-orphans \
+  || fail "build_live" "docker compose live build/up failed — see ${LOG_FILE}"
 
 write_status "nginx" "running" "Configuring nginx for ${NGINX_DOMAIN}"
 if ! command -v nginx >/dev/null 2>&1; then
@@ -221,8 +234,8 @@ fi
 
 TMP_CONF="$(mktemp)"
 sed \
-  -e "s/__PROD_PORT__/${PROD_PORT}/g" \
-  -e "s/__UI_PORT__/3003/g" \
+  -e "s/__LIVE_PORT__/${LIVE_PORT}/g" \
+  -e "s/__PROD_PORT__/${LIVE_PORT}/g" \
   -e "s/__DOMAIN__/${NGINX_DOMAIN}/g" \
   "${NGINX_SRC}" > "${TMP_CONF}"
 sudo_run cp "${TMP_CONF}" "${NGINX_AVAIL}"
@@ -251,8 +264,8 @@ else
   echo "Warning: certbot not available — HTTP only"
 fi
 
-compose_run -p mlm-prod -f docker-compose.prod.yml ps || true
+compose_run -p "${COMPOSE_PROJECT}" -f "${COMPOSE_FILE}" ps || true
 
-write_status "done" "done" "Deploy finished. prod :${PROD_PORT} | https://${NGINX_DOMAIN} (UI stack skipped)"
+write_status "done" "done" "Deploy finished. live :${LIVE_PORT} | https://${NGINX_DOMAIN}"
 echo "======== remote-deploy done ========"
-echo ">>> prod :${PROD_PORT} | nginx ${NGINX_DOMAIN} | UI stack not built"
+echo ">>> live :${LIVE_PORT} | nginx ${NGINX_DOMAIN} | container mlm_front_live"

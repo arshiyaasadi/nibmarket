@@ -19,7 +19,7 @@ export function isMockServiceMode(): boolean {
 /**
  * UI-only mode: local BFF mocks + auth bypass.
  * - Local/dev: `UI_DEV_MODE=1` / `NEXT_PUBLIC_UI_DEV_MODE=1`
- * - Live "v2" stack: `FORCE_UI_DEV_MODE=1` (compose.v2) even when NODE_ENV=production
+ * - Forced UI mode: `FORCE_UI_DEV_MODE=1` even when NODE_ENV=production
  */
 export function isMockDevelopmentMode(): boolean {
   if (process.env.FORCE_UI_DEV_MODE === "1" || process.env.NEXT_PUBLIC_FORCE_UI_DEV_MODE === "1") {

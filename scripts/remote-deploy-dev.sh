@@ -2,10 +2,10 @@
 #
 # remote-deploy-dev.sh — runs ON the test / nibdev host (pod1.nibdev.com).
 #
-# Same layout as historical ./deploy.sh:
-#   - path: /opt/MLM_Front (unchanged)
-#   - compose: docker-compose.prod.yml
-#   - container: mlm_front_prod
+# Layout:
+#   - path: /opt/MLM_Front
+#   - compose: docker-compose.dev.yml
+#   - container: mlm_front_dev
 #   - publish host port APP_PORT (default 3000)
 #   - no host nginx install — only the docker network name "nginx" that compose requires
 #
@@ -17,7 +17,8 @@ STATUS_FILE="${STATE_DIR}/deploy-status"
 LOG_FILE="${STATE_DIR}/deploy.log"
 PID_FILE="${STATE_DIR}/deploy.pid"
 LOCK_FILE="${STATE_DIR}/deploy.lock"
-COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.prod.yml}"
+COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.dev.yml}"
+COMPOSE_PROJECT="mlm-dev"
 APP_PORT_HOST="${APP_PORT_HOST:-3000}"
 
 cd "${PROJECT_DIR}"
@@ -51,7 +52,7 @@ PID=$$
 GIT_SHA=${GIT_SHA:-unknown}
 BUILD_TIME=${BUILD_TIME:-}
 COMPOSE_FILE=${COMPOSE_FILE}
-CONTAINER=mlm_front_prod
+CONTAINER=mlm_front_dev
 APP_PORT=${APP_PORT_HOST}
 ZONE=development
 UPDATED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -134,14 +135,12 @@ compose_run() {
   fi
 }
 
-# Compose file still references external network name "nginx" — create the network only
-# (do NOT install/configure host nginx on the test server).
 write_status "network" "running" "Ensuring docker network nginx exists"
 if ! docker_run network inspect nginx >/dev/null 2>&1; then
   docker_run network create nginx || fail "network" "docker network create nginx failed"
 fi
 
-write_status "env" "running" "Patching .env / .env.production (auth URLs + APP_PORT)"
+write_status "env" "running" "Patching .env (auth URLs + APP_PORT)"
 seed_secret() {
   local file="$1"
   if grep -q 'AUTH_SECRET=<generate' "${file}" 2>/dev/null || grep -qE '^AUTH_SECRET=$' "${file}" 2>/dev/null; then
@@ -165,16 +164,8 @@ patch_zone_auth_env .env development
 seed_secret .env
 set_port .env "${APP_PORT_HOST}"
 
-# docker-compose.prod.yml loads .env.production into the container — keep it in sync with .env
-cp .env .env.production
-
 if [[ ! -f "${COMPOSE_FILE}" ]]; then
-  if [[ -f docker-compose.yml ]]; then
-    echo "Warning: ${COMPOSE_FILE} missing — falling back to docker-compose.yml"
-    COMPOSE_FILE="docker-compose.yml"
-  else
-    fail "env" "no compose file found"
-  fi
+  fail "env" "missing ${COMPOSE_FILE}"
 fi
 
 export GIT_SHA="${GIT_SHA:-unknown}"
@@ -210,17 +201,14 @@ if ! pull_base "${NODE_BASE_IMAGE}"; then
   [[ "${pulled}" -eq 1 ]] || fail "base_image" "could not pull any node base image"
 fi
 
-write_status "build" "running" "Replacing containers then building ${COMPOSE_FILE} (port ${APP_PORT_HOST})"
+write_status "build" "running" "Building ${COMPOSE_FILE} (port ${APP_PORT_HOST})"
 
-# Clear name conflicts from earlier sync:dev experiments / other compose project names.
-# Keep folder /opt/MLM_Front and final names identical to deploy.sh (mlm_front_prod).
-echo "--- Stopping previous compose stacks (no rename of project dir)"
+echo "--- Stopping previous / legacy compose stacks"
+compose_run -p mlm-dev -f docker-compose.dev.yml down --remove-orphans 2>/dev/null || true
 compose_run -f docker-compose.prod.yml down --remove-orphans 2>/dev/null || true
 compose_run -f docker-compose.yml down --remove-orphans 2>/dev/null || true
-compose_run -p mlm-dev -f docker-compose.prod.yml down --remove-orphans 2>/dev/null || true
 compose_run -p mlm -f docker-compose.yml down --remove-orphans 2>/dev/null || true
-compose_run -p mlm -f docker-compose.prod.yml down --remove-orphans 2>/dev/null || true
-docker_run rm -f mlm_front mlm_front_prod 2>/dev/null || true
+docker_run rm -f mlm_front mlm_front_prod mlm_front_dev 2>/dev/null || true
 
 set -a
 # shellcheck disable=SC1091
@@ -231,19 +219,18 @@ export NEXT_PUBLIC_APP_ENV=development
 export APP_PORT="${APP_PORT_HOST}"
 export GIT_SHA NEXT_PUBLIC_GIT_SHA BUILD_TIME NODE_BASE_IMAGE
 
-# Same style as deploy.sh — no custom -p rename
-compose_run -f "${COMPOSE_FILE}" --env-file .env up -d --build --remove-orphans \
+compose_run -p "${COMPOSE_PROJECT}" -f "${COMPOSE_FILE}" --env-file .env up -d --build --remove-orphans \
   || fail "build" "docker compose build/up failed — see ${LOG_FILE}"
 
-compose_run -f "${COMPOSE_FILE}" ps || true
+compose_run -p "${COMPOSE_PROJECT}" -f "${COMPOSE_FILE}" ps || true
 
 echo "--- health: localhost:${APP_PORT_HOST}"
 curl -sI -m 8 "http://127.0.0.1:${APP_PORT_HOST}/" 2>/dev/null | head -10 \
   || echo "Warning: curl http://127.0.0.1:${APP_PORT_HOST}/ failed (container may still be starting)"
 
-APP_URL_VALUE="$(grep -E '^NEXT_PUBLIC_APP_URL=' .env 2>/dev/null | head -1 | cut -d= -f2- || echo 'https://api-club.nibdev.com')"
+APP_URL_VALUE="$(grep -E '^NEXT_PUBLIC_APP_URL=' .env 2>/dev/null | head -1 | cut -d= -f2- || echo 'https://club.nibdev.com')"
 
-write_status "done" "done" "Deploy finished. mlm_front_prod :${APP_PORT_HOST}"
+write_status "done" "done" "Deploy finished. mlm_front_dev :${APP_PORT_HOST}"
 echo "======== remote-deploy-dev done ========"
-echo ">>> container: mlm_front_prod | host port: ${APP_PORT_HOST} | APP_ENV=development"
+echo ">>> container: mlm_front_dev | host port: ${APP_PORT_HOST} | APP_ENV=development"
 echo ">>> SSO callback base: ${APP_URL_VALUE}"

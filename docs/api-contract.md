@@ -2,7 +2,7 @@
 
 **Purpose:** This document is the single source of truth for the API contract between the NIB Club frontend (Next.js BFF) and the backend service. A .NET backend implementation must satisfy every endpoint, field, type, validation rule, and error code listed here exactly. The frontend services will break silently if field names, types, or enum values differ.
 
-**Base URL:** `POST /api/v1/{path}` — all endpoints are prefixed with `/api/v1`
+**Base URL:** `POST /api/v2/{path}` — all endpoints are prefixed with `/api/v2`
 
 **Source files this document was derived from:**
 - `src/lib/api/server/handlers/*.handler.ts` — endpoint implementations
@@ -137,7 +137,7 @@ Default page size is **10** unless otherwise specified. `hasMore = (page * pageS
 
 > Handles user identity: registration, login, OTP, password reset, token refresh, profile, and SSO.
 
-### `POST /api/v1/auth/check-mobile`
+### `POST /api/v2/auth/check-mobile`
 
 > Check if a mobile number is already registered before showing the login/register split screen.
 
@@ -173,7 +173,7 @@ Default page size is **10** unless otherwise specified. `hasMore = (page * pageS
 
 ---
 
-### `POST /api/v1/auth/login`
+### `POST /api/v2/auth/login`
 
 > Authenticate an existing user with mobile/email + password.
 
@@ -232,7 +232,7 @@ or
 
 ---
 
-### `POST /api/v1/auth/logout`
+### `POST /api/v2/auth/logout`
 
 > Invalidate the current session.
 
@@ -249,7 +249,7 @@ or
 
 ---
 
-### `POST /api/v1/auth/otp/send`
+### `POST /api/v2/auth/otp/send`
 
 > Send OTP to a mobile number for login (mobile must already exist).
 
@@ -274,7 +274,7 @@ or
 
 ---
 
-### `POST /api/v1/auth/otp/verify`
+### `POST /api/v2/auth/otp/verify`
 
 > Verify OTP code and log in.
 
@@ -299,7 +299,7 @@ or
 
 ---
 
-### `POST /api/v1/auth/register/otp/send`
+### `POST /api/v2/auth/register/otp/send`
 
 > Send OTP to a mobile number for registration (mobile must NOT exist yet).
 
@@ -324,7 +324,7 @@ or
 
 ---
 
-### `POST /api/v1/auth/register/otp/verify`
+### `POST /api/v2/auth/register/otp/verify`
 
 > Verify OTP during registration flow; returns a short-lived registration token.
 
@@ -351,7 +351,7 @@ or
 
 ---
 
-### `POST /api/v1/auth/register`
+### `POST /api/v2/auth/register`
 
 > Create a new user account.
 
@@ -395,7 +395,7 @@ or
 
 ---
 
-### `POST /api/v1/auth/forgot/send`
+### `POST /api/v2/auth/forgot/send`
 
 > Send OTP to a mobile number to initiate password reset.
 
@@ -420,7 +420,7 @@ or
 
 ---
 
-### `POST /api/v1/auth/forgot/verify`
+### `POST /api/v2/auth/forgot/verify`
 
 > Verify OTP for password reset; returns a reset token.
 
@@ -445,7 +445,7 @@ or
 
 ---
 
-### `POST /api/v1/auth/forgot/reset`
+### `POST /api/v2/auth/forgot/reset`
 
 > Set a new password using the reset token.
 
@@ -471,7 +471,7 @@ or `"password"` field instead of `"newPassword"` (both accepted).
 
 ---
 
-### `POST /api/v1/auth/refresh`
+### `POST /api/v2/auth/refresh`
 
 > Exchange a valid refresh token for new access + refresh tokens.
 
@@ -491,7 +491,7 @@ or `"password"` field instead of `"newPassword"` (both accepted).
 
 ---
 
-### `GET /api/v1/auth/profile`
+### `GET /api/v2/auth/profile`
 
 > Get the current user's profile details.
 
@@ -545,7 +545,7 @@ or `"password"` field instead of `"newPassword"` (both accepted).
 
 ---
 
-### `POST /api/v1/auth/sso/exchange`
+### `POST /api/v2/auth/sso/exchange`
 
 > Exchange an SSO token (from external NibMarket platform) for a NIB Club session.
 
@@ -579,7 +579,7 @@ or `"password"` field instead of `"newPassword"` (both accepted).
 
 > Aggregated data for the user's main dashboard page.
 
-### `GET /api/v1/dashboard/rewards`
+### `GET /api/v2/dashboard/rewards`
 
 > Returns reward summary cards (token breakdown).
 
@@ -621,7 +621,7 @@ Returns exactly **4 items** in order: total, mission, commission, frozen.
 
 ---
 
-### `GET /api/v1/dashboard/wallet`
+### `GET /api/v2/dashboard/wallet`
 
 > Returns the user's wallet summary.
 
@@ -639,7 +639,7 @@ Returns exactly **4 items** in order: total, mission, commission, frozen.
 
 ---
 
-### `GET /api/v1/dashboard/leaderboard`
+### `GET /api/v2/dashboard/leaderboard`
 
 > Returns the top 10 leaderboard entries.
 
@@ -663,7 +663,7 @@ Returns up to **10** entries. `isSelf: true` for the current user's entry.
 
 ---
 
-### `GET /api/v1/dashboard/missions`
+### `GET /api/v2/dashboard/missions`
 
 > Returns the first 5 active missions for the dashboard widget.
 
@@ -694,7 +694,7 @@ Returns **at most 5** missions.
 
 ---
 
-### `GET /api/v1/dashboard/subset-deposits`
+### `GET /api/v2/dashboard/subset-deposits`
 
 > Returns the user's subset deposit (commission) summary.
 
@@ -713,7 +713,7 @@ Returns **at most 5** missions.
 
 ---
 
-### `GET /api/v1/dashboard/referral`
+### `GET /api/v2/dashboard/referral`
 
 > Returns the current user's referral / invite code.
 
@@ -731,7 +731,7 @@ Both fields always contain the same value.
 
 ---
 
-### `GET /api/v1/dashboard/charts`
+### `GET /api/v2/dashboard/charts`
 
 > Reserved endpoint for chart data (currently returns empty object).
 
@@ -748,7 +748,7 @@ Both fields always contain the same value.
 
 > TWIN token wallet: balance, transaction history, token price chart.
 
-### `GET /api/v1/wallet/summary`
+### `GET /api/v2/wallet/summary`
 
 > Returns the user's wallet balance breakdown.
 
@@ -766,7 +766,7 @@ Both fields always contain the same value.
 
 ---
 
-### `GET /api/v1/wallet/transactions`
+### `GET /api/v2/wallet/transactions`
 
 > Returns a paginated list of wallet transactions.
 
@@ -813,7 +813,7 @@ Page size: **10** items.
 
 ---
 
-### `GET /api/v1/wallet/token-price`
+### `GET /api/v2/wallet/token-price`
 
 > Returns the TWIN token price history for the last 30 days (public endpoint).
 
@@ -835,7 +835,7 @@ Returns up to **30** data points, one per day.
 
 > Multi-level network management: subsets, tree, invite letters, referrer.
 
-### `GET /api/v1/network/subsets`
+### `GET /api/v2/network/subsets`
 
 > Returns all users in the current user's downline network.
 
@@ -874,7 +874,7 @@ Sorted by `level ASC`, then `joinDate ASC`.
 
 ---
 
-### `GET /api/v1/network/tree`
+### `GET /api/v2/network/tree`
 
 > Returns the current user's network as a recursive tree.
 
@@ -901,7 +901,7 @@ Sorted by `level ASC`, then `joinDate ASC`.
 
 ---
 
-### `GET /api/v1/network/referrer`
+### `GET /api/v2/network/referrer`
 
 > Returns information about the current user's upline referrer.
 
@@ -929,7 +929,7 @@ or `null` if the user has no referrer.
 
 ---
 
-### `GET /api/v1/network/invited`
+### `GET /api/v2/network/invited`
 
 > Returns people invited by the current user (both pending letters and registered users).
 
@@ -964,7 +964,7 @@ A person with `status: "pending_invite"` has been sent an invite letter but has 
 
 ---
 
-### `GET /api/v1/network/funds`
+### `GET /api/v2/network/funds`
 
 > Returns available funds/investment products for invite context.
 
@@ -974,7 +974,7 @@ A person with `status: "pending_invite"` has been sent an invite letter but has 
 
 ---
 
-### `GET /api/v1/network/invite-quota`
+### `GET /api/v2/network/invite-quota`
 
 > Returns how many invite letters the user can still send this week.
 
@@ -993,7 +993,7 @@ Weekly limit is **5** invite letters per 7-day rolling window.
 
 ---
 
-### `POST /api/v1/network/send-invite`
+### `POST /api/v2/network/send-invite`
 
 > Send an invite letter to a new person.
 
@@ -1033,7 +1033,7 @@ Weekly limit is **5** invite letters per 7-day rolling window.
 
 ---
 
-### `POST /api/v1/network/submit-referrer`
+### `POST /api/v2/network/submit-referrer`
 
 > Set the referrer for the current user (can only be done once, and only if user has no downline yet).
 
@@ -1070,7 +1070,7 @@ or
 
 > Mission (task) system — users complete missions to earn TWIN token rewards.
 
-### `GET /api/v1/missions/list`
+### `GET /api/v2/missions/list`
 
 > Returns all available mission definitions.
 
@@ -1111,7 +1111,7 @@ Ordered by `priority DESC`, then `createdAt ASC`.
 
 ---
 
-### `GET /api/v1/missions/activity`
+### `GET /api/v2/missions/activity`
 
 > Returns a paginated history of mission attempts/completions for the current user.
 
@@ -1161,7 +1161,7 @@ Page size: **10** items.
 
 > Token-based ranking system with monthly competition pools.
 
-### `GET /api/v1/leaderboard/pool-balance`
+### `GET /api/v2/leaderboard/pool-balance`
 
 > Returns the current user's share in the reward pool.
 
@@ -1180,7 +1180,7 @@ Page size: **10** items.
 
 ---
 
-### `GET /api/v1/leaderboard/current-month`
+### `GET /api/v2/leaderboard/current-month`
 
 > Returns the current month's leaderboard (top 20 users by token balance).
 
@@ -1204,7 +1204,7 @@ Returns up to **20** entries. `rank` starts at 1. `isSelf` is `true` for the aut
 
 ---
 
-### `GET /api/v1/leaderboard/last-month`
+### `GET /api/v2/leaderboard/last-month`
 
 > Returns last month's leaderboard (same shape as current-month).
 
@@ -1214,7 +1214,7 @@ Returns up to **20** entries. `rank` starts at 1. `isSelf` is `true` for the aut
 
 ---
 
-### `GET /api/v1/leaderboard/my-subsets`
+### `GET /api/v2/leaderboard/my-subsets`
 
 > Returns leaderboard entries for the current user's direct network members.
 
@@ -1224,7 +1224,7 @@ Returns up to **20** entries. `rank` starts at 1. `isSelf` is `true` for the aut
 
 ---
 
-### `GET /api/v1/leaderboard/missions`
+### `GET /api/v2/leaderboard/missions`
 
 > Returns missions relevant to the leaderboard/competition context.
 
@@ -1234,7 +1234,7 @@ Returns up to **20** entries. `rank` starts at 1. `isSelf` is `true` for the aut
 
 ---
 
-### `GET /api/v1/leaderboard/competition-pool`
+### `GET /api/v2/leaderboard/competition-pool`
 
 > Returns the current month's competition pool details.
 
@@ -1267,7 +1267,7 @@ Returns up to **20** entries. `rank` starts at 1. `isSelf` is `true` for the aut
 
 ---
 
-### `GET /api/v1/leaderboard/honors`
+### `GET /api/v2/leaderboard/honors`
 
 > Returns the current user's honor/achievement badges.
 
@@ -1277,7 +1277,7 @@ Returns up to **20** entries. `rank` starts at 1. `isSelf` is `true` for the aut
 
 ---
 
-### `GET /api/v1/leaderboard/history`
+### `GET /api/v2/leaderboard/history`
 
 > Returns past competition periods.
 
@@ -1291,7 +1291,7 @@ Returns up to **20** entries. `rank` starts at 1. `isSelf` is `true` for the aut
 
 > Commission earned from the deposits/activity of a user's downline network.
 
-### `GET /api/v1/subset-deposits/transactions`
+### `GET /api/v2/subset-deposits/transactions`
 
 > Returns a paginated list of commission transactions earned from subset (downline) activity.
 
@@ -1345,7 +1345,7 @@ Page size: **10** items.
 
 ---
 
-### `GET /api/v1/subset-deposits/rules`
+### `GET /api/v2/subset-deposits/rules`
 
 > Returns the commission rate rules per network level.
 
@@ -1367,7 +1367,7 @@ Ordered by `level ASC`. Only active rules are returned.
 
 > Historical transaction and income reports.
 
-### `GET /api/v1/reports/subsets`
+### `GET /api/v2/reports/subsets`
 
 > Returns subset (network) activity report for the current user.
 
@@ -1377,7 +1377,7 @@ Ordered by `level ASC`. Only active rules are returned.
 
 ---
 
-### `GET /api/v1/reports/income`
+### `GET /api/v2/reports/income`
 
 > Returns income (commission) transaction report.
 
@@ -1410,7 +1410,7 @@ Returns last **50** commission entries.
 
 ---
 
-### `GET /api/v1/reports/capital-deposit`
+### `GET /api/v2/reports/capital-deposit`
 
 > Returns capital deposit statistics for the current user.
 
@@ -1432,7 +1432,7 @@ Returns last **50** commission entries.
 
 > Investment fund management (reserved for future use).
 
-### `GET /api/v1/capital/funds`
+### `GET /api/v2/capital/funds`
 
 > Returns available investment funds.
 
@@ -1446,7 +1446,7 @@ Returns last **50** commission entries.
 
 > Administrative management panel. All endpoints require `admin` or `manager` role unless specified.
 
-### `GET /api/v1/admin/stats`
+### `GET /api/v2/admin/stats`
 
 > Returns platform-wide statistics for admin dashboard.
 
@@ -1463,7 +1463,7 @@ Returns last **50** commission entries.
 
 ---
 
-### `GET /api/v1/admin/users`
+### `GET /api/v2/admin/users`
 
 > Returns a paginated list of all users.
 
@@ -1504,7 +1504,7 @@ Returns last **50** commission entries.
 
 ---
 
-### `PATCH /api/v1/admin/users/:id/status`
+### `PATCH /api/v2/admin/users/:id/status`
 
 > Update a user's account status.
 
@@ -1528,7 +1528,7 @@ Returns last **50** commission entries.
 
 ---
 
-### `PATCH /api/v1/admin/users/:id/role`
+### `PATCH /api/v2/admin/users/:id/role`
 
 > Change a user's role.
 
@@ -1548,7 +1548,7 @@ Returns last **50** commission entries.
 
 ---
 
-### `GET /api/v1/admin/network/closure`
+### `GET /api/v2/admin/network/closure`
 
 > Returns the network closure (ancestry relationships) for admin inspection.
 
@@ -1586,7 +1586,7 @@ Returns last **50** commission entries.
 
 ---
 
-### `GET /api/v1/admin/missions/list`
+### `GET /api/v2/admin/missions/list`
 
 > Returns all mission definitions (admin view, including non-active).
 
@@ -1629,7 +1629,7 @@ Returns last **50** commission entries.
 
 ---
 
-### `POST /api/v1/admin/missions/create`
+### `POST /api/v2/admin/missions/create`
 
 > Create a new mission.
 
@@ -1671,7 +1671,7 @@ Returns last **50** commission entries.
 
 ---
 
-### `PATCH /api/v1/admin/missions/:id`
+### `PATCH /api/v2/admin/missions/:id`
 
 > Update an existing mission.
 
@@ -1700,7 +1700,7 @@ Returns last **50** commission entries.
 
 ---
 
-### `GET /api/v1/admin/admins/list`
+### `GET /api/v2/admin/admins/list`
 
 > Returns all admin and manager accounts.
 
@@ -1724,7 +1724,7 @@ Returns last **50** commission entries.
 
 ---
 
-### `POST /api/v1/admin/admins/assign`
+### `POST /api/v2/admin/admins/assign`
 
 > Assign admin or manager role to a user.
 
@@ -1742,7 +1742,7 @@ Returns last **50** commission entries.
 
 ---
 
-### `DELETE /api/v1/admin/admins/revoke/:id`
+### `DELETE /api/v2/admin/admins/revoke/:id`
 
 > Remove admin/manager role from a user.
 

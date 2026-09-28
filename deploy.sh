@@ -22,7 +22,7 @@ set -euo pipefail
 # ---------- config ----------
 SSH_HOST="${DEPLOY_SSH_HOST:-pod1.nibdev.com}"
 PROJECT_DIR="${DEPLOY_PROJECT_DIR:-/opt/MLM_Front}"
-COMPOSE_FILE="${DEPLOY_COMPOSE_FILE:-docker-compose.prod.yml}"
+COMPOSE_FILE="${DEPLOY_COMPOSE_FILE:-docker-compose.dev.yml}"
 # Used only when seeding a missing .env on the server (development | production)
 DEPLOY_APP_ENV="${DEPLOY_APP_ENV:-development}"
 
@@ -111,30 +111,23 @@ git_sudo reset --hard FETCH_HEAD
 SYNCED_COMMIT="$(git_sudo rev-parse --short HEAD)"
 echo "--- Synced to commit: ${SYNCED_COMMIT}"
 
-# Resolve compose file after sync (prod alias may not exist on older checkouts)
 COMPOSE_PATH="${COMPOSE_FILE}"
 if [[ ! -f "${COMPOSE_PATH}" ]]; then
-  if [[ -f "docker-compose.yml" ]]; then
-    echo "Warning: ${COMPOSE_FILE} not found — falling back to docker-compose.yml"
-    COMPOSE_PATH="docker-compose.yml"
-  else
-    echo "Error: no compose file found in ${PROJECT_DIR} after git sync"
-    exit 1
-  fi
+  echo "Error: compose file not found: ${COMPOSE_PATH}"
+  exit 1
 fi
 
 if [[ ! -f ".env" ]]; then
   ENV_TEMPLATE=".env.example"
   if [[ "${DEPLOY_APP_ENV}" == "production" ]]; then
-    ENV_TEMPLATE=".env.production.example"
+    ENV_TEMPLATE=".env.live.example"
   fi
   if [[ ! -f "${ENV_TEMPLATE}" ]]; then
-    if [[ -f ".env.example" ]]; then
-      ENV_TEMPLATE=".env.example"
-    else
-      echo "Error: neither .env nor ${ENV_TEMPLATE} found after git sync"
-      exit 1
-    fi
+    ENV_TEMPLATE=".env.example"
+  fi
+  if [[ ! -f "${ENV_TEMPLATE}" ]]; then
+    echo "Error: neither .env nor ${ENV_TEMPLATE} found after git sync"
+    exit 1
   fi
   echo "--- .env missing — copying from ${ENV_TEMPLATE} (DEPLOY_APP_ENV=${DEPLOY_APP_ENV})"
   echo "Warning: update AUTH_SECRET (and APP_ENV) in ${PROJECT_DIR}/.env if this is first deploy"

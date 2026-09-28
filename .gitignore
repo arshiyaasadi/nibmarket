@@ -18,6 +18,7 @@
 
 # misc
 .DS_Store
+**/.DS_Store
 *.pem
 
 # debug
@@ -25,19 +26,13 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
+# local env files / secrets
 .env
+.env.local
 .env*.local
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-
-# todo
-/docs/todo
-
+.env.live
+.env.production
+.env.v2
 sudo_pass.txt
 git_credentials.txt
 live_ssh_pass.txt
@@ -45,8 +40,21 @@ live_server.env
 .cd-git-credentials
 .cd-state/
 
+# editor / AI tooling (do not push)
+.cursor/
+.claude/
+*.code-workspace
+
+# typescript
+*.tsbuildinfo
+
+# todo
+/docs/todo
+
 # local remote-work timesheet agent (do not push)
 doorkari-agent.txt
 .cursor/rules/doorkari-timesheet.mdc
 form doorkari 3 - عرشیا اسدی.xlsx
 form doorkari - عرشیا اسدی.xlsx
+form doorkari*.xlsx
+form doorkari*.xls

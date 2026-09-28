@@ -1,25 +1,25 @@
-# nibmarket (production zone)
+# nibmarket (production / live zone)
 
-Live production zone for the Novin club panel. **Single** Docker prod stack + host nginx for **club.nibmarket.ir** (UI/v2 stack is no longer built).
+Live production zone for the Novin club panel. **One** Docker stack + host nginx for **club.nibmarket.ir**.
 
 ## Identity
 
 | Key | Value |
 |-----|--------|
-| Zone name | `nibmarket` |
-| `APP_ENV` (prod stack) | `production` |
+| Zone name | `nibmarket` (live) |
+| `APP_ENV` | `production` |
 | Live host (SSH) | `club-docker.nibmarket.com` / alias `nibmarket-live` |
 | Project dir | `/opt/MLM_Front` |
 | Public front | https://club.nibmarket.ir |
-| Backend API | https://api-club.nibmarket.com |
+| Backend API | https://api-club.nibmarket.com (`/api/v2`) |
 | Panel (legacy SSO) | https://panel.nibmarket.com |
 | Account auth | https://auth.nibmarket.com |
 
-## Ports on the live host
+## Stack on the live host
 
-| Stack | Compose | Container | Host port | Purpose |
-|-------|---------|-----------|-----------|---------|
-| Production | `docker-compose.prod.yml` + `.env.production` | `mlm_front_prod` | **3002** | Real API + auth (`APP_ENV=production`) |
+| Compose | Env file | Container | Host port | Purpose |
+|---------|----------|-----------|-----------|---------|
+| `docker-compose.live.yml` | `.env.live` | `mlm_front_live` | **3002** | Real API + auth |
 
 nginx listens on **80/443** and reverse-proxies `club.nibmarket.ir` → `127.0.0.1:3002`.
 
@@ -34,8 +34,8 @@ yarn sync:live
 What happens:
 
 1. **rsync** local tree → `/opt/MLM_Front`
-2. Patches `.env.production` auth/SSO URLs (`club.nibmarket.ir` / `auth.nibmarket.com` / `panel.nibmarket.com`)
-3. Builds **prod only** (stops legacy `mlm-v2` if present)
+2. Patches `.env.live` auth/SSO URLs (`club.nibmarket.ir` / `auth.nibmarket.com` / `panel.nibmarket.com`)
+3. Builds **live only** (stops legacy containers if present)
 4. Starts **`scripts/remote-deploy.sh` detached**
 
 ```bash
@@ -44,9 +44,9 @@ yarn sync:live:follow
 yarn sync:live --force
 ```
 
-Stages: `docker` → `network` → `env` → `base_image` → `build_prod` → `nginx` → `ssl` → `done`
+Stages: `docker` → `network` → `env` → `base_image` → `build_live` → `nginx` → `ssl` → `done`
 
-## Test / nibdev deploy
+## Dev / nibdev deploy
 
 Separate host + command — see [nibdev.md](./nibdev.md):
 

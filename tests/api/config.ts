@@ -1,5 +1,5 @@
 export interface ApiTestConfig {
-  /** BFF base URL — e.g. http://localhost:3000/api/v1 */
+  /** BFF base URL — e.g. http://localhost:3000/api/v2 */
   baseUrl: string;
   /** Direct backend URL for parity tests — e.g. https://api-club.nibdev.com/api/v2 */
   backendBaseUrl: string;

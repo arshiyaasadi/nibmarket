@@ -70,7 +70,7 @@
 │  features/*/service.ts   ← apiClient calls                  │
 │  store/slices/           ← Zustand (auth + ui)              │
 ├─────────────────────────────────────────────────────────────┤
-│  apiClient  →  /api/v1/*  (Next.js BFF — داخلی)            │
+│  apiClient  →  /api/v2/*  (Next.js BFF — داخلی)            │
 ├─────────────────────────────────────────────────────────────┤
 │  route-registry → handlers → repositories → Prisma          │
 │  PrismaClient → PostgreSQL  (DATABASE_URL از env.server)    │
@@ -80,7 +80,7 @@
 ### قوانین طلایی
 
 1. **بدون backend خارجی** — هیچ `backendFetch`، proxy به API بیرونی، یا SSO در فاز ۱
-2. **Client فقط `/api/v1/*`** — هرگز مستقیم به database
+2. **Client فقط `/api/v2/*`** — هرگز مستقیم به database
 3. **`DATABASE_URL` server-only** — فقط در `env.server.ts` و Prisma؛ هرگز `NEXT_PUBLIC_`
 4. **Prisma فقط در server** — handlers و repositories
 5. **هیچ رشته UI hardcode نشود** — فقط `t("key")` از next-intl
@@ -140,7 +140,7 @@
 │   │   │   ├── dashboard/page.tsx
 │   │   │   ├── layout.tsx
 │   │   │   └── PanelLayoutShell.tsx
-│   │   ├── api/v1/[...path]/route.ts
+│   │   ├── api/v2/[...path]/route.ts
 │   │   ├── layout.tsx
 │   │   ├── page.tsx                      ← redirect → /admin
 │   │   ├── error.tsx
@@ -398,7 +398,7 @@ yarn db:seed
 
 ### ۶.۱ API
 
-**`POST /api/v1/auth/login`** — body:
+**`POST /api/v2/auth/login`** — body:
 
 ```json
 { "username": "admin", "password": "Admin@1234" }
@@ -416,7 +416,7 @@ yarn db:seed
 7. return { userId, username, fullName, role }
 ```
 
-**`POST /api/v1/auth/logout`** — پاک کردن cookies
+**`POST /api/v2/auth/logout`** — پاک کردن cookies
 
 ### ۶.۲ کوکی‌های httpOnly
 
@@ -485,7 +485,7 @@ interface AuthState {
 **`src/lib/api/endpoints.ts`:**
 
 ```ts
-export const BFF_API_BASE = "/api/v1";
+export const BFF_API_BASE = "/api/v2";
 
 export const ENDPOINTS = {
   AUTH: {

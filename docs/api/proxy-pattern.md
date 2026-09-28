@@ -15,10 +15,10 @@
 
 ```
 Browser
-  └─ fetch("/api/v1/dashboard/wallet")
+  └─ fetch("/api/v2/dashboard/wallet")
        │
        ▼
-src/app/api/v1/[...path]/route.ts
+src/app/api/v2/[...path]/route.ts
        │
        ├─ resolveHandler(method, path)
        │    ├─ MATCH  → handler → repository → Prisma → Postgres
@@ -33,7 +33,7 @@ src/app/api/v1/[...path]/route.ts
 
 | فایل | مسئولیت |
 |------|---------|
-| `src/app/api/v1/[...path]/route.ts` | catch-all handler — GET/POST/PUT/PATCH/DELETE |
+| `src/app/api/v2/[...path]/route.ts` | catch-all handler — GET/POST/PUT/PATCH/DELETE |
 | `src/lib/api/server/route-registry.ts` | نگاشت `METHOD:path` به custom handler |
 | `src/lib/api/server/proxy-handler.ts` | 404 برای مسیر بدون handler |
 | `src/lib/api/server/session.ts` | cookie/session helpers |
@@ -53,7 +53,7 @@ const userId = getCurrentUserId(req);
 
 Client هرگز مستقیم DB یا token را مدیریت نمی‌کند — سرور از کوکی httpOnly می‌خواند.
 
-`nib_token` یک access token امضاشده HMAC-SHA256 با claimهای `sub`، `role`، `mobile`، `referralCode`، `type`، `iat` و `exp` است. اگر API با `401` پاسخ بدهد، `apiClient` یک بار `POST /api/v1/auth/refresh` را با `nib_refresh` صدا می‌زند و در صورت موفقیت همان request را retry می‌کند.
+`nib_token` یک access token امضاشده HMAC-SHA256 با claimهای `sub`، `role`، `mobile`، `referralCode`، `type`، `iat` و `exp` است. اگر API با `401` پاسخ بدهد، `apiClient` یک بار `POST /api/v2/auth/refresh` را با `nib_refresh` صدا می‌زند و در صورت موفقیت همان request را retry می‌کند.
 
 ---
 
