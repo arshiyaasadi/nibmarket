@@ -20,6 +20,7 @@ import {
   createRegistrationToken,
   getCurrentUserId,
   readRefreshToken,
+  readSessionToken,
   unauthorized,
   verifySignedToken,
 } from "@/lib/api/server/session";
