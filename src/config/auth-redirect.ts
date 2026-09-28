@@ -1,6 +1,11 @@
 import { LEGACY_LOCAL_LOGIN_ENABLED } from "@/config/auth-flow";
 import { getPanelLoginUrl } from "@/config/sso";
 import { ROUTES } from "@/config/routes";
+import {
+  buildInviteWelcomePath,
+  normalizeInviteCode,
+  storePendingInviteCode,
+} from "@/lib/invite/pending-invite";
 
 const SSO_RETURN_URL_KEY = "sso_returnUrl";
 
@@ -9,6 +14,7 @@ export function sanitizeReturnUrl(value: string | null | undefined): string {
   if (!value.startsWith("/") || value.startsWith("//")) return ROUTES.DASHBOARD;
   if (value.startsWith("/login")) return ROUTES.DASHBOARD;
   if (value.startsWith("/session-expired")) return ROUTES.DASHBOARD;
+  if (value.startsWith("/logout-incomplete")) return ROUTES.DASHBOARD;
   return value;
 }
 
@@ -37,9 +43,34 @@ export function resolveReturnUrl(fallback?: string | null): string {
  * Start NIB Market SSO (panel.nibdev.com / panel.nibmarket.com).
  * Callback URL is this club panel (`NEXT_PUBLIC_APP_URL` + `/login/sso/`), not the backend API.
  */
-export function redirectToPanelLogin(returnUrl?: string): void {
-  storeReturnUrl(returnUrl);
-  window.location.href = getPanelLoginUrl();
+export function redirectToPanelLogin(
+  returnUrl?: string,
+  options?: { inviteCode?: string | null },
+): void {
+  const inviteCode = normalizeInviteCode(options?.inviteCode);
+  const safeReturnUrl = sanitizeReturnUrl(
+    returnUrl ?? (inviteCode ? buildInviteWelcomePath(inviteCode) : undefined),
+  );
+
+  storeReturnUrl(safeReturnUrl);
+  if (inviteCode) storePendingInviteCode(inviteCode);
+
+  window.location.href = getPanelLoginUrl({
+    inviteCode: inviteCode || undefined,
+    returnUrl: safeReturnUrl,
+  });
+}
+
+/**
+ * SMS invite entry: go to panel login with callback that carries the referral code.
+ */
+export function redirectToPanelLoginWithInvite(inviteCode: string): void {
+  const code = normalizeInviteCode(inviteCode);
+  if (!code) {
+    redirectToPanelLogin(ROUTES.DASHBOARD);
+    return;
+  }
+  redirectToPanelLogin(buildInviteWelcomePath(code), { inviteCode: code });
 }
 
 export function buildLoginRedirectUrl(returnUrl?: string): string {

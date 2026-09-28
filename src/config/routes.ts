@@ -3,6 +3,10 @@ export const ROUTES = {
   LOGIN: "/login",
   SESSION_EXPIRED: "/session-expired",
   LOGOUT_INCOMPLETE: "/logout-incomplete",
+  /** SMS invite entry: /invite/:code → SSO with callback carrying that code */
+  INVITE: (code: string) => `/invite/${encodeURIComponent(code)}` as const,
+  /** Post-login invite landing (auto-register referrer) */
+  INVITE_WELCOME: "/invite/welcome",
   DASHBOARD: "/dashboard",
 
   NETWORK: {

@@ -1,11 +1,17 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { buildSessionExpiredUrl, resolveReturnUrl } from "@/config/auth-redirect";
 import { completeSsoSession } from "@/lib/auth-exchange";
 import { applyAuthSession } from "@/lib/auth/apply-session";
+import {
+  buildInviteWelcomePath,
+  consumePendingInviteCode,
+  normalizeInviteCode,
+  peekPendingInviteCode,
+} from "@/lib/invite/pending-invite";
 import { useAuthActions } from "@/store/hooks/use-auth";
 import { useAuthSlice } from "@/store/slices/auth.slice";
 
@@ -14,16 +20,32 @@ export function SsoCallbackClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setAuth, setWallet } = useAuthActions();
+  const started = useRef(false);
 
-  const returnUrl = useMemo(
-    () => resolveReturnUrl(searchParams.get("returnUrl") ?? searchParams.get("redirect")),
+  const inviteFromQuery = useMemo(
+    () =>
+      normalizeInviteCode(
+        searchParams.get("inviteCode") ?? searchParams.get("ref") ?? searchParams.get("code"),
+      ),
     [searchParams],
   );
 
+  const returnUrl = useMemo(() => {
+    const inviteCode = inviteFromQuery || peekPendingInviteCode();
+    if (inviteCode) return buildInviteWelcomePath(inviteCode);
+    return resolveReturnUrl(searchParams.get("returnUrl") ?? searchParams.get("redirect"));
+  }, [inviteFromQuery, searchParams]);
+
   useEffect(() => {
+    if (started.current) return;
+    started.current = true;
+
     let cancelled = false;
 
     async function handleCallback() {
+      // Consume after we've already derived returnUrl (also clears sessionStorage).
+      if (!inviteFromQuery) consumePendingInviteCode();
+
       const existingToken = useAuthSlice.getState().token;
       if (existingToken) {
         router.replace(returnUrl);
@@ -38,7 +60,6 @@ export function SsoCallbackClient() {
         router.refresh();
       } catch {
         if (cancelled) return;
-        // Do not bounce straight to panel SSO — show expired page to break loops.
         router.replace(buildSessionExpiredUrl(returnUrl));
       }
     }
@@ -48,7 +69,7 @@ export function SsoCallbackClient() {
     return () => {
       cancelled = true;
     };
-  }, [returnUrl, router, searchParams, setAuth, setWallet]);
+  }, [inviteFromQuery, returnUrl, router, setAuth, setWallet]);
 
   return (
     <div className="gap-pad-mol flex flex-col items-center text-center">
