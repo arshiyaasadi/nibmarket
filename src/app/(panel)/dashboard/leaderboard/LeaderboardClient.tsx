@@ -165,12 +165,9 @@ function PoolVolumeCard() {
               </span>
             </div>
 
-            {/* Top winners note */}
+            {/* Top winners note — product rule: 5 winners (copy in i18n) */}
             <p className="text-muted text-xs">
-              <span className="text-primary font-semibold">
-                {persianNum(pool?.topWinners ?? 0)}
-              </span>{" "}
-              {t("topWinnersNote")}
+              <span className="text-primary font-semibold">{t("topWinnersNote")}</span>
             </p>
           </div>
         )}

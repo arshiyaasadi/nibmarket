@@ -93,7 +93,7 @@ export async function getAdminPoolOverview(): Promise<AdminPoolOverviewResponse>
     dailyChange,
     dailyChangePercent,
     participantCount: MOCK_POOL_PARTICIPANTS.length,
-    topWinners: 20,
+    topWinners: 5,
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
     contextTitle: "current",

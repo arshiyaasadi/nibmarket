@@ -85,7 +85,7 @@ export async function getCompetitionPool(userId: string): Promise<CompetitionPoo
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
     contextTitle: "رقابت جاری",
-    topWinners: 20,
+    topWinners: 5,
     myRank,
   };
 }
