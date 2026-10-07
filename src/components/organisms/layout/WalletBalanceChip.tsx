@@ -53,10 +53,11 @@ export function WalletBalanceChip() {
   const chipClassName =
     "gap-atom-md border-primary px-pad-atom-md py-pad-atom hover:bg-primary/5 flex items-center rounded-xl border-2 transition-colors";
 
+  // Chip shows total balance (same figure as hover header). available alone can be 0 while total > 0.
   const chipContent = (
     <>
       <Coins aria-hidden="true" className="text-primary size-4 shrink-0" />
-      <span className="text-primary text-sm font-semibold tabular-nums">{fmt(available)}</span>
+      <span className="text-primary text-sm font-semibold tabular-nums">{fmt(total)}</span>
       <span className="text-primary-700 text-xs">{PROJECT.token.name}</span>
     </>
   );

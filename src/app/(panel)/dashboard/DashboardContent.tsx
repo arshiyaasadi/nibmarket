@@ -176,7 +176,7 @@ function PoolWidget() {
         <div className="flex flex-col gap-4">
           <div className="flex items-end justify-between gap-3">
             <div className="flex-1">
-              <p className="text-muted mb-1 text-xs">حجم Pool جاری</p>
+              <p className="text-muted mb-1 text-xs">موجودی استخر در ماه جاری</p>
               <p className="text-foreground text-3xl font-black tabular-nums">
                 {pn(pool?.totalPool ?? 0)}
               </p>
@@ -207,7 +207,7 @@ function PoolWidget() {
               <p className="text-muted mt-0.5 text-[11px]">تغییر امروز</p>
             </div>
             <div className="bg-background rounded-xl px-3 py-2 text-center">
-              <p className="text-foreground text-xs font-semibold">{pn(pool?.topWinners ?? 0)}</p>
+              <p className="text-foreground text-xs font-semibold">{pn(5)}</p>
               <p className="text-muted mt-0.5 text-[11px]">برنده برتر</p>
             </div>
           </div>

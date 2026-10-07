@@ -172,9 +172,9 @@
     }
   },
   "pool": {
-    "title": "استخر Pool",
+    "title": "استخر",
     "subtitle": "مدیریت استخر مسابقه و شرکت‌کنندگان",
-    "totalPool": "حجم Pool جاری",
+    "totalPool": "موجودی استخر در ماه جاری",
     "dailyChange": "تغییر امروز",
     "dailyChangePercent": "{percent}٪ نسبت به کل",
     "participants": "شرکت‌کنندگان",
@@ -190,13 +190,13 @@
     "periods": {
       "current": "رقابت جاری"
     },
-    "participantsTitle": "شرکت‌کنندگان Pool",
+    "participantsTitle": "شرکت‌کنندگان استخر",
     "participantsSubtitle": "رتبه‌بندی بر اساس تنوین",
     "searchPlaceholder": "جستجو نام، موبایل...",
     "tableCount": "{count} شرکت‌کننده",
     "empty": "شرکت‌کننده‌ای یافت نشد",
     "historyTitle": "تاریخچه دوره‌ها",
-    "historySubtitle": "دوره‌های قبلی Pool",
+    "historySubtitle": "دوره‌های قبلی استخر",
     "historySearchPlaceholder": "جستجو دوره، برنده...",
     "historyCount": "{count} دوره",
     "historyEmpty": "تاریخچه‌ای ثبت نشده",
@@ -206,13 +206,13 @@
       "mobile": "موبایل",
       "subsetCount": "زیرمجموعه",
       "tokens": "تنوین",
-      "sharePercent": "سهم از Pool",
+      "sharePercent": "سهم از استخر",
       "estimatedReward": "پاداش تخمینی"
     },
     "historyColumns": {
       "title": "دوره",
       "range": "بازه زمانی",
-      "totalPool": "حجم Pool",
+      "totalPool": "موجودی استخر",
       "participants": "شرکت‌کننده",
       "winner": "برنده",
       "distributed": "توزیع‌شده"
