@@ -499,7 +499,7 @@ function BuyModal({
         <p className="text-muted mb-4 text-xs">
           {t("transferAvailable")}:{" "}
           <span className="text-foreground font-semibold">
-            {summary.availableTokens.toLocaleString("fa-IR")} Twin
+            {summary.availableTokens.toLocaleString("fa-IR")} تنوین
           </span>
         </p>
       )}
@@ -543,7 +543,7 @@ function SellModal({
         <p className="text-muted mb-4 text-xs">
           {t("transferAvailable")}:{" "}
           <span className="text-foreground font-semibold">
-            {summary.availableTokens.toLocaleString("fa-IR")} Twin
+            {summary.availableTokens.toLocaleString("fa-IR")} تنوین
           </span>
         </p>
       )}
@@ -638,7 +638,7 @@ function TransferModal({
             <p className="text-muted text-xs">
               {t("transferAvailable")}:{" "}
               <span className="text-primary font-semibold">
-                {summary.availableTokens.toLocaleString("fa-IR")} Twin
+                {summary.availableTokens.toLocaleString("fa-IR")} تنوین
               </span>
             </p>
           )}

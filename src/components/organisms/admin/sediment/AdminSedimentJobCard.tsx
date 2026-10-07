@@ -106,7 +106,7 @@ export function AdminSedimentJobCard({
             <span>
               {t("distributedTwin")}:{" "}
               <span className="text-primary font-medium tabular-nums">
-                {data.distributedTwin.toLocaleString("fa-IR")} TWIN
+                {data.distributedTwin.toLocaleString("fa-IR")} تنوین
               </span>
             </span>
             <span>

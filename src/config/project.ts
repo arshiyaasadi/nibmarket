@@ -5,8 +5,8 @@ export const PROJECT = {
   name: "باشگاه مشتریان تامین سرمایه نوین",
   logoSrc: "/images/logo.svg",
   token: {
-    name: "Twin",
-    symbol: "TWN",
+    name: "تنوین",
+    symbol: "تنوین",
   },
 } as const;
 

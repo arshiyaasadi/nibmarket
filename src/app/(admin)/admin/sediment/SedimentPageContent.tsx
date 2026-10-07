@@ -282,7 +282,7 @@ export default function SedimentPageContent() {
             <AdminOverviewStatCard
               label={t("todaySediment")}
               value={(overview?.todaySedimentTwin ?? 0).toLocaleString("fa-IR")}
-              unit="TWIN"
+              unit="تنوین"
               hint={t("monthSedimentHint", { count: overview?.monthSedimentTwin ?? 0 })}
               icon={Layers}
               iconClassName="bg-green-500/10 text-green-600"
@@ -290,7 +290,7 @@ export default function SedimentPageContent() {
             <AdminOverviewStatCard
               label={t("pendingSediment")}
               value={(overview?.pendingSedimentTwin ?? 0).toLocaleString("fa-IR")}
-              unit="TWIN"
+              unit="تنوین"
               icon={Clock}
               iconClassName="bg-yellow-500/10 text-yellow-700"
             />

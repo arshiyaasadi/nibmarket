@@ -1,7 +1,7 @@
 {
   "myRankTitle": "رتبه من در مسابقه",
   "noSubsetsTitle": "هنوز زیرمجموعه‌ای ندارید",
-  "noSubsetsDesc": "با دعوت دوستان در مسابقه Pool شرکت کنید و پاداش Twin دریافت کنید.",
+  "noSubsetsDesc": "با دعوت دوستان در مسابقه Pool شرکت کنید و پاداش تنوین دریافت کنید.",
   "inviteBtn": "دعوت از دوستان",
   "myRank": "رتبه",
   "timeRemaining": "زمان باقی‌مانده",
@@ -20,7 +20,7 @@
   "myPosition": "رتبه من",
   "myReward": "پاداش",
   "notParticipated": "شرکت نکردم",
-  "twin": "Twin",
+  "twin": "تنوین",
   "honorsTitle": "افتخارات من",
   "noHonors": "هنوز افتخاری ثبت نشده است.",
   "honorAchievedAt": "تاریخ",
@@ -29,6 +29,6 @@
   "colRank": "رتبه",
   "colName": "نام و نام خانوادگی",
   "colSubsetCount": "تعداد زیرمجموعه",
-  "colTokens": "مجموع Twin",
+  "colTokens": "مجموع تنوین",
   "boardEmpty": "داده‌ای برای نمایش وجود ندارد"
 }

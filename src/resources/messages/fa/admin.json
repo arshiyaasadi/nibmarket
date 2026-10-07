@@ -10,7 +10,7 @@
   "nav": {
     "dashboard": "داشبورد",
     "users": "کاربران",
-    "twin": "TWIN",
+    "twin": "تنوین",
     "pool": "استخر",
     "network": "دعوت از دوستان",
     "missions": "مأموریت‌ها",
@@ -138,7 +138,7 @@
     "tooltipStats": "{count} نفر · {percent}٪"
   },
   "twin": {
-    "title": "TWIN",
+    "title": "تنوین",
     "subtitle": "مدیریت توکن و تخصیص‌ها",
     "instantPrice": "ارزش توکن (لحظه‌ای)",
     "totalTokens": "تعداد کل توکن‌ها",
@@ -146,7 +146,7 @@
     "frozenPercent": "{percent}٪ از کل",
     "priceChange": "{value}٪ نسبت به دیروز",
     "rialUnit": "ریال",
-    "tokenUnit": "TWIN",
+    "tokenUnit": "تنوین",
     "allocationsTitle": "توکن‌های تخصیص‌داده‌شده",
     "allocationsSubtitle": "بر اساس موجودی کاربران",
     "searchPlaceholder": "جستجو نام، موبایل...",
@@ -182,7 +182,7 @@
     "topWinnersHint": "{count} نفر برتر",
     "distributed": "توزیع‌شده در دوره",
     "pending": "در انتظار توزیع",
-    "twinUnit": "TWIN",
+    "twinUnit": "تنوین",
     "currentPeriod": "دوره جاری",
     "periodRange": "{start} تا {end}",
     "timeRemaining": "زمان باقی‌مانده",
@@ -191,7 +191,7 @@
       "current": "رقابت جاری"
     },
     "participantsTitle": "شرکت‌کنندگان Pool",
-    "participantsSubtitle": "رتبه‌بندی بر اساس Twin",
+    "participantsSubtitle": "رتبه‌بندی بر اساس تنوین",
     "searchPlaceholder": "جستجو نام، موبایل...",
     "tableCount": "{count} شرکت‌کننده",
     "empty": "شرکت‌کننده‌ای یافت نشد",
@@ -205,7 +205,7 @@
       "name": "نام",
       "mobile": "موبایل",
       "subsetCount": "زیرمجموعه",
-      "tokens": "Twin",
+      "tokens": "تنوین",
       "sharePercent": "سهم از Pool",
       "estimatedReward": "پاداش تخمینی"
     },
@@ -272,7 +272,7 @@
       "code": "کد",
       "title": "عنوان",
       "type": "نوع",
-      "reward": "پاداش (Twin)",
+      "reward": "پاداش (تنوین)",
       "job": "جاب بک‌اند",
       "status": "وضعیت",
       "verification": "تأیید",
@@ -304,7 +304,7 @@
       "user": "کاربر",
       "mobile": "موبایل",
       "mission": "مأموریت",
-      "reward": "پاداش (Twin)"
+      "reward": "پاداش (تنوین)"
     },
     "health": {
       "title": "سلامت جاب‌های بک‌اند",
@@ -341,7 +341,7 @@
     "assetRecordsHint": "{count} رکورد دارایی",
     "linkedUsers": "کاربران متصل به نیب مارکت",
     "todaySediment": "رسوب امروز",
-    "monthSedimentHint": "{count} TWIN این ماه",
+    "monthSedimentHint": "{count} تنوین این ماه",
     "pendingSediment": "رسوب در انتظار",
     "searchPlaceholder": "جستجو نام، موبایل، صندوق...",
     "assetsTitle": "دارایی‌های نیب مارکت",
@@ -369,7 +369,7 @@
       "level": "سطح",
       "baseAmount": "مبلغ پایه (ریال)",
       "rate": "نرخ",
-      "sediment": "رسوب (Twin)",
+      "sediment": "رسوب (تنوین)",
       "fund": "صندوق",
       "status": "وضعیت"
     },
@@ -389,7 +389,7 @@
       "nextRun": "اجرای بعدی",
       "schedule": "زمان‌بندی",
       "processedAssets": "دارایی پردازش‌شده",
-      "distributedTwin": "Twin توزیع‌شده امروز",
+      "distributedTwin": "تنوین توزیع‌شده امروز",
       "status": {
         "healthy": "سالم",
         "degraded": "نیاز به توجه",

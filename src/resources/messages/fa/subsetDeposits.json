@@ -16,7 +16,7 @@
   "colDesc": "توضیحات",
   "colDate": "تاریخ",
   "colTxId": "شناسه پرداخت",
-  "colAmount": "مبلغ دریافتی (Twin)",
+  "colAmount": "مبلغ دریافتی (تنوین)",
   "colStatus": "وضعیت",
   "statusPending": "در حال بررسی",
   "statusCredited": "واریز شده",
@@ -30,7 +30,7 @@
   "total": "مجموع کل",
   "pendingSettlement": "در انتظار تسویه",
   "activeSubsets": "{count} فعال",
-  "tokenUnit": "Twin",
+  "tokenUnit": "تنوین",
   "copyHint": "کلیک برای کپی",
   "copied": "کپی شد!"
 }

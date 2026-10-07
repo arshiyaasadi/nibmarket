@@ -201,7 +201,7 @@ function InfoBanner() {
             {formatDateRange(pool.startDate, pool.endDate)}
             {"  "}
             <span className="font-semibold text-green-600 dark:text-green-400">
-              ▲ {formatBig(growthAmount)} Twin
+              ▲ {formatBig(growthAmount)} تنوین
             </span>{" "}
             {t("poolGrowthLabel")}
           </p>

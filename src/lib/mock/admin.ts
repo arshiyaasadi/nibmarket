@@ -76,7 +76,7 @@ function buildClientModules(user: MockUserRecord): AdminUserModuleAccess[] {
       label: "کیف پول",
       path: "/dashboard/wallet",
       enabled: active,
-      description: "موجودی TWIN",
+      description: "موجودی تنوین",
     },
     {
       key: "subset-deposits",
