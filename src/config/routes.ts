@@ -4,10 +4,10 @@ export const ROUTES = {
   SESSION_EXPIRED: "/session-expired",
   LOGOUT_INCOMPLETE: "/logout-incomplete",
   /** SMS invite entry: /invite/:code or /invite/:code/:fundId */
-  INVITE: (code: string, fundId?: string) =>
-    (fundId
+  INVITE: (code: string, fundId?: string): string =>
+    fundId
       ? `/invite/${encodeURIComponent(code)}/${encodeURIComponent(fundId)}`
-      : `/invite/${encodeURIComponent(code)}`) as const,
+      : `/invite/${encodeURIComponent(code)}`,
   /** Post-login invite landing (auto-register referrer) */
   INVITE_WELCOME: "/invite/welcome",
   DASHBOARD: "/dashboard",

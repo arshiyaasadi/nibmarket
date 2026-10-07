@@ -7,6 +7,7 @@ import {
   buildSubsetTreeFromSubsets,
   wrapWithCurrentUserRoot,
 } from "@/lib/network/subset-tree-builder";
+import { displayPersonName } from "@/lib/person-name";
 import { NetworkService } from "./service";
 import type { InviteStatus, SendInviteRequest, InviteQuota } from "@/types/mlm";
 
@@ -26,11 +27,12 @@ export function useNetworkSubsetTree() {
   const { root, truncated } = useMemo(() => {
     const rows = query.data ?? [];
     const { roots, truncated: isTruncated } = buildSubsetTreeFromSubsets(rows);
+    const selfName = displayPersonName({ fullName, fallback: "-" });
 
     return {
       root: wrapWithCurrentUserRoot(
         roots,
-        userId ? { id: userId, fullName: fullName ?? "شما" } : null,
+        userId ? { id: userId, fullName: selfName } : null,
       ),
       truncated: isTruncated,
     };

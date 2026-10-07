@@ -27,7 +27,7 @@
   "treeError": "خطا در بارگذاری درخت شبکه",
 
   "inviteCardTitle": "دعوت از دوستان",
-  "inviteCardDesc": "دوستان خود را دعوت کنید و با هر ثبت‌نام موفق توکن Twin دریافت کنید.",
+  "inviteCardDesc": "دوستان خود را دعوت کنید و با هر ثبت‌نام موفق توکن تنوین دریافت کنید.",
   "inviteCardCodeLabel": "کد معرفی شما",
   "inviteCardBtn": "دعوت",
   "vipInviteBtn": "ارسال دعوت‌نامه VIP",
@@ -90,7 +90,7 @@
   "modalClose": "بستن",
   "modalLimitError": "سقف ۵ دعوتنامه مجاز در این دوره تکمیل شده است.",
   "modalSendError": "خطا در ارسال دعوتنامه. دوباره تلاش کنید.",
-  "inviteTextTemplate": "دوست عزیز، با کد دعوت من در پلتفرم نوین‌آ ثبت‌نام کنید و توکن Twin رایگان دریافت کنید.",
+  "inviteTextTemplate": "دوست عزیز، با کد دعوت من در پلتفرم نوین‌آ ثبت‌نام کنید و توکن تنوین رایگان دریافت کنید.",
   "inviteTemplateFormalTitle": "رسمی",
   "inviteTemplateFormalBody": "سرکار خانم / جناب آقای {firstName} {lastName}،\nبا سلام و احترام؛\nبدین‌وسیله از شما دعوت می‌شود در باشگاه مشتریان تامین سرمایه نوین عضو شوید و از مزایای ویژه این مجموعه بهره‌مند گردید.\nبا احترام،\n{inviterName}",
   "inviteTemplateFriendlyTitle": "دوستانه",

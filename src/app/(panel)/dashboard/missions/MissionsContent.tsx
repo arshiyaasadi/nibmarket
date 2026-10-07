@@ -80,7 +80,7 @@ export function MissionsContent() {
                       {m.title}
                     </span>
                     <span className="text-primary shrink-0 text-xs font-bold whitespace-nowrap">
-                      {m.reward} <span className="text-primary/60 font-normal">Twin</span>
+                      {m.reward} <span className="text-primary/60 font-normal">تنوین</span>
                     </span>
                   </li>
                 ))}
@@ -134,7 +134,7 @@ export function MissionsContent() {
                   )}
                   <div className="bg-success/10 px-pad-atom-md py-pad-atom-xs flex shrink-0 items-center gap-1 rounded-lg">
                     <span className="text-success text-xs font-bold">+{m.reward}</span>
-                    <span className="text-success/70 text-xs">Twin</span>
+                    <span className="text-success/70 text-xs">تنوین</span>
                   </div>
                 </li>
               ))}
@@ -203,7 +203,7 @@ export function MissionsContent() {
                         {formatDisplayDate(item.date)}
                       </span>
                       <span className="text-primary text-xs font-semibold whitespace-nowrap">
-                        +{item.reward} Twin
+                        +{item.reward} تنوین
                       </span>
                       {item.rrn && item.status === "completed" && (
                         <button
@@ -228,7 +228,7 @@ export function MissionsContent() {
                     </span>
                     <span className="w-24 shrink-0 text-sm whitespace-nowrap">
                       <span className="text-primary font-semibold">+{item.reward}</span>
-                      <span className="text-muted ms-1 text-xs">Twin</span>
+                      <span className="text-muted ms-1 text-xs">تنوین</span>
                     </span>
                     <span className="w-24 shrink-0">
                       <ActivityBadge status={item.status} t={t} />

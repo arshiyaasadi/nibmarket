@@ -12,7 +12,7 @@ export interface User {
   lastName: string;
   fullName: string;
   role: UserRole;
-  balance: number; // TWIN tokens
+  balance: number; // تنوین tokens
   referralCode: string;
   inviteCode: string; // UI alias for referralCode
   kycStatus: "none" | "pending" | "verified" | "rejected";
@@ -24,7 +24,7 @@ export interface UserReferralInfo {
   referralCode: string;
 }
 
-// ── TWIN Token / Wallet ───────────────────────────────────────
+// ── تنوین Token / Wallet (API paths may still say twin) ───────
 export interface WalletSummary {
   totalTokens: number;
   frozenTokens: number;

@@ -116,7 +116,7 @@ export function wrapWithCurrentUserRoot(
 
   return {
     id: currentUser.id,
-    fullName: currentUser.fullName.trim() || "شما",
+    fullName: currentUser.fullName.trim() || "-",
     level: 0,
     isSelf: true,
     children: forestRoots,

@@ -1,6 +1,6 @@
 {
   "title": "ماموریت‌ها",
-  "alertText": "تا پایان روز — ۲ برابر Twin دریافتی برای دعوت از دوستانتان",
+  "alertText": "تا پایان روز — ۲ برابر تنوین دریافتی برای دعوت از دوستانتان",
   "alertCta": "دعوت",
   "widgetProgress": "{done} از {total} انجام شده",
   "viewAll": "همه ماموریت‌ها",
@@ -16,7 +16,7 @@
   "filterPaid": "واریز شده",
   "colMission": "ماموریت",
   "colDate": "تاریخ",
-  "colReward": "پاداش (Twin)",
+  "colReward": "پاداش (تنوین)",
   "colStatus": "وضعیت",
   "colRrn": "شناسه پرداخت",
   "statusPending": "در انتظار",

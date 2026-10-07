@@ -1,4 +1,5 @@
 import type { LoginActivity, UserRole, WalletSummary } from "@/types/mlm";
+import { displayPersonName } from "@/lib/person-name";
 
 export interface AuthSessionPayload {
   token: string;
@@ -6,6 +7,8 @@ export interface AuthSessionPayload {
   role: UserRole;
   userId: string;
   fullName: string;
+  firstName?: string;
+  lastName?: string;
   mobile?: string;
   email?: string;
   inviteCode?: string;
@@ -39,12 +42,23 @@ export function normalizeAuthSessionPayload(raw: unknown): AuthSessionPayload {
       ? (data.wallet as WalletSummary)
       : walletFromBalance(balance);
 
+  const firstName = String(data.firstName ?? data.first_name ?? "").trim();
+  const lastName = String(data.lastName ?? data.last_name ?? "").trim();
+  const fullName = displayPersonName({
+    firstName,
+    lastName,
+    fullName: String(data.fullName ?? data.name ?? data.full_name ?? ""),
+    fallback: "",
+  });
+
   return {
     token: String(data.token ?? ""),
     refreshToken: String(data.refreshToken ?? ""),
     role: parseRole(data.role),
     userId: String(data.userId ?? data.id ?? ""),
-    fullName: String(data.fullName ?? data.name ?? ""),
+    fullName,
+    firstName: firstName || undefined,
+    lastName: lastName || undefined,
     mobile: data.mobile ? String(data.mobile) : undefined,
     email: data.email ? String(data.email) : undefined,
     inviteCode: inviteCode || undefined,
@@ -58,12 +72,19 @@ export function normalizeAuthSessionPayload(raw: unknown): AuthSessionPayload {
 }
 
 export function toAuthStorePayload(session: AuthSessionPayload) {
+  const fullName = displayPersonName({
+    firstName: session.firstName,
+    lastName: session.lastName,
+    fullName: session.fullName,
+    fallback: "",
+  });
+
   return {
     token: session.token,
     refreshToken: session.refreshToken,
     role: session.role,
     userId: session.userId,
-    fullName: session.fullName || session.mobile || "",
+    fullName,
     mobile: session.mobile,
     email: session.email,
     inviteCode: session.inviteCode ?? session.referralCode,

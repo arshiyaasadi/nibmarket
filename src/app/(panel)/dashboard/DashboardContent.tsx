@@ -134,7 +134,7 @@ function MissionsWidget({ onInvite }: { onInvite?: () => void }) {
                     >
                       {pn(reward)}
                     </span>
-                    <span className="text-muted text-[11px]">Twin</span>
+                    <span className="text-muted text-[11px]">تنوین</span>
                   </div>
                 </div>
               </li>
@@ -180,7 +180,7 @@ function PoolWidget() {
               <p className="text-foreground text-3xl font-black tabular-nums">
                 {pn(pool?.totalPool ?? 0)}
               </p>
-              <p className="text-muted mt-0.5 text-[11px]">Twin</p>
+              <p className="text-muted mt-0.5 text-[11px]">تنوین</p>
             </div>
             {showRank && (
               <div className="border-primary/20 bg-primary/5 rounded-lg border px-3 py-2 text-end">

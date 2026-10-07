@@ -107,7 +107,7 @@ export default function UserProfileContent({ userId }: { userId: string }) {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatTile label="موجودی کل TWIN" value={wallet.totalTokens} />
+        <StatTile label="موجودی کل تنوین" value={wallet.totalTokens} />
         <StatTile label="موجودی قابل برداشت" value={wallet.availableTokens} />
         <StatTile label="زیرمجموعه مستقیم" value={data.directSubordinatesCount} />
         <StatTile label="کل شبکه" value={data.totalNetworkSize} />
@@ -153,30 +153,33 @@ export default function UserProfileContent({ userId }: { userId: string }) {
             <Wallet size={18} className="text-primary" />
             <h2 className="text-foreground text-sm font-semibold">کیف پول و سپرده</h2>
           </div>
-          <InfoRow label="کل توکن" value={`${wallet.totalTokens.toLocaleString("fa-IR")} TWIN`} />
+          <InfoRow label="کل توکن" value={`${wallet.totalTokens.toLocaleString("fa-IR")} تنوین`} />
           <InfoRow
             label="قابل استفاده"
-            value={`${wallet.availableTokens.toLocaleString("fa-IR")} TWIN`}
+            value={`${wallet.availableTokens.toLocaleString("fa-IR")} تنوین`}
           />
-          <InfoRow label="مسدود" value={`${wallet.frozenTokens.toLocaleString("fa-IR")} TWIN`} />
+          <InfoRow label="مسدود" value={`${wallet.frozenTokens.toLocaleString("fa-IR")} تنوین`} />
           <InfoRow
             label="در انتظار"
-            value={`${wallet.pendingTokens.toLocaleString("fa-IR")} TWIN`}
+            value={`${wallet.pendingTokens.toLocaleString("fa-IR")} تنوین`}
           />
           <div className="border-border mt-4 border-t pt-4">
             <div className="mb-3 flex items-center gap-2">
               <Coins size={16} className="text-amber-500" />
               <h3 className="text-foreground text-xs font-semibold">سپرده زیرمجموعه</h3>
             </div>
-            <InfoRow label="امروز" value={`${subsetDeposits.today.toLocaleString("fa-IR")} TWIN`} />
+            <InfoRow
+              label="امروز"
+              value={`${subsetDeposits.today.toLocaleString("fa-IR")} تنوین`}
+            />
             <InfoRow
               label="این ماه"
-              value={`${subsetDeposits.thisMonth.toLocaleString("fa-IR")} TWIN`}
+              value={`${subsetDeposits.thisMonth.toLocaleString("fa-IR")} تنوین`}
             />
-            <InfoRow label="کل" value={`${subsetDeposits.total.toLocaleString("fa-IR")} TWIN`} />
+            <InfoRow label="کل" value={`${subsetDeposits.total.toLocaleString("fa-IR")} تنوین`} />
             <InfoRow
               label="در انتظار"
-              value={`${subsetDeposits.pendingAmount.toLocaleString("fa-IR")} TWIN`}
+              value={`${subsetDeposits.pendingAmount.toLocaleString("fa-IR")} تنوین`}
             />
           </div>
         </section>

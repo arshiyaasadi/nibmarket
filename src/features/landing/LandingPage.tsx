@@ -14,12 +14,12 @@ import "@/features/landing/landing.css";
 export const metadata: Metadata = {
   title: "تامین سرمایه نوین - MLM؛ امتیاز نقره‌ای",
   description:
-    "در باشگاه مشتریان تامین سرمایه نوین، امتیازها فقط عدد نیستند؛ سرمایه‌اند. با فعالیت و دعوت از دوستانتان در سامانه MLM، توکن TWIN دریافت کنید؛ امتیازی که ارزش آن دقیقاً برابر با نقره است.",
+    "در باشگاه مشتریان تامین سرمایه نوین، امتیازها فقط عدد نیستند؛ سرمایه‌اند. با فعالیت و دعوت از دوستانتان در سامانه MLM، توکن تنوین دریافت کنید؛ امتیازی که ارزش آن دقیقاً برابر با نقره است.",
 };
 
 export default function LandingPage() {
   return (
-    <div className="landing-root relative min-h-screen overflow-x-hidden bg-gray-900 antialiased text-white">
+    <div className="landing-root relative min-h-screen overflow-x-hidden bg-gray-900 text-white antialiased">
       <ScrollOrbitBlur />
       <LandingShell>
         <MLMHero />

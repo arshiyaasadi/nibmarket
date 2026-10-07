@@ -1,4 +1,5 @@
 import type { NetworkSubset } from "@/types/mlm";
+import { displayPersonName } from "@/lib/person-name";
 
 function unwrapPayload(raw: unknown): unknown {
   if (raw && typeof raw === "object" && "data" in raw) {
@@ -20,11 +21,6 @@ function toString(value: unknown, fallback = ""): string {
 function toNumber(value: unknown, fallback = 0): number {
   const n = Number(value);
   return Number.isFinite(n) ? n : fallback;
-}
-
-function buildFullName(firstName: string, lastName: string, fallback = "—"): string {
-  const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
-  return fullName || fallback;
 }
 
 function countDirectSubsets(rows: Record<string, unknown>[]): Map<string, number> {
@@ -68,12 +64,18 @@ export function mapNetworkSubsets(raw: unknown): NetworkSubset[] {
     const id = toString(item.id, String(index + 1));
     const firstName = toString(item.firstName, "");
     const lastName = toString(item.lastName, "");
+    const fullName = displayPersonName({
+      firstName,
+      lastName,
+      fullName: toString(item.fullName ?? item.name, ""),
+      fallback: "-",
+    });
 
     return {
       id,
       firstName,
       lastName,
-      fullName: buildFullName(firstName, lastName, toString(item.fullName ?? item.name, "—")),
+      fullName,
       level: toNumber(item.upperLevel ?? item.level, 0),
       joinDate: toString(item.creationDate ?? item.joinDate ?? item.membershipDate, ""),
       subMembersCount: toNumber(
