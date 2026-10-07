@@ -2,6 +2,7 @@ import { clearQueryCache, getQueryClient } from "@/lib/query-client";
 import { BFF_API_BASE } from "@/lib/api/endpoints";
 import { ROUTES } from "@/config/routes";
 import { getPanelLoginUrlBare } from "@/config/sso";
+import { clearNibmarketSsoCookies } from "@/lib/auth/clear-nibmarket-cookies";
 import { useAuthSlice } from "@/store/slices/auth.slice";
 import { useUiSlice } from "@/store/slices/ui.slice";
 
@@ -24,9 +25,7 @@ function redirectToLogoutIncomplete(reason: string): void {
   const params = new URLSearchParams();
   if (reason) params.set("reason", reason);
   const qs = params.toString();
-  window.location.href = qs
-    ? `${ROUTES.LOGOUT_INCOMPLETE}?${qs}`
-    : ROUTES.LOGOUT_INCOMPLETE;
+  window.location.href = qs ? `${ROUTES.LOGOUT_INCOMPLETE}?${qs}` : ROUTES.LOGOUT_INCOMPLETE;
 }
 
 function redirectToPanelLoginAfterLogout(): void {
@@ -72,6 +71,8 @@ export async function performLogout(): Promise<void> {
 
   // Logout locally only after the API responded (or the request failed).
   clearSessionLocally();
+  // Nibmarket team: clear shared-domain SSO cookies from the client as well.
+  clearNibmarketSsoCookies();
 
   if (typeof window === "undefined") return;
 
@@ -82,8 +83,6 @@ export async function performLogout(): Promise<void> {
 
   redirectToLogoutIncomplete(
     result?.reason?.trim() ||
-      (networkFailed
-        ? "ارتباط با سرور کلاب برقرار نشد."
-        : "خروج از سرویس احراز هویت ناموفق بود."),
+      (networkFailed ? "ارتباط با سرور کلاب برقرار نشد." : "خروج از سرویس احراز هویت ناموفق بود."),
   );
 }
