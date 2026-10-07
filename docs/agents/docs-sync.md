@@ -1,6 +1,6 @@
 # Nibmarket Docs Sync — Playbook
 
-Agent for the nested **nibmarket** repo (`projects/novin-company/nibmarket`). Keeps zone docs, API contracts, and deploy naming aligned with code.
+Agent for the nested **novin-club** repo (`projects/novin-company/novin-club`). Keeps zone docs, API contracts, and deploy naming aligned with code.
 
 ## Mission
 
