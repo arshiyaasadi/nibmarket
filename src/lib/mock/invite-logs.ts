@@ -211,6 +211,13 @@ export function createInviteTemplate(body: string): string | null {
   return id;
 }
 
+export function deleteInviteTemplate(templateId: string): boolean {
+  ensureMockInviteLogs();
+  if (!TEMPLATE_META[templateId]) return false;
+  delete TEMPLATE_META[templateId];
+  return true;
+}
+
 export function isSameLocalDay(isoA: string, isoB: Date) {
   const a = new Date(isoA);
   return (

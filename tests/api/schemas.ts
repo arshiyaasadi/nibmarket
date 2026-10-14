@@ -89,6 +89,7 @@ export const inviteQuotaSchema = z.object({
   remaining: z.number(),
   limit: z.number(),
   used: z.number(),
+  canInvite: z.boolean(),
 });
 
 export const poolBalanceSchema = z.object({

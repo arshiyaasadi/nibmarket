@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { CircleCheck, Zap, Trophy, ArrowLeft, Sparkles } from "lucide-react";
@@ -8,8 +8,10 @@ import { useMissionsList, useSubsetDeposits } from "@/features/dashboard/queries
 import { useCompetitionPool } from "@/features/leaderboard/queries";
 import { NetworkTreeWidget } from "@/components/organisms/network/NetworkTreeWidget";
 import { InviteModal } from "@/components/organisms/network/InviteModal";
+import { InviteKycGateModal } from "@/components/organisms/network/InviteKycGateModal";
 import { MissionsBonusBanner } from "@/components/molecules/MissionsBonusBanner";
 import { SubsetDepositsWidget } from "@/components/molecules/SubsetDepositsWidget";
+import { useInviteLauncher } from "@/features/network/use-invite-launcher";
 import { ROUTES } from "@/config/routes";
 import { cn } from "@/lib/utils";
 
@@ -228,14 +230,14 @@ function PoolWidget() {
 // ── Dashboard Root ────────────────────────────────────────────────────────────
 
 export function DashboardContent() {
-  const [showInviteModal, setShowInviteModal] = useState(false);
+  const { openInvite, showGate, closeGate, showInvite, closeInvite } = useInviteLauncher();
 
   return (
     <>
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
           <div className="min-w-0 flex-1">
-            <MissionsWidget onInvite={() => setShowInviteModal(true)} />
+            <MissionsWidget onInvite={openInvite} />
           </div>
           <div className="lg:w-[38%] lg:shrink-0">
             <PoolWidget />
@@ -247,12 +249,13 @@ export function DashboardContent() {
             <SubsetDepositsWidget />
           </div>
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-            <NetworkTreeWidget showTitle={false} onInvite={() => setShowInviteModal(true)} />
+            <NetworkTreeWidget showTitle={false} onInvite={openInvite} />
           </div>
         </div>
       </div>
 
-      {showInviteModal && <InviteModal onClose={() => setShowInviteModal(false)} />}
+      <InviteKycGateModal open={showGate} onClose={closeGate} />
+      {showInvite && <InviteModal onClose={closeInvite} />}
     </>
   );
 }

@@ -44,6 +44,7 @@ import {
   adminInviteTemplatesHandler,
   adminInviteTemplateCreateHandler,
   adminInviteTemplateUpdateHandler,
+  adminInviteTemplateDeleteHandler,
 } from "./handlers/admin.handler";
 import { capitalFundsHandler } from "./handlers/capital.handler";
 import {
@@ -244,6 +245,15 @@ export function resolveHandler(method: string, segments: string[]): RouteHandler
     segments[3]
   ) {
     return (req) => adminInviteTemplateUpdateHandler(req, segments[3]);
+  }
+  if (
+    method === "DELETE" &&
+    segments[0] === "admin" &&
+    segments[1] === "network" &&
+    segments[2] === "invite-templates" &&
+    segments[3]
+  ) {
+    return (req) => adminInviteTemplateDeleteHandler(req, segments[3]);
   }
   if (
     method === "PATCH" &&

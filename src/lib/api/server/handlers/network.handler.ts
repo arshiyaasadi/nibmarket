@@ -42,9 +42,8 @@ export async function inviteTemplatesHandler(req: Request): Promise<Response> {
   const userId = getCurrentUserId(req);
   if (!userId) return unauthorized();
 
-  const { listInviteTemplateDefinitions, ensureMockInviteLogs } = await import(
-    "@/lib/mock/invite-logs"
-  );
+  const { listInviteTemplateDefinitions, ensureMockInviteLogs } =
+    await import("@/lib/mock/invite-logs");
   ensureMockInviteLogs();
 
   const templates = listInviteTemplateDefinitions().map((tpl) => ({
@@ -73,7 +72,7 @@ export async function sendInviteHandler(req: Request): Promise<Response> {
   });
 
   if (!result.success) {
-    const status = result.message === "LIMIT" ? 429 : 400;
+    const status = result.message === "LIMIT" ? 429 : result.message === "KYC_REQUIRED" ? 403 : 400;
     return NextResponse.json(
       { message: result.message ?? "SEND_FAILED", remaining: result.remaining },
       { status },

@@ -11,6 +11,7 @@ import {
   isSameLocalDay,
   listInviteTemplateDefinitions,
   createInviteTemplate,
+  deleteInviteTemplate,
   updateInviteTemplateBody,
 } from "@/lib/mock/invite-logs";
 
@@ -99,4 +100,8 @@ export async function updateAdminInviteTemplate(
 
 export async function createAdminInviteTemplate(body: string): Promise<string | null> {
   return createInviteTemplate(body);
+}
+
+export async function deleteAdminInviteTemplate(templateId: string): Promise<boolean> {
+  return deleteInviteTemplate(templateId);
 }

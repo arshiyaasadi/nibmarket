@@ -30,6 +30,7 @@ import {
   listAdminInviteLogs,
   listAdminInviteTemplates,
   createAdminInviteTemplate,
+  deleteAdminInviteTemplate,
   updateAdminInviteTemplate,
 } from "@/lib/mock/admin-network";
 import {
@@ -244,6 +245,18 @@ export async function adminInviteTemplateUpdateHandler(
   if (!body.body?.trim()) return badRequest("body is required");
 
   const ok = await updateAdminInviteTemplate(templateId, body.body.trim());
+  if (!ok) return notFound("Template not found");
+  return NextResponse.json({ ok: true });
+}
+
+export async function adminInviteTemplateDeleteHandler(
+  _req: Request,
+  templateId: string,
+): Promise<Response> {
+  const auth = await requireAdmin();
+  if (!auth) return unauthorized();
+
+  const ok = await deleteAdminInviteTemplate(templateId);
   if (!ok) return notFound("Template not found");
   return NextResponse.json({ ok: true });
 }

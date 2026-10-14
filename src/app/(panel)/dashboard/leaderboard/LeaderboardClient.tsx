@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Users, Zap, Trophy, Medal } from "lucide-react";
 import {
@@ -12,6 +12,8 @@ import {
 } from "@/features/leaderboard/queries";
 import { useSubsetDeposits } from "@/features/dashboard/queries";
 import { InviteModal } from "@/components/organisms/network/InviteModal";
+import { InviteKycGateModal } from "@/components/organisms/network/InviteKycGateModal";
+import { useInviteLauncher } from "@/features/network/use-invite-launcher";
 import { formatDateRange, formatDisplayDate } from "@/lib/utils";
 import type { CompetitionPeriod, HonorItem, LeaderboardEntry } from "@/types/mlm";
 
@@ -437,13 +439,13 @@ function HonorsSection() {
 // ── Page Root ─────────────────────────────────────────────────────────────────
 
 export function LeaderboardClient() {
-  const [showInviteModal, setShowInviteModal] = useState(false);
+  const { openInvite, showGate, closeGate, showInvite, closeInvite } = useInviteLauncher();
 
   return (
     <div className="flex flex-col gap-4">
       {/* Row 1: My rank + Pool volume */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
-        <MyRankCard onInvite={() => setShowInviteModal(true)} />
+        <MyRankCard onInvite={openInvite} />
         <PoolVolumeCard />
       </div>
 
@@ -459,7 +461,8 @@ export function LeaderboardClient() {
       {/* Row 4: Honors */}
       <HonorsSection />
 
-      {showInviteModal && <InviteModal onClose={() => setShowInviteModal(false)} />}
+      <InviteKycGateModal open={showGate} onClose={closeGate} />
+      {showInvite && <InviteModal onClose={closeInvite} />}
     </div>
   );
 }

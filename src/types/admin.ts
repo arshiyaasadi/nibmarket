@@ -344,6 +344,11 @@ export interface CreateAdminInviteTemplateResponse {
   id: string;
 }
 
+/** DELETE /admin/network/invite-templates/:templateId — response */
+export interface DeleteAdminInviteTemplateResponse {
+  ok: true;
+}
+
 export type AdminMissionStatus = "active" | "paused";
 export type AdminMissionType =
   "referral_count" | "purchase" | "registration" | "fund_issue" | "custom";

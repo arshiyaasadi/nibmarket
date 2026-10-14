@@ -3,7 +3,9 @@
 import { useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { Pencil, Plus, X } from "lucide-react";
+import { Pencil, Plus, Trash2, X } from "lucide-react";
+import { Button } from "@/components/atoms/Button";
+import { Modal, ModalBody, ModalFooter } from "@/components/atoms/Modal";
 import { HorizontalScrollNav } from "@/components/molecules/HorizontalScrollNav";
 import { apiClient } from "@/lib/api/client";
 import { ENDPOINTS } from "@/lib/api/endpoints";
@@ -105,6 +107,37 @@ function InviteTemplateModal({
   );
 }
 
+function ConfirmDeleteTemplateModal({
+  open,
+  onClose,
+  onConfirm,
+  loading,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  loading: boolean;
+}) {
+  const t = useTranslations("admin.network");
+  const tCommon = useTranslations("common");
+
+  return (
+    <Modal open={open} onClose={onClose} title={t("deleteTemplateTitle")} size="sm">
+      <ModalBody>
+        <p className="text-muted text-sm">{t("deleteTemplateDesc")}</p>
+      </ModalBody>
+      <ModalFooter>
+        <Button variant="ghost" onClick={onClose}>
+          {tCommon("cancel")}
+        </Button>
+        <Button variant="danger" loading={loading} onClick={onConfirm}>
+          {t("deleteTemplateConfirm")}
+        </Button>
+      </ModalFooter>
+    </Modal>
+  );
+}
+
 export function InviteTemplateList({
   templates,
   isLoading,
@@ -118,6 +151,7 @@ export function InviteTemplateList({
   const [modal, setModal] = useState<ModalMode | null>(null);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<AdminInviteTemplateRow | null>(null);
 
   const invalidate = () =>
     qc.invalidateQueries({ queryKey: ["admin", "network", "invite-templates"] });
@@ -144,6 +178,15 @@ export function InviteTemplateList({
       closeModal();
     },
     onError: () => setError(t("templateSaveError")),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) =>
+      apiClient.delete(ENDPOINTS.ADMIN.NETWORK.DELETE_INVITE_TEMPLATE(id)),
+    onSuccess: () => {
+      invalidate();
+      setDeleteTarget(null);
+    },
   });
 
   const isSaving = updateMutation.isPending || createMutation.isPending;
@@ -214,7 +257,7 @@ export function InviteTemplateList({
               <p className="text-foreground line-clamp-3 flex-1 text-xs leading-6">
                 {previewBody(template.body)}
               </p>
-              <div className="mt-2 flex justify-end">
+              <div className="mt-2 flex justify-end gap-1.5">
                 <button
                   type="button"
                   onClick={() => openEdit(template)}
@@ -222,6 +265,14 @@ export function InviteTemplateList({
                   aria-label={t("editTemplate")}
                 >
                   <Pencil size={13} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeleteTarget(template)}
+                  className="border-border text-muted flex size-7 items-center justify-center rounded-lg border transition-colors hover:border-red-400/50 hover:text-red-500"
+                  aria-label={t("deleteTemplate")}
+                >
+                  <Trash2 size={13} />
                 </button>
               </div>
             </div>
@@ -250,6 +301,15 @@ export function InviteTemplateList({
           onInsertPlaceholder={insertPlaceholder}
         />
       )}
+
+      <ConfirmDeleteTemplateModal
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) deleteMutation.mutate(deleteTarget.id);
+        }}
+        loading={deleteMutation.isPending}
+      />
     </>
   );
 }

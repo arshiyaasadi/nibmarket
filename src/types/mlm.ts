@@ -195,6 +195,11 @@ export interface InviteQuota {
   remaining: number;
   limit: number;
   used: number;
+  /**
+   * Whether the user completed KYC and may send VIP invites / grow referrals.
+   * Prefer including this on GET /network/invite-quota (same payload as remaining).
+   */
+  canInvite: boolean;
 }
 
 export interface InvitedPerson {

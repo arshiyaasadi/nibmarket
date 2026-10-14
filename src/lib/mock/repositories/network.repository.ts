@@ -86,8 +86,10 @@ export async function getNetworkInvited(
   return filtered.sort((a, b) => (a.level ?? 99) - (b.level ?? 99));
 }
 
-export async function getInviteQuota(_userId: string): Promise<InviteQuota> {
-  return { limit: 5, used: 0, remaining: 5 };
+export async function getInviteQuota(userId: string): Promise<InviteQuota> {
+  const user = getMockUser(userId);
+  const canInvite = user?.kycStatus === "verified";
+  return { limit: 5, used: 0, remaining: 5, canInvite };
 }
 
 export async function sendInviteLetter(
@@ -96,6 +98,9 @@ export async function sendInviteLetter(
 ): Promise<SendInviteResponse> {
   await ensureMockStore();
   const inviter = getMockUser(userId);
+  if (inviter?.kycStatus !== "verified") {
+    return { success: false, remaining: 0, message: "KYC_REQUIRED" };
+  }
   const templateId = payload.templateId ?? "formal";
   const template = getInviteTemplateMeta(templateId);
 

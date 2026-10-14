@@ -109,6 +109,8 @@ export const ENDPOINTS = {
       CREATE_INVITE_TEMPLATE: "/admin/network/invite-templates",
       UPDATE_INVITE_TEMPLATE: (templateId: string) =>
         `/admin/network/invite-templates/${templateId}` as const,
+      DELETE_INVITE_TEMPLATE: (templateId: string) =>
+        `/admin/network/invite-templates/${templateId}` as const,
     },
     MISSIONS: {
       LIST: "/admin/missions/list",
