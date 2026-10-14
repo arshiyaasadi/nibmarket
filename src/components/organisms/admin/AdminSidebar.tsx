@@ -1,7 +1,7 @@
 /**
  * @level organism
  * Liquid-glass island rail — collapsed shows icons only, hover expands over the content.
- * Mirrors the client PanelSidebar styling.
+ * Users item nests: list + send message (sub-links only when expanded).
  */
 "use client";
 import Link from "next/link";
@@ -19,21 +19,49 @@ import {
   Layers,
   Map,
   Shield,
+  MessageSquare,
+  List,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { performLogout } from "@/lib/auth/session";
 import { ROUTES } from "@/config/routes";
 
-const NAV = [
+type NavLeaf = {
+  href: string;
+  labelKey: string;
+  icon: typeof LayoutDashboard;
+  exact?: boolean;
+};
+
+type NavBranch = {
+  kind: "branch";
+  href: string;
+  labelKey: string;
+  icon: typeof LayoutDashboard;
+  children: { href: string; labelKey: string; icon: typeof LayoutDashboard }[];
+};
+
+type NavEntry = ({ kind?: "leaf" } & NavLeaf) | NavBranch;
+
+const NAV: NavEntry[] = [
   { href: ROUTES.ADMIN.ROOT, labelKey: "dashboard", icon: LayoutDashboard, exact: true },
-  { href: ROUTES.ADMIN.USERS, labelKey: "users", icon: Users, exact: false },
-  { href: ROUTES.ADMIN.USER_MAP, labelKey: "userMap", icon: Map, exact: false },
-  { href: ROUTES.ADMIN.TWIN, labelKey: "twin", icon: Coins, exact: false },
-  { href: ROUTES.ADMIN.POOL, labelKey: "pool", icon: Trophy, exact: false },
-  { href: ROUTES.ADMIN.SEDIMENT, labelKey: "sediment", icon: Layers, exact: false },
-  { href: "/admin/network", labelKey: "network", icon: Network, exact: false },
-  { href: "/admin/missions", labelKey: "missions", icon: Target, exact: false },
-] as const;
+  {
+    kind: "branch",
+    href: ROUTES.ADMIN.USERS,
+    labelKey: "users",
+    icon: Users,
+    children: [
+      { href: ROUTES.ADMIN.USERS, labelKey: "usersList", icon: List },
+      { href: ROUTES.ADMIN.USER_MESSAGES, labelKey: "usersMessages", icon: MessageSquare },
+    ],
+  },
+  { href: ROUTES.ADMIN.USER_MAP, labelKey: "userMap", icon: Map },
+  { href: ROUTES.ADMIN.TWIN, labelKey: "twin", icon: Coins },
+  { href: ROUTES.ADMIN.POOL, labelKey: "pool", icon: Trophy },
+  { href: ROUTES.ADMIN.SEDIMENT, labelKey: "sediment", icon: Layers },
+  { href: "/admin/network", labelKey: "network", icon: Network },
+  { href: "/admin/missions", labelKey: "missions", icon: Target },
+];
 
 /** Matches the client panel rail so both shells feel identical. */
 const COLLAPSED_W = "5.5rem";
@@ -48,7 +76,6 @@ export function AdminSidebar() {
     await performLogout();
   }
 
-  // `flex-1` must not apply while collapsed — a growing label pushes the icon off-center.
   const labelCls = cn(
     "truncate text-start transition-all duration-300",
     expanded ? "ms-[0.625rem] w-auto flex-1 opacity-100" : "w-0 opacity-0",
@@ -64,6 +91,13 @@ export function AdminSidebar() {
         : "text-muted hover:text-foreground border border-transparent hover:border-white/20 hover:bg-white/10 hover:backdrop-blur-md",
     );
 
+  const subItemCls = (active?: boolean) =>
+    cn(
+      "group flex w-full items-center rounded-lg py-2 text-xs font-medium transition-all duration-300",
+      "overflow-hidden whitespace-nowrap ps-3 pe-[0.875rem]",
+      active ? "bg-white/15 text-primary" : "text-muted hover:bg-white/10 hover:text-foreground",
+    );
+
   return (
     <div
       className="fixed inset-y-0 start-0 z-[1100] flex flex-col p-3 pt-[4.75rem]"
@@ -75,9 +109,7 @@ export function AdminSidebar() {
       onMouseLeave={() => setExpanded(false)}
       dir="rtl"
     >
-      {/* Glass card */}
       <div className="relative flex grow flex-col overflow-hidden rounded-3xl border border-white/20 bg-white/10 py-4 shadow-2xl shadow-black/10 backdrop-blur-2xl backdrop-saturate-150 dark:border-white/10 dark:bg-white/5">
-        {/* Sheen overlays */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-b from-white/30 via-white/5 to-transparent dark:from-white/10"
@@ -102,10 +134,68 @@ export function AdminSidebar() {
         </div>
 
         <nav className="relative flex flex-1 flex-col gap-[2px] overflow-x-hidden overflow-y-auto px-2">
-          {NAV.map(({ href, labelKey, icon: Icon, exact }) => {
-            const active = exact ? pathname === href : pathname.startsWith(href);
+          {NAV.map((entry) => {
+            if (entry.kind === "branch") {
+              const branchActive =
+                pathname === entry.href ||
+                pathname.startsWith(`${entry.href}/`) ||
+                entry.children.some(
+                  (c) => pathname === c.href || pathname.startsWith(`${c.href}/`),
+                );
+              const Icon = entry.icon;
+              return (
+                <div key={entry.href} className="flex flex-col gap-[2px]">
+                  <Link
+                    href={entry.href}
+                    title={t(entry.labelKey)}
+                    className={itemCls(branchActive && !expanded)}
+                  >
+                    <Icon
+                      size={20}
+                      className={cn(
+                        "shrink-0 transition-transform duration-300 group-hover:scale-110",
+                        branchActive ? "text-primary" : "text-current",
+                      )}
+                    />
+                    <span className={labelCls}>{t(entry.labelKey)}</span>
+                  </Link>
+                  {expanded && (
+                    <div className="mb-1 flex flex-col gap-[2px] ps-2 pe-1">
+                      {entry.children.map((child) => {
+                        const ChildIcon = child.icon;
+                        const childActive =
+                          child.href === ROUTES.ADMIN.USERS
+                            ? pathname === ROUTES.ADMIN.USERS
+                            : pathname === child.href || pathname.startsWith(`${child.href}/`);
+                        return (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            title={t(child.labelKey)}
+                            className={subItemCls(childActive)}
+                          >
+                            <ChildIcon size={14} className="shrink-0" />
+                            <span className="ms-2 truncate">{t(child.labelKey)}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            const active = entry.exact
+              ? pathname === entry.href
+              : pathname === entry.href || pathname.startsWith(`${entry.href}/`);
+            const Icon = entry.icon;
             return (
-              <Link key={href} href={href} title={t(labelKey)} className={itemCls(active)}>
+              <Link
+                key={entry.href}
+                href={entry.href}
+                title={t(entry.labelKey)}
+                className={itemCls(active)}
+              >
                 <Icon
                   size={20}
                   className={cn(
@@ -113,7 +203,7 @@ export function AdminSidebar() {
                     active ? "text-primary" : "text-current",
                   )}
                 />
-                <span className={labelCls}>{t(labelKey)}</span>
+                <span className={labelCls}>{t(entry.labelKey)}</span>
               </Link>
             );
           })}

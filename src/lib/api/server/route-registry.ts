@@ -38,6 +38,7 @@ import {
   adminPoolOverviewHandler,
   adminPoolParticipantsHandler,
   adminPoolPeriodsHandler,
+  adminPoolTransactionsHandler,
   adminInviteOverviewHandler,
   adminInviteLogHandler,
   adminInviteTemplatesHandler,
@@ -91,7 +92,19 @@ import {
 import {
   notificationsActivityHandler,
   notificationsListHandler,
+  notificationsMarkAllReadHandler,
+  notificationsMarkReadHandler,
 } from "./handlers/notifications.handler";
+import {
+  adminNotificationGroupCreateHandler,
+  adminNotificationGroupDeleteHandler,
+  adminNotificationGroupGetHandler,
+  adminNotificationGroupUpdateHandler,
+  adminNotificationGroupsListHandler,
+  adminSystemMessageCreateHandler,
+  adminSystemMessageDeleteHandler,
+  adminSystemMessagesListHandler,
+} from "./handlers/system-messages.handler";
 
 type RouteHandler = (req: Request) => Promise<Response>;
 
@@ -156,9 +169,14 @@ const CUSTOM_ROUTES: Record<string, RouteHandler> = {
 
   "GET:/notifications": notificationsListHandler,
   "GET:/notifications/activity": notificationsActivityHandler,
+  "POST:/notifications/read-all": notificationsMarkAllReadHandler,
 
   // Admin routes
   "POST:/admin/auth/login": adminLoginHandler,
+  "GET:/admin/notification-groups": adminNotificationGroupsListHandler,
+  "POST:/admin/notification-groups": adminNotificationGroupCreateHandler,
+  "GET:/admin/system-messages": adminSystemMessagesListHandler,
+  "POST:/admin/system-messages": adminSystemMessageCreateHandler,
   "GET:/admin/stats": adminStatsHandler,
   "GET:/admin/users": adminUsersHandler,
   "GET:/admin/users/demographics": adminUsersDemographicsHandler,
@@ -168,6 +186,7 @@ const CUSTOM_ROUTES: Record<string, RouteHandler> = {
   "GET:/admin/pool/overview": adminPoolOverviewHandler,
   "GET:/admin/pool/participants": adminPoolParticipantsHandler,
   "GET:/admin/pool/periods": adminPoolPeriodsHandler,
+  "GET:/admin/pool/transactions": adminPoolTransactionsHandler,
   "GET:/admin/network/invites/overview": adminInviteOverviewHandler,
   "GET:/admin/network/invites/log": adminInviteLogHandler,
   "GET:/admin/network/invite-templates": adminInviteTemplatesHandler,
@@ -191,7 +210,7 @@ export function resolveHandler(method: string, segments: string[]): RouteHandler
   if (CUSTOM_ROUTES[key]) return CUSTOM_ROUTES[key];
 
   // Admin dynamic routes
-  const RESERVED_ADMIN_USER_SEGMENTS = new Set(["demographics", "geo"]);
+  const RESERVED_ADMIN_USER_SEGMENTS = new Set(["demographics", "geo", "messages"]);
   if (
     method === "GET" &&
     segments[0] === "admin" &&
@@ -233,6 +252,36 @@ export function resolveHandler(method: string, segments: string[]): RouteHandler
     segments[3] === "status"
   ) {
     return (req) => adminMissionStatusHandler(req, segments[2]);
+  }
+
+  if (
+    method === "PATCH" &&
+    segments[0] === "notifications" &&
+    segments[2] === "read" &&
+    segments[1]
+  ) {
+    return (req) => notificationsMarkReadHandler(req, segments[1]);
+  }
+
+  if (segments[0] === "admin" && segments[1] === "notification-groups" && segments[2]) {
+    if (method === "GET" && segments.length === 3) {
+      return (req) => adminNotificationGroupGetHandler(req, segments[2]);
+    }
+    if (method === "PATCH" && segments.length === 3) {
+      return (req) => adminNotificationGroupUpdateHandler(req, segments[2]);
+    }
+    if (method === "DELETE" && segments.length === 3) {
+      return (req) => adminNotificationGroupDeleteHandler(req, segments[2]);
+    }
+  }
+
+  if (
+    method === "DELETE" &&
+    segments[0] === "admin" &&
+    segments[1] === "system-messages" &&
+    segments[2]
+  ) {
+    return (req) => adminSystemMessageDeleteHandler(req, segments[2]);
   }
 
   return null;

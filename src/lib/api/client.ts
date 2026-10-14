@@ -56,7 +56,19 @@ async function requestInternal<T>(
     throw new ApiException(res.status, message);
   }
 
-  return res.json() as Promise<T>;
+  // 204 / empty body are valid success responses for some mutating endpoints.
+  if (res.status === 204) {
+    return undefined as T;
+  }
+  const text = await res.text();
+  if (!text.trim()) {
+    return undefined as T;
+  }
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new ApiException(res.status, "Invalid JSON response");
+  }
 }
 
 async function handleUnauthorized(path: string): Promise<void> {

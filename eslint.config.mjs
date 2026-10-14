@@ -35,6 +35,11 @@ const eslintConfig = defineConfig([
     files: ["src/resources/**/*", "messages/**/*"],
     rules: { "no-restricted-syntax": "off" },
   },
+  // Mock fixtures + static Tanvin landing markup are intentionally Persian / non-token CSS.
+  {
+    files: ["src/lib/mock/**/*", "src/features/landing-tanvin/**/*", "src/features/landing/**/*"],
+    rules: { "no-restricted-syntax": "off" },
+  },
 ]);
 
 export default eslintConfig;

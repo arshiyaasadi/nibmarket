@@ -54,7 +54,7 @@ export function AdminHeader() {
         {/* Subtle inner glow */}
         <div
           aria-hidden="true"
-          className="dark:from-white/8 pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/20 via-transparent to-transparent"
+          className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/20 via-transparent to-transparent dark:from-white/10"
         />
 
         <span className="text-primary relative text-sm font-bold">باشگاه مشتریان نوین</span>
@@ -71,44 +71,40 @@ export function AdminHeader() {
         </Link>
 
         <div className="relative" ref={notificationsRef}>
-        <button
-          type="button"
-          onClick={() => setNotificationsOpen((open) => !open)}
-          aria-label={t("notifications")}
-          aria-expanded={notificationsOpen}
-          data-tour="admin-notifications"
-          className={cn(iconButtonCls, notificationsOpen && "bg-white/20 text-foreground")}
-        >
-          <Bell size={19} />
-        </button>
+          <button
+            type="button"
+            onClick={() => setNotificationsOpen((open) => !open)}
+            aria-label={t("notifications")}
+            aria-expanded={notificationsOpen}
+            data-tour="admin-notifications"
+            className={cn(iconButtonCls, notificationsOpen && "text-foreground bg-white/20")}
+          >
+            <Bell size={19} />
+          </button>
 
-        {notificationsOpen && (
-          <div className="border-border bg-surface absolute end-0 top-[calc(100%+0.75rem)] w-72 rounded-2xl border shadow-xl shadow-black/10">
-            <div className="border-border border-b px-4 py-3">
-              <p className="text-foreground text-sm font-semibold">{t("notifications")}</p>
+          {notificationsOpen && (
+            <div className="border-border bg-surface absolute end-0 top-[calc(100%+0.75rem)] w-72 rounded-2xl border shadow-xl shadow-black/10">
+              <div className="border-border border-b px-4 py-3">
+                <p className="text-foreground text-sm font-semibold">{t("notifications")}</p>
+              </div>
+              <EmptyState
+                icon={<BellOff size={20} />}
+                title={t("notificationsEmpty")}
+                description={t("notificationsEmptyDescription")}
+              />
+              <Link
+                href={ROUTES.ADMIN.NOTIFICATIONS}
+                onClick={() => setNotificationsOpen(false)}
+                className="border-border text-primary hover:bg-background flex h-11 items-center justify-center gap-1.5 border-t text-xs font-medium transition-colors"
+              >
+                {t("notificationsViewAll")}
+                <ChevronLeft size={14} />
+              </Link>
             </div>
-            <EmptyState
-              icon={<BellOff size={20} />}
-              title={t("notificationsEmpty")}
-              description={t("notificationsEmptyDescription")}
-            />
-            <Link
-              href={ROUTES.ADMIN.NOTIFICATIONS}
-              onClick={() => setNotificationsOpen(false)}
-              className="border-border text-primary hover:bg-background flex h-11 items-center justify-center gap-1.5 border-t text-xs font-medium transition-colors"
-            >
-              {t("notificationsViewAll")}
-              <ChevronLeft size={14} />
-            </Link>
-          </div>
-        )}
+          )}
         </div>
 
-        <button
-          type="button"
-          aria-label={t("profile")}
-          className={cn(iconButtonCls, "relative")}
-        >
+        <button type="button" aria-label={t("profile")} className={cn(iconButtonCls, "relative")}>
           <UserCircle size={21} />
         </button>
       </div>

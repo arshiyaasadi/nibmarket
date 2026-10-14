@@ -243,6 +243,42 @@ export interface AdminPoolPeriodsResponse {
   pageCount: number;
 }
 
+/** GET /admin/pool/transactions — query `type` */
+export type AdminPoolTransactionTypeFilter = "burn" | "payout" | "inflow" | "";
+
+/** Per-row ledger status */
+export type AdminPoolTransactionStatus = "burned" | "allocated" | "deposited";
+
+/** GET /admin/pool/transactions — row */
+export interface AdminPoolTransactionRow {
+  id: string;
+  status: AdminPoolTransactionStatus;
+  amount: number;
+  userId: string;
+  userName: string;
+  userMobile: string;
+  periodTitle: string;
+  description: string;
+  createdAt: string;
+}
+
+/** GET /admin/pool/transactions — aggregates for filtered set / period */
+export interface AdminPoolTransactionsSummary {
+  totalInflow: number;
+  totalBurned: number;
+  totalAllocated: number;
+}
+
+/** GET /admin/pool/transactions */
+export interface AdminPoolTransactionsResponse {
+  data: AdminPoolTransactionRow[];
+  summary: AdminPoolTransactionsSummary;
+  total: number;
+  page: number;
+  pageSize: number;
+  pageCount: number;
+}
+
 /** GET /admin/network/invites/overview */
 export interface AdminInviteOverviewResponse {
   todayCount: number;
@@ -473,6 +509,86 @@ export interface AdminSedimentDepositRow {
 /** GET /admin/sediment/deposits */
 export interface AdminSedimentDepositsResponse {
   data: AdminSedimentDepositRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+  pageCount: number;
+}
+
+// ── System messages / notification groups (mlm-04) ───────────
+
+export type CampaignAudienceType = "user" | "group" | "all";
+export type CampaignStatus = "scheduled" | "sent" | "deleted";
+
+export interface CampaignChannels {
+  system: boolean;
+  sms: boolean;
+}
+
+export interface NotificationGroupMember {
+  id: string;
+  firstName: string;
+  lastName: string;
+  mobile: string;
+}
+
+export interface NotificationGroup {
+  id: string;
+  title: string;
+  memberIds: string[];
+  memberCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NotificationGroupDetail extends NotificationGroup {
+  members: NotificationGroupMember[];
+}
+
+export interface CreateNotificationGroupRequest {
+  title: string;
+  memberIds: string[];
+}
+
+export interface UpdateNotificationGroupRequest {
+  title?: string;
+  memberIds?: string[];
+}
+
+export interface SystemMessageCampaign {
+  id: string;
+  title: string;
+  body: string;
+  audienceType: CampaignAudienceType;
+  userId: string | null;
+  /** When sending to one or more individuals (audienceType === "user") */
+  userIds: string[];
+  groupId: string | null;
+  audienceLabel: string;
+  channels: CampaignChannels;
+  status: CampaignStatus;
+  scheduledAt: string | null;
+  sentAt: string | null;
+  deletedAt: string | null;
+  createdBy: { id: string; fullName?: string };
+  createdAt: string;
+}
+
+export interface CreateSystemMessageRequest {
+  title: string;
+  body: string;
+  audienceType: CampaignAudienceType;
+  /** @deprecated prefer userIds — kept for single-recipient callers */
+  userId?: string;
+  /** One or more user UUIDs when audienceType === "user" */
+  userIds?: string[];
+  groupId?: string;
+  channels: CampaignChannels;
+  scheduledAt?: string | null;
+}
+
+export interface AdminPaginatedResponse<T> {
+  data: T[];
   total: number;
   page: number;
   pageSize: number;

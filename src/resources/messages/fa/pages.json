@@ -53,12 +53,22 @@
   },
   "notifications": {
     "title": "اعلان‌ها",
+    "subtitle": "پیام‌های سیستمی و اطلاع‌رسانی‌های حساب شما",
     "all": "همه",
     "system": "سیستمی",
     "network": "شبکه",
     "promotion": "تبلیغاتی",
     "noNotifications": "اعلانی وجود ندارد",
-    "loginActivity": "فعالیت‌های ورود"
+    "noNotificationsDesc": "به‌محض ارسال پیام جدید، اینجا نمایش داده می‌شود.",
+    "loginActivity": "فعالیت‌های ورود",
+    "markAllRead": "خواندن همه",
+    "unread": "خوانده‌نشده",
+    "viewAll": "مشاهده همه اعلان‌ها",
+    "bellEmpty": "اعلانی وجود ندارد",
+    "bellTitle": "اعلان‌ها",
+    "loadError": "بارگذاری ناموفق بود — تلاش مجدد",
+    "prevPage": "قبلی",
+    "nextPage": "بعدی"
   },
   "rules": {
     "title": "قوانین و مقررات"

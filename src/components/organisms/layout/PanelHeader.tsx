@@ -8,6 +8,7 @@ import { PROJECT } from "@/config/project";
 import { WalletBalanceChip } from "./WalletBalanceChip";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { AdminPanelLink } from "./AdminPanelLink";
+import { PanelNotificationsBell } from "./PanelNotificationsBell";
 
 interface PanelHeaderProps {
   onOpenMobile: () => void;
@@ -26,7 +27,7 @@ export function PanelHeader({ onOpenMobile: _onOpenMobile }: PanelHeaderProps) {
         {/* Subtle inner glow */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-transparent dark:from-white/8"
+          className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-transparent dark:from-white/10"
         />
 
         {/* Logo + name (mobile only) */}
@@ -41,9 +42,10 @@ export function PanelHeader({ onOpenMobile: _onOpenMobile }: PanelHeaderProps) {
         {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Admin switch + Wallet + Profile */}
+        {/* Admin switch + Notifications + Wallet + Profile */}
         <div className="gap-atom-md relative flex items-center">
           <AdminPanelLink />
+          <PanelNotificationsBell />
           <WalletBalanceChip />
           <ProfileDropdown />
         </div>

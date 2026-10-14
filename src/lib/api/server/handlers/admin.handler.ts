@@ -22,7 +22,9 @@ import {
   getAdminPoolOverview,
   listAdminPoolParticipants,
   listAdminPoolPeriods,
+  listAdminPoolTransactions,
 } from "@/lib/mock/admin-pool";
+import type { AdminPoolTransactionTypeFilter } from "@/types/admin";
 import {
   getAdminInviteOverview,
   listAdminInviteLogs,
@@ -167,6 +169,32 @@ export async function adminPoolPeriodsHandler(req: Request): Promise<Response> {
   const search = url.searchParams.get("search") ?? "";
 
   return NextResponse.json(await listAdminPoolPeriods({ page, pageSize, search }));
+}
+
+export async function adminPoolTransactionsHandler(req: Request): Promise<Response> {
+  const auth = await requireAdmin();
+  if (!auth) return unauthorized();
+
+  const url = new URL(req.url);
+  const page = parseInt(url.searchParams.get("page") ?? "0", 10);
+  const pageSize = parseInt(url.searchParams.get("pageSize") ?? "20", 10);
+  const search = url.searchParams.get("search") ?? "";
+  const type = (url.searchParams.get("type") ?? "") as AdminPoolTransactionTypeFilter;
+  const yearRaw = url.searchParams.get("year");
+  const monthRaw = url.searchParams.get("month");
+  const year = yearRaw ? parseInt(yearRaw, 10) : undefined;
+  const month = monthRaw ? parseInt(monthRaw, 10) : undefined;
+
+  return NextResponse.json(
+    await listAdminPoolTransactions({
+      page,
+      pageSize,
+      search,
+      type,
+      year: Number.isFinite(year) ? year : undefined,
+      month: Number.isFinite(month) ? month : undefined,
+    }),
+  );
 }
 
 export async function adminInviteOverviewHandler(_req: Request): Promise<Response> {

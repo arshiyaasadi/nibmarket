@@ -16,6 +16,7 @@ import type {
 } from "@/types/admin";
 import type { MockUserRecord } from "@/lib/mock/fixtures";
 import type { NetworkSubset } from "@/types/mlm";
+import { normalizeSearchInput } from "@/lib/normalization/digits";
 import { getTokenPriceHistory } from "@/lib/token-price/history";
 
 const ALLOCATION_SOURCES: AdminTwinAllocationSource[] = [
@@ -178,7 +179,7 @@ export async function listAdminUsers(params: {
     users = users.filter((u) => u.status === params.status);
   }
   if (params.search) {
-    const q = params.search.trim();
+    const q = normalizeSearchInput(params.search);
     users = users.filter(
       (u) =>
         u.mobile.includes(q) ||

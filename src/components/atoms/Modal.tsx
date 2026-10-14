@@ -21,10 +21,10 @@ export interface ModalProps {
 }
 
 const sizes: Record<ModalSize, string> = {
-  sm:   "max-w-sm",
-  md:   "max-w-md",
-  lg:   "max-w-lg",
-  xl:   "max-w-2xl",
+  sm: "max-w-sm",
+  md: "max-w-md",
+  lg: "max-w-lg",
+  xl: "max-w-2xl",
   full: "max-w-screen-lg",
 };
 
@@ -57,22 +57,21 @@ export function Modal({
   // Lock scroll
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [open]);
 
   if (!open || !mounted) return null;
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto p-pad-mol"
+      className="p-pad-mol fixed inset-0 z-[1300] flex items-center justify-center overflow-y-auto"
       dir="rtl"
       onClick={closeOnBackdrop ? onClose : undefined}
     >
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        aria-hidden="true"
-      />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" aria-hidden="true" />
 
       {/* Panel */}
       <div
@@ -82,23 +81,28 @@ export function Modal({
         aria-labelledby={title ? "modal-title" : undefined}
         onClick={(e) => e.stopPropagation()}
         className={cn(
-          "relative z-10 my-auto w-full max-h-[calc(100vh-2rem)] overflow-y-auto rounded-2xl bg-surface shadow-lg",
+          "bg-surface relative z-10 my-auto max-h-[calc(100vh-2rem)] w-full overflow-y-auto rounded-2xl shadow-lg",
           sizes[size],
           className,
         )}
       >
         {/* Header */}
         {title && (
-          <div className="flex items-center justify-between border-b border-border px-mol-md py-pad-mol">
-            <h2 id="modal-title" className="text-base font-semibold text-foreground">
+          <div className="border-border px-mol-md py-pad-mol flex items-center justify-between border-b">
+            <h2 id="modal-title" className="text-foreground text-base font-semibold">
               {title}
             </h2>
             <button
               onClick={onClose}
-              className="rounded-lg p-atom text-muted transition-colors hover:bg-surface-2 hover:text-foreground"
+              className="p-atom text-muted hover:bg-surface-2 hover:text-foreground rounded-lg transition-colors"
               aria-label="بستن"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-5">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                className="size-5"
+              >
                 <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
               </svg>
             </button>
@@ -112,11 +116,7 @@ export function Modal({
   );
 }
 
-export function ModalBody({
-  className,
-  children,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+export function ModalBody({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div className={cn("px-mol-md py-pad-mol", className)} {...props}>
       {children}
@@ -132,7 +132,7 @@ export function ModalFooter({
   return (
     <div
       className={cn(
-        "flex items-center justify-end gap-pad-atom-md border-t border-border px-mol-md py-pad-mol",
+        "gap-pad-atom-md border-border px-mol-md py-pad-mol flex items-center justify-end border-t",
         className,
       )}
       {...props}

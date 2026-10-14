@@ -4,20 +4,24 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { type ColumnDef, type PaginationState } from "@tanstack/react-table";
-import { Calendar, Trophy, TrendingUp, Users, Wallet } from "lucide-react";
+import { ArrowLeftRight, Calendar, Flame, Trophy, TrendingUp, Users, Wallet } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { ENDPOINTS } from "@/lib/api/endpoints";
 import { AdminOverviewStatCard } from "@/components/molecules/AdminOverviewStatCard";
 import { AdminTableToolbar } from "@/components/molecules/AdminTableToolbar";
 import { DataTable } from "@/components/ui/DataTable";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { formatDate, formatDateRange } from "@/lib/utils";
+import { jalaliPartsFromDate, JALALI_MONTH_NAMES } from "@/lib/datetime/jalali";
+import { cn, formatDate, formatDateRange, formatDateTime } from "@/lib/utils";
 import type {
   AdminPoolOverviewResponse,
   AdminPoolParticipantRow,
   AdminPoolParticipantsResponse,
   AdminPoolPeriodRow,
   AdminPoolPeriodsResponse,
+  AdminPoolTransactionRow,
+  AdminPoolTransactionTypeFilter,
+  AdminPoolTransactionsResponse,
 } from "@/types/admin";
 
 function timeRemaining(endDateStr: string): { days: number; hours: number; pct: number } {
@@ -45,6 +49,14 @@ export default function PoolPageContent() {
   const [periodsSearchInput, setPeriodsSearchInput] = useState("");
   const periodsSearch = useDebouncedValue(periodsSearchInput);
 
+  const nowJalali = useMemo(() => jalaliPartsFromDate(new Date()), []);
+  const [txPagination, setTxPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 });
+  const [txSearchInput, setTxSearchInput] = useState("");
+  const txSearch = useDebouncedValue(txSearchInput);
+  const [txType, setTxType] = useState<AdminPoolTransactionTypeFilter>("");
+  const [txYear, setTxYear] = useState<number | "">(nowJalali.year);
+  const [txMonth, setTxMonth] = useState<number | "">("");
+
   function handleSearchChange(value: string) {
     setSearchInput(value);
     setPagination((p) => (p.pageIndex === 0 ? p : { ...p, pageIndex: 0 }));
@@ -53,6 +65,15 @@ export default function PoolPageContent() {
   function handlePeriodsSearchChange(value: string) {
     setPeriodsSearchInput(value);
     setPeriodsPagination((p) => (p.pageIndex === 0 ? p : { ...p, pageIndex: 0 }));
+  }
+
+  function handleTxSearchChange(value: string) {
+    setTxSearchInput(value);
+    setTxPagination((p) => (p.pageIndex === 0 ? p : { ...p, pageIndex: 0 }));
+  }
+
+  function resetTxPage() {
+    setTxPagination((p) => (p.pageIndex === 0 ? p : { ...p, pageIndex: 0 }));
   }
 
   const { data: overview, isLoading: overviewLoading } = useQuery<AdminPoolOverviewResponse>({
@@ -75,6 +96,28 @@ export default function PoolPageContent() {
         `${ENDPOINTS.ADMIN.POOL.PERIODS}?page=${periodsPagination.pageIndex}&pageSize=${periodsPagination.pageSize}&search=${encodeURIComponent(periodsSearch)}`,
       ),
   });
+
+  const txQuery = useMemo(() => {
+    const params = new URLSearchParams({
+      page: String(txPagination.pageIndex),
+      pageSize: String(txPagination.pageSize),
+      search: txSearch,
+    });
+    if (txType) params.set("type", txType);
+    if (txYear !== "") params.set("year", String(txYear));
+    if (txMonth !== "") params.set("month", String(txMonth));
+    return params.toString();
+  }, [txPagination, txSearch, txType, txYear, txMonth]);
+
+  const { data: txData, isLoading: txLoading } = useQuery<AdminPoolTransactionsResponse>({
+    queryKey: ["admin", "pool", "transactions", txQuery],
+    queryFn: () => apiClient.get(`${ENDPOINTS.ADMIN.POOL.TRANSACTIONS}?${txQuery}`),
+  });
+
+  const yearOptions = useMemo(() => {
+    const y = nowJalali.year;
+    return [y, y - 1, y - 2];
+  }, [nowJalali.year]);
 
   const remaining = useMemo(
     () => (overview ? timeRemaining(overview.endDate) : { days: 0, hours: 0, pct: 0 }),
@@ -138,6 +181,72 @@ export default function PoolPageContent() {
         header: t("columns.estimatedReward"),
         cell: ({ getValue }) => (
           <span className="tabular-nums">{Number(getValue()).toLocaleString("fa-IR")}</span>
+        ),
+      },
+    ],
+    [t],
+  );
+
+  const txColumns = useMemo<ColumnDef<AdminPoolTransactionRow, unknown>[]>(
+    () => [
+      {
+        accessorKey: "status",
+        header: t("txColumns.status"),
+        cell: ({ getValue }) => {
+          const status = String(getValue()) as AdminPoolTransactionRow["status"];
+          return (
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                status === "deposited" &&
+                  "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+                status === "burned" && "bg-red-500/15 text-red-700 dark:text-red-300",
+                status === "allocated" && "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+              )}
+            >
+              {t(`txStatus.${status}`)}
+            </span>
+          );
+        },
+      },
+      {
+        accessorKey: "amount",
+        header: t("txColumns.amount"),
+        cell: ({ getValue }) => (
+          <span className="tabular-nums">{Number(getValue()).toLocaleString("fa-IR")}</span>
+        ),
+      },
+      {
+        id: "user",
+        header: t("txColumns.user"),
+        cell: ({ row }) => (
+          <div className="flex flex-col">
+            <span className="font-medium">{row.original.userName}</span>
+            <span className="text-muted text-xs" dir="ltr">
+              {row.original.userMobile}
+            </span>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "periodTitle",
+        header: t("txColumns.period"),
+        cell: ({ getValue }) => <span className="text-sm">{String(getValue())}</span>,
+      },
+      {
+        accessorKey: "description",
+        header: t("txColumns.description"),
+        cell: ({ getValue }) => (
+          <span className="text-muted line-clamp-2 text-xs">{String(getValue())}</span>
+        ),
+      },
+      {
+        accessorKey: "createdAt",
+        header: t("txColumns.date"),
+        cell: ({ getValue }) => (
+          <span className="text-muted text-xs tabular-nums">
+            {formatDateTime(String(getValue()))}
+          </span>
         ),
       },
     ],
@@ -312,6 +421,107 @@ export default function PoolPageContent() {
           onPaginationChange={setPagination}
           isLoading={isLoading}
           emptyMessage={t("empty")}
+        />
+      </div>
+
+      <div>
+        <div className="mb-4 flex items-center gap-2">
+          <ArrowLeftRight size={18} className="text-primary" />
+          <div>
+            <h2 className="text-foreground text-sm font-semibold">{t("transactionsTitle")}</h2>
+            <p className="text-muted mt-0.5 text-xs">{t("transactionsSubtitle")}</p>
+          </div>
+        </div>
+
+        <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <AdminOverviewStatCard
+            label={t("txSummaryInflow")}
+            value={(txData?.summary.totalInflow ?? 0).toLocaleString("fa-IR")}
+            unit={t("twinUnit")}
+            icon={Wallet}
+            iconClassName="bg-emerald-500/10 text-emerald-600"
+          />
+          <AdminOverviewStatCard
+            label={t("txSummaryBurned")}
+            value={(txData?.summary.totalBurned ?? 0).toLocaleString("fa-IR")}
+            unit={t("twinUnit")}
+            icon={Flame}
+            iconClassName="bg-red-500/10 text-red-600"
+          />
+          <AdminOverviewStatCard
+            label={t("txSummaryAllocated")}
+            value={(txData?.summary.totalAllocated ?? 0).toLocaleString("fa-IR")}
+            unit={t("twinUnit")}
+            icon={Trophy}
+            iconClassName="bg-amber-500/10 text-amber-600"
+          />
+        </div>
+
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <select
+            className="border-border bg-background h-9 rounded-lg border px-2 text-sm"
+            value={txType}
+            aria-label={t("txFilterType")}
+            onChange={(e) => {
+              setTxType(e.target.value as AdminPoolTransactionTypeFilter);
+              resetTxPage();
+            }}
+          >
+            <option value="">{t("txFilterTypeAll")}</option>
+            <option value="inflow">{t("txFilterTypeInflow")}</option>
+            <option value="burn">{t("txFilterTypeBurn")}</option>
+            <option value="payout">{t("txFilterTypePayout")}</option>
+          </select>
+          <select
+            className="border-border bg-background h-9 rounded-lg border px-2 text-sm"
+            value={txYear === "" ? "" : String(txYear)}
+            aria-label={t("txFilterYear")}
+            onChange={(e) => {
+              setTxYear(e.target.value ? Number(e.target.value) : "");
+              resetTxPage();
+            }}
+          >
+            {yearOptions.map((y) => (
+              <option key={y} value={y}>
+                {y.toLocaleString("fa-IR")}
+              </option>
+            ))}
+          </select>
+          <select
+            className="border-border bg-background h-9 rounded-lg border px-2 text-sm"
+            value={txMonth === "" ? "" : String(txMonth)}
+            aria-label={t("txFilterMonth")}
+            onChange={(e) => {
+              setTxMonth(e.target.value ? Number(e.target.value) : "");
+              resetTxPage();
+            }}
+          >
+            <option value="">{t("txFilterMonthAll")}</option>
+            {JALALI_MONTH_NAMES.map((name, i) => (
+              <option key={name} value={i + 1}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <AdminTableToolbar
+          value={txSearchInput}
+          onChange={handleTxSearchChange}
+          placeholder={t("transactionsSearchPlaceholder")}
+          total={txData?.total}
+          totalLabel={(count) => t("transactionsCount", { count })}
+        />
+
+        <DataTable
+          data={txData?.data ?? []}
+          columns={txColumns}
+          pageCount={txData?.pageCount}
+          total={txData?.total}
+          pagination={txPagination}
+          onPaginationChange={setTxPagination}
+          isLoading={txLoading}
+          emptyMessage={t("transactionsEmpty")}
         />
       </div>
 

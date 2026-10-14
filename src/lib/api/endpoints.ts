@@ -73,6 +73,8 @@ export const ENDPOINTS = {
   NOTIFICATIONS: {
     LIST: "/notifications",
     ACTIVITY: "/notifications/activity",
+    MARK_READ: (id: string) => `/notifications/${id}/read` as const,
+    MARK_ALL_READ: "/notifications/read-all",
   },
   ADMIN: {
     AUTH: {
@@ -86,6 +88,18 @@ export const ENDPOINTS = {
       DETAIL: (userId: string) => `/admin/users/${userId}` as const,
       UPDATE_STATUS: (userId: string) => `/admin/users/${userId}/status` as const,
       UPDATE_ROLE: (userId: string) => `/admin/users/${userId}/role` as const,
+    },
+    NOTIFICATION_GROUPS: {
+      LIST: "/admin/notification-groups",
+      CREATE: "/admin/notification-groups",
+      DETAIL: (id: string) => `/admin/notification-groups/${id}` as const,
+      UPDATE: (id: string) => `/admin/notification-groups/${id}` as const,
+      DELETE: (id: string) => `/admin/notification-groups/${id}` as const,
+    },
+    SYSTEM_MESSAGES: {
+      LIST: "/admin/system-messages",
+      CREATE: "/admin/system-messages",
+      DELETE: (id: string) => `/admin/system-messages/${id}` as const,
     },
     NETWORK: {
       CLOSURE: "/admin/network/closure",
@@ -111,6 +125,7 @@ export const ENDPOINTS = {
       OVERVIEW: "/admin/pool/overview",
       PARTICIPANTS: "/admin/pool/participants",
       PERIODS: "/admin/pool/periods",
+      TRANSACTIONS: "/admin/pool/transactions",
     },
     SEDIMENT: {
       OVERVIEW: "/admin/sediment/overview",

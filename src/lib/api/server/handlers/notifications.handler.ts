@@ -1,32 +1,10 @@
 import { NextResponse } from "next/server";
-import type { LoginActivity, Notification, NotificationType } from "@/types/mlm";
-
-const NOTIFICATIONS: Notification[] = [
-  {
-    id: "mock-notification-1",
-    type: "system",
-    title: "به نیب کلاب خوش آمدید",
-    body: "حساب کاربری شما آماده استفاده است.",
-    createdAt: "2026-08-16T08:30:00.000Z",
-    isRead: false,
-  },
-  {
-    id: "mock-notification-2",
-    type: "network",
-    title: "عضو جدید شبکه",
-    body: "یک کاربر جدید با کد دعوت شما ثبت‌نام کرد.",
-    createdAt: "2026-08-15T12:00:00.000Z",
-    isRead: true,
-  },
-  {
-    id: "mock-notification-3",
-    type: "promotion",
-    title: "ماموریت جدید",
-    body: "ماموریت هفتگی جدید برای شما فعال شد.",
-    createdAt: "2026-08-14T09:15:00.000Z",
-    isRead: true,
-  },
-];
+import type { LoginActivity } from "@/types/mlm";
+import {
+  listClientNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+} from "@/lib/mock/admin-system-messages";
 
 const LOGIN_ACTIVITY: LoginActivity[] = [
   {
@@ -40,14 +18,31 @@ const LOGIN_ACTIVITY: LoginActivity[] = [
 ];
 
 export async function notificationsListHandler(req: Request): Promise<Response> {
-  const requestedType = new URL(req.url).searchParams.get("type") as NotificationType | null;
-  const items = requestedType
-    ? NOTIFICATIONS.filter((notification) => notification.type === requestedType)
-    : NOTIFICATIONS;
+  const url = new URL(req.url);
+  const type = url.searchParams.get("type");
+  const limit = Math.min(parseInt(url.searchParams.get("limit") ?? "20", 10) || 20, 100);
+  const page = Math.max(parseInt(url.searchParams.get("page") ?? "1", 10) || 1, 1);
 
-  return NextResponse.json({ items, total: items.length, page: 1, limit: items.length });
+  const result = await listClientNotifications({ page, limit, type });
+  return NextResponse.json(result);
 }
 
 export async function notificationsActivityHandler(): Promise<Response> {
   return NextResponse.json(LOGIN_ACTIVITY);
+}
+
+export async function notificationsMarkReadHandler(_req: Request, id: string): Promise<Response> {
+  const result = await markNotificationRead(id);
+  if (!result.ok) {
+    return NextResponse.json(
+      { error: "not_found", message: result.error },
+      { status: result.status },
+    );
+  }
+  return NextResponse.json({ id: result.id, isRead: true });
+}
+
+export async function notificationsMarkAllReadHandler(): Promise<Response> {
+  const result = await markAllNotificationsRead();
+  return NextResponse.json(result);
 }
