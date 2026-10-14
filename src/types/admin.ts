@@ -583,9 +583,9 @@ export interface CreateSystemMessageRequest {
   title: string;
   body: string;
   audienceType: CampaignAudienceType;
-  /** @deprecated prefer userIds — kept for single-recipient callers */
+  /** Single recipient UUID when audienceType === "user" */
   userId?: string;
-  /** One or more user UUIDs when audienceType === "user" */
+  /** Multiple recipient UUIDs (not used for single-user sends) */
   userIds?: string[];
   groupId?: string;
   channels: CampaignChannels;

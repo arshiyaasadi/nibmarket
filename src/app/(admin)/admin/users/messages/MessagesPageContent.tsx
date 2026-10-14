@@ -100,7 +100,7 @@ export function MessagesPageContent() {
         title: title.trim(),
         body: body.trim(),
         audienceType: mode,
-        userIds: mode === "user" ? selectedUsers.map((u) => u.id) : undefined,
+        userId: mode === "user" ? selectedUsers[0]?.id : undefined,
         groupId: mode === "group" ? (selectedGroupId ?? undefined) : undefined,
         channels: { system: channelSystem, sms: channelSms },
         scheduledAt: scheduleEnabled ? scheduledAt : null,
