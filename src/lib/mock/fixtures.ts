@@ -6,6 +6,7 @@ import type {
   UserRole,
 } from "@/types/mlm";
 import { formatDateTime } from "@/lib/utils";
+import { MEHR_MISSIONS, toUserMissionDef } from "@/resources/data/mehr-missions";
 
 export const MOCK_USER_ID = "00000000-0000-4000-8000-000000000001";
 export const MOCK_MOBILE = "09123456789";
@@ -74,49 +75,39 @@ export const MOCK_INVITED: InvitedPerson[] = [
   },
 ];
 
-export const MOCK_MISSIONS: MissionDef[] = [
-  {
-    id: "m1",
-    code: "daily_login",
-    title: "لاگین روزانه",
-    description: "هر روز وارد پنل شوید",
-    reward: 10,
-    missionType: "custom",
-    status: "active",
-    completed: false,
-  },
-  {
-    id: "m2",
-    code: "referral_3",
-    title: "رسیدن به ۳ زیرمجموعه مستقیم",
-    description: "۳ نفر را دعوت کنید",
-    reward: 50,
-    missionType: "referral_count",
-    status: "active",
-    completed: true,
-    completedAt: formatDateTime("2024-06-07T15:34:11.000Z"),
-  },
-  {
-    id: "m3",
-    code: "invite_new",
-    title: "معرفی فرد جدید",
-    description: "یک فرد جدید معرفی کنید",
-    reward: 25,
-    missionType: "referral_count",
-    status: "active",
-    completed: true,
-    completedAt: formatDateTime("2024-06-05T10:00:00.000Z"),
-  },
-];
+/** Mock seed mirrors Mehr marketing list; a couple marked completed for UI demos. */
+export const MOCK_MISSIONS: MissionDef[] = MEHR_MISSIONS.map((seed, index) => {
+  const base = toUserMissionDef(seed);
+  if (seed.code === "monthly_referrals_3") {
+    return {
+      ...base,
+      id: "m2",
+      completed: true,
+      completedAt: formatDateTime("2024-06-07T15:34:11.000Z"),
+    };
+  }
+  if (seed.code === "new_referral") {
+    return {
+      ...base,
+      id: "m3",
+      completed: true,
+      completedAt: formatDateTime("2024-06-05T10:00:00.000Z"),
+    };
+  }
+  if (seed.code === "daily_login") {
+    return { ...base, id: "m1" };
+  }
+  return { ...base, id: `m-${index + 1}` };
+});
 
 export const MOCK_MISSION_ACTIVITY: MissionActivity[] = [
   {
     id: "ma1",
     missionId: "m2",
-    title: "رسیدن به ۳ زیرمجموعه مستقیم",
+    title: "معرفی حداقل ۳ فرد در یک ماه",
     date: "2024-06-07T15:34:11.0000000",
     status: "completed",
-    reward: 50,
+    reward: 500,
     rrn: "MSN000000413",
   },
   {
@@ -125,7 +116,7 @@ export const MOCK_MISSION_ACTIVITY: MissionActivity[] = [
     title: "معرفی فرد جدید",
     date: "2024-06-05T10:00:00.0000000",
     status: "completed",
-    reward: 25,
+    reward: 50,
     rrn: "MSN000000412",
   },
   {
@@ -134,7 +125,7 @@ export const MOCK_MISSION_ACTIVITY: MissionActivity[] = [
     title: "لاگین روزانه",
     date: "2024-06-04T08:00:00.0000000",
     status: "pending_verification",
-    reward: 10,
+    reward: 2,
   },
 ];
 

@@ -14,6 +14,12 @@ import { AdminMissionJobsHealth } from "@/components/organisms/admin/missions/Ad
 import { normalizeAdminMissionList } from "@/lib/admin/mission-jobs";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { formatDisplayDateTime } from "@/lib/utils";
+import {
+  isMehrPreviewMissionId,
+  MEHR_MISSIONS,
+  mergeMehrAdminMissions,
+  shouldMergeMehrAdminPreview,
+} from "@/resources/data/mehr-missions";
 import type {
   AdminMissionCompletionRow,
   AdminMissionCompletionsResponse,
@@ -66,7 +72,25 @@ export default function MissionsPageContent() {
       const result = await apiClient.get<AdminMissionsListResponse>(
         `${ENDPOINTS.ADMIN.MISSIONS.LIST}?page=${missionsPagination.pageIndex}&pageSize=${missionsPagination.pageSize}&search=${encodeURIComponent(missionsSearch)}`,
       );
-      return { ...result, data: normalizeAdminMissionList(result.data) };
+      const normalized = normalizeAdminMissionList(result.data);
+      // TEMP mlm-15: show marketing missions not yet seeded by backend (page 0, no search)
+      if (
+        missionsPagination.pageIndex === 0 &&
+        !missionsSearch.trim() &&
+        shouldMergeMehrAdminPreview(result.total)
+      ) {
+        const { data, appended } = mergeMehrAdminMissions(normalized);
+        return {
+          ...result,
+          data,
+          total: result.total + appended,
+          pageCount: Math.max(
+            result.pageCount,
+            Math.ceil((result.total + appended) / Math.max(result.pageSize, 1)),
+          ),
+        };
+      }
+      return { ...result, data: normalized };
     },
   });
 
@@ -180,6 +204,7 @@ export default function MissionsPageContent() {
         id: "actions",
         header: t("columns.actions"),
         cell: ({ row }) => {
+          const isPreview = isMehrPreviewMissionId(row.original.id);
           const isActive = row.original.status === "active";
           const isPending =
             statusMutation.isPending && statusMutation.variables?.id === row.original.id;
@@ -188,7 +213,10 @@ export default function MissionsPageContent() {
             <button
               type="button"
               disabled={
-                isPending || row.original.status === "draft" || row.original.status === "archived"
+                isPreview ||
+                isPending ||
+                row.original.status === "draft" ||
+                row.original.status === "archived"
               }
               onClick={() =>
                 statusMutation.mutate({
@@ -201,6 +229,7 @@ export default function MissionsPageContent() {
                   ? "bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20"
                   : "bg-green-500/10 text-green-600 hover:bg-green-500/20"
               }`}
+              title={isPreview ? t("previewPendingBackend") : undefined}
             >
               {isPending ? t("toggling") : isActive ? t("deactivate") : t("activate")}
             </button>
@@ -280,8 +309,15 @@ export default function MissionsPageContent() {
           <>
             <AdminOverviewStatCard
               label={t("totalMissions")}
-              value={(overview?.missionCount ?? 0).toLocaleString("fa-IR")}
-              hint={t("activeMissionsHint", { count: overview?.activeMissionCount ?? 0 })}
+              value={(shouldMergeMehrAdminPreview(overview?.missionCount ?? 0)
+                ? MEHR_MISSIONS.length
+                : (overview?.missionCount ?? 0)
+              ).toLocaleString("fa-IR")}
+              hint={t("activeMissionsHint", {
+                count: shouldMergeMehrAdminPreview(overview?.missionCount ?? 0)
+                  ? MEHR_MISSIONS.length
+                  : (overview?.activeMissionCount ?? 0),
+              })}
               icon={Target}
               iconClassName="bg-primary/10 text-primary"
             />

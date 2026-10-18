@@ -303,6 +303,7 @@
     "activate": "فعال‌سازی",
     "deactivate": "غیرفعال‌سازی",
     "toggling": "در حال ثبت...",
+    "previewPendingBackend": "موقت — هنوز در بک‌اند seed نشده",
     "columns": {
       "code": "کد",
       "title": "عنوان",
