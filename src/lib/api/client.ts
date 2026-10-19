@@ -11,6 +11,13 @@ type RequestOptions = Omit<RequestInit, "body"> & { body?: unknown };
 
 const AUTH_ATTEMPT_PATHS = new Set(["/auth/login"]);
 
+/** UI-mock builds (nibdev demo): never kick the user out on 401. */
+function isUiMockClientMode(): boolean {
+  return (
+    process.env.NEXT_PUBLIC_FORCE_UI_DEV_MODE === "1" || process.env.NEXT_PUBLIC_UI_DEV_MODE === "1"
+  );
+}
+
 function buildAuthHeaders(path: string, headers?: HeadersInit): HeadersInit {
   const token = AUTH_ATTEMPT_PATHS.has(path) ? null : useAuthSlice.getState().token;
   return {
@@ -77,6 +84,11 @@ async function handleUnauthorized(path: string): Promise<void> {
     path.startsWith("/admin/auth/") ||
     typeof window === "undefined"
   ) {
+    return;
+  }
+
+  // UI-mock / FORCE_UI builds: incomplete BE 401s must not clear session or redirect.
+  if (isUiMockClientMode()) {
     return;
   }
 

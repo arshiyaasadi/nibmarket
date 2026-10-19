@@ -43,7 +43,9 @@ Cold start (no active container yet): builds the default slot (`blue`) directly 
 ### CLI (from laptop)
 
 ```bash
-yarn sync:dev                 # rsync + blue/green deploy
+yarn sync:dev                 # UI mock by default (401 does not log out)
+yarn sync:dev:ui              # explicit UI mock
+yarn sync:dev:api             # real club BE when ready
 yarn sync:dev --status        # deploy-status + slot-state + docker ps
 yarn sync:dev --follow        # tail remote deploy.log
 yarn sync:dev --rollback      # instant swap active ↔ standby (no rebuild)
@@ -57,6 +59,10 @@ On server (same scripts):
 bash scripts/remote-deploy-dev.sh --status
 bash scripts/remote-deploy-dev.sh --rollback
 ```
+
+## UI mock (default while BE is incomplete)
+
+`yarn sync:dev` sets `FORCE_UI_DEV_MODE=1` + `API_SERVICE_MODE=mock`. The client ignores 401 logout/redirect in this mode. Switch to real API with `yarn sync:dev --api --force`.
 
 ## Stack on the dev host
 
@@ -73,12 +79,12 @@ cp .env.example .env
 # Ensure:
 APP_ENV=development
 NEXT_PUBLIC_APP_ENV=development
-API_SERVICE_MODE=api
 AUTH_SECRET=<long-random>
 APP_PORT=3000
+# After sync:dev (default mock): FORCE_UI_DEV_MODE=1, API_SERVICE_MODE=mock
 ```
 
-Client URLs are baked at **image build** from `NEXT_PUBLIC_APP_ENV`. Changing zone requires rebuild.
+Client URLs and UI-mock flags are baked at **image build**. Changing zone/mode requires rebuild.
 
 `yarn sync:dev` patches server `.env` auth/SSO URLs:
 

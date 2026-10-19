@@ -3,12 +3,21 @@ import { extractApiErrorMessage } from "@/lib/api/error-message";
 import { logger } from "./logger";
 import type { AppError } from "./api-error";
 
+function isUiMockClientMode(): boolean {
+  return (
+    process.env.NEXT_PUBLIC_FORCE_UI_DEV_MODE === "1" || process.env.NEXT_PUBLIC_UI_DEV_MODE === "1"
+  );
+}
+
 export function handleApiError(error: unknown): AppError {
   if (error instanceof ApiException) {
     if (error.statusCode === 401) {
-      void import("@/lib/auth/session").then(({ clearSessionLocally }) => {
-        clearSessionLocally();
-      });
+      // UI-mock builds: keep the session so incomplete BE does not log the user out.
+      if (!isUiMockClientMode()) {
+        void import("@/lib/auth/session").then(({ clearSessionLocally }) => {
+          clearSessionLocally();
+        });
+      }
       return {
         code: "UNAUTHORIZED",
         message: error.message || "errors.sessionExpired",
