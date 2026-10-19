@@ -39,7 +39,7 @@ function displayOrDash(value: string | number | null | undefined): string {
 }
 
 function formatSejamGender(
-  sejamGender: AdminUserSejam["gender"],
+  sejamGender: AdminUserSejam["gender"] | undefined,
   fallback: "male" | "female" | null | undefined,
 ): string {
   if (sejamGender === "male" || sejamGender === 1 || sejamGender === "1" || sejamGender === "M") {
