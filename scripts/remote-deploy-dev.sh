@@ -338,10 +338,9 @@ set_port() {
 patch_zone_auth_env .env development
 seed_secret .env
 set_port .env "${PUBLIC_PORT}"
-# Always real API on nibdev (clear leftover UI-mock from earlier deploys).
-# Incomplete club BE routes stay LOCAL_ONLY in bff-route-handler (backend-inbox).
+# Hard-disable UI-mock leftovers from earlier deploys — always proxy to club BE.
 clear_live_ui_mock_env .env
-# Test flag: API 401 must not log the user out. Turn off: set to 0 in .env + rebuild.
+# Only test flag we keep: API 401 must not log the user out.
 upsert_env_var .env "NEXT_PUBLIC_KEEP_SESSION_ON_401" "1"
 
 if [[ ! -f "${COMPOSE_FILE}" ]]; then
@@ -351,16 +350,20 @@ fi
 export_build_env
 set -a
 # shellcheck disable=SC1091
-source <(grep -E '^(APP_ENV|NEXT_PUBLIC_APP_ENV|NEXT_PUBLIC_KEEP_SESSION_ON_401|FORCE_UI_DEV_MODE|NEXT_PUBLIC_FORCE_UI_DEV_MODE|NEXT_PUBLIC_UI_DEV_MODE|API_SERVICE_MODE)=' .env | sed 's/\r$//' || true)
+source <(grep -E '^(APP_ENV|NEXT_PUBLIC_APP_ENV|NEXT_PUBLIC_KEEP_SESSION_ON_401)=' .env | sed 's/\r$//' || true)
 set +a
 export APP_ENV=development
 export NEXT_PUBLIC_APP_ENV=development
 export APP_PORT="${PUBLIC_PORT}"
-export FORCE_UI_DEV_MODE="${FORCE_UI_DEV_MODE:-0}"
-export NEXT_PUBLIC_FORCE_UI_DEV_MODE="${NEXT_PUBLIC_FORCE_UI_DEV_MODE:-0}"
-export NEXT_PUBLIC_UI_DEV_MODE="${NEXT_PUBLIC_UI_DEV_MODE:-0}"
-export API_SERVICE_MODE="${API_SERVICE_MODE:-api}"
-echo "--- build flags: API_SERVICE_MODE=${API_SERVICE_MODE} FORCE_UI=${FORCE_UI_DEV_MODE} KEEP_SESSION_ON_401=${NEXT_PUBLIC_KEEP_SESSION_ON_401:-0}"
+# Unconditional — never bake mock mode into the image (ignore stale .env values).
+export FORCE_UI_DEV_MODE=0
+export NEXT_PUBLIC_FORCE_UI_DEV_MODE=0
+export UI_DEV_MODE=0
+export NEXT_PUBLIC_UI_DEV_MODE=0
+export API_SERVICE_MODE=api
+export NEXT_PUBLIC_KEEP_SESSION_ON_401="${NEXT_PUBLIC_KEEP_SESSION_ON_401:-1}"
+echo "--- build flags: API_SERVICE_MODE=${API_SERVICE_MODE} FORCE_UI=${FORCE_UI_DEV_MODE} KEEP_SESSION_ON_401=${NEXT_PUBLIC_KEEP_SESSION_ON_401}"
+grep -E '^(API_SERVICE_MODE|FORCE_UI_DEV_MODE|NEXT_PUBLIC_FORCE_UI_DEV_MODE|UI_DEV_MODE|NEXT_PUBLIC_UI_DEV_MODE|NEXT_PUBLIC_KEEP_SESSION_ON_401)=' .env || true
 
 write_status "base_image" "running" "Pulling ${NODE_BASE_IMAGE}"
 pull_base() {
@@ -405,7 +408,7 @@ if [[ "${active_up}" -eq 0 ]]; then
   write_slot_state "${ACTIVE_SLOT}"
   apply_port_env_from_state
 
-  compose_with_ports build "$(service_name "${ACTIVE_SLOT}")" \
+  compose_with_ports build --no-cache "$(service_name "${ACTIVE_SLOT}")" \
     || fail "build" "compose build ${ACTIVE_SLOT} failed"
   compose_with_ports up -d --no-deps "$(service_name "${ACTIVE_SLOT}")" \
     || fail "build" "compose up ${ACTIVE_SLOT} failed"
@@ -441,8 +444,8 @@ fi
 # Recreate active with correct public bind (in case of drift) without rebuild
 compose_with_ports up -d --no-build --no-deps "$(service_name "${ACTIVE_SLOT}")" 2>/dev/null || true
 
-echo "--- Building $(service_name "${INACTIVE_SLOT}")"
-compose_with_ports build "$(service_name "${INACTIVE_SLOT}")" \
+echo "--- Building $(service_name "${INACTIVE_SLOT}") (--no-cache so NEXT_PUBLIC_* / API mode rebake)"
+compose_with_ports build --no-cache "$(service_name "${INACTIVE_SLOT}")" \
   || fail "build" "compose build ${INACTIVE_SLOT} failed"
 
 echo "--- Starting inactive on ${STANDBY_BIND}"

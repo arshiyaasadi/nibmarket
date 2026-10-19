@@ -64,6 +64,7 @@ clear_live_ui_mock_env() {
   local file="$1"
   upsert_env_var "${file}" "FORCE_UI_DEV_MODE" "0"
   upsert_env_var "${file}" "NEXT_PUBLIC_FORCE_UI_DEV_MODE" "0"
+  upsert_env_var "${file}" "UI_DEV_MODE" "0"
   upsert_env_var "${file}" "NEXT_PUBLIC_UI_DEV_MODE" "0"
   upsert_env_var "${file}" "API_SERVICE_MODE" "api"
 }

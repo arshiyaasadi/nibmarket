@@ -58,15 +58,13 @@ bash scripts/remote-deploy-dev.sh --status
 bash scripts/remote-deploy-dev.sh --rollback
 ```
 
-## API vs LOCAL_ONLY (backend-inbox)
+## Real API (default)
 
-Normal nibdev deploy uses **real club BE** (`API_SERVICE_MODE=api`). Deploy clears any leftover `FORCE_UI_DEV_MODE` so the panel does not boot with «کاربر تست» mock fixtures.
-
-Only routes listed as not ready in `novin-club-work/backend-inbox.md` stay **LOCAL_ONLY** in the BFF (mission sections / badges merge, leads registration-link, admin geo, session cookie handlers). Everything else proxies to `api-club.nibdev.com`.
+nibdev deploy always uses **club BE** (`API_SERVICE_MODE=api`) and hard-clears UI-mock flags (`FORCE_UI_DEV_MODE=0`, …) so the panel does not serve «کاربر تست» fixtures. BFF only keeps session-cookie routes (+ admin geo fixture) local; all other `/api/v2` calls proxy to `api-club.nibdev.com`.
 
 ### Test flag: keep session on 401
 
-nibdev deploy sets `NEXT_PUBLIC_KEEP_SESSION_ON_401=1` so a 401 does **not** clear the session or send the user to session-expired (`src/config/feature-flags.ts`). Turn off with `NEXT_PUBLIC_KEEP_SESSION_ON_401=0` in `.env` and redeploy.
+`NEXT_PUBLIC_KEEP_SESSION_ON_401=1` — a 401 does **not** clear the session or redirect to session-expired (`src/config/feature-flags.ts`).
 
 ### Blue / green ports
 
