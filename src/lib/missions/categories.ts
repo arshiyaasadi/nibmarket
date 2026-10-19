@@ -54,7 +54,7 @@ export const MISSION_CATEGORIES: MissionCategoryMeta[] = [
   },
 ];
 
-/** Canonical codes per section — must match missions-catalog.json */
+/** Canonical codes per section — must match docs/03-data/missions-catalog.json */
 export const MISSION_SECTION_CODES: Record<MissionSectionId, readonly string[]> = {
   promotion: ["daily_login", "new_referral", "monthly_referrals_3"],
   onboarding: ["registration", "identity_verification", "first_fund_purchase"],

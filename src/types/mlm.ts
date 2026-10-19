@@ -1,9 +1,14 @@
-// API DTOs derived from shared/database/schema.sql.
-// DB rows are mapped to these UI-friendly shapes in src/types/mappers.ts.
+/**
+ * Club panel API DTOs (user / MLM surfaces).
+ * Path SSOT: `src/lib/api/endpoints.ts`
+ * Pending BE deltas: `novin-club-work/backend-inbox.md`
+ * Mappers from raw payloads: `src/types/mappers.ts`
+ */
 
 // ── Auth & User ──────────────────────────────────────────────
 export type UserRole = "client" | "manager" | "admin";
 
+/** Authenticated panel user profile fields used across network/auth UI. */
 export interface User {
   id: string;
   mobile: string;
@@ -12,9 +17,11 @@ export interface User {
   lastName: string;
   fullName: string;
   role: UserRole;
-  balance: number; // تنوین tokens
+  /** Wallet balance in تنوین tokens */
+  balance: number;
   referralCode: string;
-  inviteCode: string; // UI alias for referralCode
+  /** UI alias for referralCode */
+  inviteCode: string;
   kycStatus: "none" | "pending" | "verified" | "rejected";
   status: "pending_verification" | "active" | "suspended" | "closed";
 }
@@ -83,37 +90,49 @@ export interface Mission {
   reward: string; // display string e.g. "10 توکن"
 }
 
+/**
+ * Full mission row for list/section APIs.
+ * `reward` is always a number (تنوین), never a formatted string.
+ * Catalog codes: `docs/03-data/missions-catalog.json`
+ */
 export interface MissionDef {
   id: string;
+  /** snake_case catalog code */
   code: string;
   title: string;
+  /** تنوین amount */
   reward: number;
+  /** Inline condition text (e.g. fund purchase min AUM) */
   description?: string;
   missionType: "referral_count" | "purchase" | "registration" | "fund_issue" | "custom";
   status: "draft" | "active" | "paused" | "archived";
+  /** Per current user */
   completed?: boolean;
+  /** ISO timestamp when completed */
   completedAt?: string;
   /** Legacy flag — treat as +100% boost when set */
   doubleBonus?: boolean;
   /**
-   * Optional campaign boost from backend (mlm-16).
+   * Optional campaign boost from backend.
    * FE only renders boost UI when these are present / doubleBonus is true.
    */
   rewardBoostPercent?: number;
   boostedReward?: number;
+  /** ISO expiry for boost */
   boostEndsAt?: string;
   /**
-   * Optional period progress from backend (promotion / recurring missions).
+   * Optional period progress (promotion / recurring missions).
    * FE falls back to code defaults when missing.
    */
   progressCurrent?: number;
   progressTarget?: number;
+  /** ISO end of day/month period */
   periodEndsAt?: string;
-  /** ISO dates (YYYY-MM-DD) when daily login was claimed this week */
+  /** Local calendar dates `YYYY-MM-DD` claimed this week (daily_login) */
   loginClaimedDates?: string[];
-  /** Lifetime / cumulative referral count for per-event referral mission */
+  /** Lifetime / period invite count for per-event referral card */
   referralCount?: number;
-  /** Tokens earned from referral rewards so far */
+  /** Tokens earned from that referral mission so far */
   referralTokensEarned?: number;
 }
 
@@ -124,14 +143,16 @@ export interface MissionSectionResponse {
 
 export type MarketingBadgeCode = "pishgam" | "motabar" | "collector" | "rahbar" | "safir_novin";
 
-/** GET /missions/sections/badges item */
+/** GET /missions/sections/badges — one marketing badge + unlock state */
 export interface MarketingBadgeItem {
   code: MarketingBadgeCode;
+  /** Linked mission code that unlocks this badge */
   missionCode: string;
   title: string;
   description?: string;
   reward: number;
   unlocked: boolean;
+  /** ISO when unlocked */
   achievedAt?: string | null;
   imageUrl?: string | null;
 }
@@ -142,6 +163,7 @@ export interface MarketingBadgesResponse {
 
 /** POST /missions/complete */
 export interface MissionCompleteRequest {
+  /** Mission catalog code, e.g. `training_level_1` */
   code: string;
 }
 
@@ -150,13 +172,15 @@ export interface MissionCompleteResponse {
   code: string;
   completed: boolean;
   reward: number;
+  /** True when already completed — no double pay */
   alreadyCompleted?: boolean;
 }
 
-/** POST /leads/registration-link */
+/** POST /leads/registration-link (public; rate-limit on BE) */
 export type RegistrationLinkLeadSource = "landing_hero" | "landing_join";
 
 export interface RegistrationLinkLeadRequest {
+  /** Iranian mobile `09xxxxxxxxx` */
   mobile: string;
   source: RegistrationLinkLeadSource;
 }
@@ -260,14 +284,15 @@ export interface VipInviteCode {
 export type InviteStatus =
   "pending_verification" | "active" | "suspended" | "closed" | "pending_invite";
 
+/**
+ * GET /network/invite-quota — weekly VIP invite allowance + KYC gate.
+ * FE opens KYC modal only when `canInvite === false` (missing field ≠ blocked).
+ */
 export interface InviteQuota {
   remaining: number;
   limit: number;
   used: number;
-  /**
-   * Whether the user completed KYC and may send VIP invites / grow referrals.
-   * Prefer including this on GET /network/invite-quota (same payload as remaining).
-   */
+  /** false → show InviteKycGateModal instead of invite form */
   canInvite: boolean;
 }
 
@@ -307,10 +332,12 @@ export interface SendInviteResponse {
   message?: string;
 }
 
+/** GET /leaderboard/competition-pool — active (or period-scoped) competition summary */
 export interface CompetitionPool {
   totalPool: number;
   dailyChange: number;
   participantCount: number;
+  /** ISO — used for Jalali month/year label */
   startDate: string;
   endDate: string;
   contextTitle: string;

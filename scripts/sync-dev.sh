@@ -10,9 +10,12 @@
 #   yarn sync:dev
 #   yarn sync:dev --status
 #   yarn sync:dev --follow
+#   yarn sync:dev --rollback   # swap active ↔ standby (no rebuild)
 #   yarn sync:dev --rsync-only
 #   yarn sync:dev --force
 #   DEV_SSH_HOST=<host> yarn sync:dev
+#
+# Blue/green on server: active :3000, standby 127.0.0.1:2999 (localhost only)
 #
 set -euo pipefail
 
@@ -22,8 +25,7 @@ SSH_ALIAS="${DEV_SSH_ALIAS:-nibdev}"
 SSH_KEY="${DEV_SSH_KEY:-}"
 PROJECT_DIR="${DEV_PROJECT_DIR:-/opt/MLM_Front}"
 APP_PORT_HOST="${DEV_APP_PORT:-3000}"
-# unused in remote path now — kept for override docs
-COMPOSE_HINT="docker-compose.dev.yml → mlm_front_dev"
+COMPOSE_HINT="docker-compose.dev.yml → mlm_front_dev_blue|green (active :3000, standby 127.0.0.1:2999)"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -34,18 +36,20 @@ RSYNC_ONLY=0
 STATUS_ONLY=0
 FOLLOW=0
 FORCE=0
+ROLLBACK=0
 for arg in "$@"; do
   case "${arg}" in
     --rsync-only) RSYNC_ONLY=1 ;;
     --status) STATUS_ONLY=1 ;;
     --follow) FOLLOW=1 ;;
     --force) FORCE=1 ;;
+    --rollback) ROLLBACK=1 ;;
     --help|-h)
-      sed -n '2,20p' "$0"
+      sed -n '2,22p' "$0"
       exit 0
       ;;
     *)
-      echo "Unknown option: ${arg} (use --status | --follow | --rsync-only | --force | --help)"
+      echo "Unknown option: ${arg} (use --status | --follow | --rollback | --rsync-only | --force | --help)"
       exit 1
       ;;
   esac
@@ -139,9 +143,30 @@ if [[ "${STATUS_ONLY}" -eq 1 ]]; then
   exit 0
 fi
 
-if [[ "${FOLLOW}" -eq 1 ]] && [[ "${FORCE}" -eq 0 ]] && [[ "${RSYNC_ONLY}" -eq 0 ]]; then
+if [[ "${FOLLOW}" -eq 1 ]] && [[ "${FORCE}" -eq 0 ]] && [[ "${RSYNC_ONLY}" -eq 0 ]] && [[ "${ROLLBACK}" -eq 0 ]]; then
   print_remote_status
   follow_log
+  exit 0
+fi
+
+# Rollback: swap slots on server (no rsync / no build)
+if [[ "${ROLLBACK}" -eq 1 ]]; then
+  echo ">>> Target: TEST/nibdev → ${TARGET} (ROLLBACK)"
+  echo ">>> Remote dir: ${PROJECT_DIR}"
+  remote 'echo "--- connected as $(whoami)@$(hostname)"'
+  remote \
+    SUDO_PASS="${SSH_PASS}" \
+    PROJECT_DIR="${PROJECT_DIR}" \
+    APP_PORT_HOST="${APP_PORT_HOST}" \
+    'bash -s' <<'ROLLBACK_EOF'
+set -euo pipefail
+cd "${PROJECT_DIR}"
+chmod +x scripts/*.sh scripts/lib/*.sh 2>/dev/null || true
+env SUDO_PASS="${SUDO_PASS:-}" PROJECT_DIR="${PROJECT_DIR}" APP_PORT_HOST="${APP_PORT_HOST:-3000}" \
+  bash "${PROJECT_DIR}/scripts/remote-deploy-dev.sh" --rollback
+ROLLBACK_EOF
+  echo ""
+  echo ">>> Rollback finished. Check: yarn sync:dev --status"
   exit 0
 fi
 
@@ -153,6 +178,7 @@ if [[ "${FORCE}" -eq 0 ]] && [[ "${RSYNC_ONLY}" -eq 0 ]]; then
     echo "    yarn sync:dev --status"
     echo "    yarn sync:dev --follow"
     echo "    yarn sync:dev --force"
+    echo "    yarn sync:dev --rollback"
     exit 0
   fi
 fi
@@ -228,7 +254,7 @@ if [[ "${RSYNC_ONLY}" -eq 1 ]]; then
   exit 0
 fi
 
-echo ">>> Starting DETACHED remote-deploy-dev (nibdev env + single stack)"
+echo ">>> Starting DETACHED remote-deploy-dev (nibdev blue/green)"
 remote \
   SUDO_PASS="${SSH_PASS}" \
   PROJECT_DIR="${PROJECT_DIR}" \
@@ -271,5 +297,7 @@ echo ""
 echo ">>> DEV deploy is running on ${TARGET} (you can close this terminal)."
 echo "    Re-check:  yarn sync:dev --status"
 echo "    Stream:    yarn sync:dev --follow"
+echo "    Rollback:  yarn sync:dev --rollback"
 echo "    Restart:   yarn sync:dev --force"
 echo "    password_fallback=${USE_PASSWORD}"
+echo "    ${COMPOSE_HINT}"

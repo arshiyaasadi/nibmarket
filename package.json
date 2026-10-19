@@ -21,6 +21,7 @@
     "sync:dev:files": "bash scripts/sync-dev.sh --rsync-only",
     "sync:dev:status": "bash scripts/sync-dev.sh --status",
     "sync:dev:follow": "bash scripts/sync-dev.sh --follow",
+    "sync:dev:rollback": "bash scripts/sync-dev.sh --rollback",
     "sync:live": "bash scripts/sync-live.sh",
     "sync:live:ui": "LIVE_UI_MOCK=1 bash scripts/sync-live.sh --ui-mock",
     "sync:live:files": "bash scripts/sync-live.sh --rsync-only",

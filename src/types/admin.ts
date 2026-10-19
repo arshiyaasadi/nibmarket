@@ -1,3 +1,8 @@
+/**
+ * Admin panel API DTOs.
+ * Path SSOT: `src/lib/api/endpoints.ts` → `ENDPOINTS.ADMIN`
+ * Pending BE deltas: `novin-club-work/backend-inbox.md`
+ */
 import type {
   LoginActivity,
   NetworkSubset,

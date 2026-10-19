@@ -3,12 +3,15 @@
 //
 // Client-facing BFF version: /api/v2
 // External backend version (API_SERVICE_MODE=api): /api/v2 — see config/api-service.ts
+// DTO shapes: src/types/mlm.ts + src/types/admin.ts
+// Pending club BE work: novin-club-work/backend-inbox.md
 
 export const BFF_API_VERSION = "v2";
 export const BACKEND_API_VERSION = "v2";
 export const BFF_API_BASE = `/api/${BFF_API_VERSION}` as const;
 
 export const ENDPOINTS = {
+  /** Auth / SSO — session cookies owned by BFF */
   AUTH: {
     CHECK_MOBILE: "/auth/check-mobile",
     LOGIN: "/auth/login",
@@ -20,6 +23,7 @@ export const ENDPOINTS = {
     REGISTER_OTP_VERIFY: "/auth/register/otp/verify",
     REGISTER: "/auth/register",
   },
+  /** Panel home widgets (auth) */
   DASHBOARD: {
     REWARDS: "/dashboard/rewards",
     WALLET: "/dashboard/wallet",
@@ -28,6 +32,7 @@ export const ENDPOINTS = {
     CHARTS: "/dashboard/charts",
     SUBSET_DEPOSITS: "/dashboard/subset-deposits",
   },
+  /** Network / VIP invite (auth). Quota includes `canInvite` for KYC gate. */
   NETWORK: {
     SUBSETS: "/network/subsets",
     TREE: "/network/tree",
@@ -56,6 +61,7 @@ export const ENDPOINTS = {
   CAPITAL: {
     FUNDS: "/capital/funds",
   },
+  /** Competition pool + boards (auth). Prefer `?periodId=` when BE supports history. */
   LEADERBOARD: {
     POOL_BALANCE: "/leaderboard/pool-balance",
     CURRENT_MONTH: "/leaderboard/current-month",
@@ -66,10 +72,14 @@ export const ENDPOINTS = {
     COMPETITION_POOL: "/leaderboard/competition-pool",
     HISTORY: "/leaderboard/history",
   },
+  /**
+   * Missions (auth). Prefer SECTIONS.* for panel UI.
+   * Section + badges routes may be BFF LOCAL_ONLY until club BE ships them.
+   */
   MISSIONS: {
     LIST: "/missions/list",
     ACTIVITY: "/missions/activity",
-    /** Mark a mission complete by code (e.g. training_level_1 on course visit). */
+    /** Body `{ code }` — e.g. training_level_1 on authenticated course visit. */
     COMPLETE: "/missions/complete",
     SECTIONS: {
       PROMOTION: "/missions/sections/promotion",
@@ -78,8 +88,8 @@ export const ENDPOINTS = {
       BADGES: "/missions/sections/badges",
     },
   },
+  /** Public landing lead — BE must rate-limit (no captcha). */
   LEADS: {
-    /** Public — rate-limited on BE; no captcha. */
     REGISTRATION_LINK: "/leads/registration-link",
   },
   NOTIFICATIONS: {
@@ -88,6 +98,7 @@ export const ENDPOINTS = {
     MARK_READ: (id: string) => `/notifications/${id}/read` as const,
     MARK_ALL_READ: "/notifications/read-all",
   },
+  /** Admin panel — role admin/manager */
   ADMIN: {
     AUTH: {
       LOGIN: "/admin/auth/login",

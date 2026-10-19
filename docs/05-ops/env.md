@@ -2,7 +2,9 @@
 
 ## Preset + override model
 
-Zone URLs live in [`src/config/env-presets.ts`](../src/config/env-presets.ts).
+Zone URLs live in [`src/config/env-presets.ts`](../../src/config/env-presets.ts).
+
+See also the docs map: [`../README.md`](../README.md).
 `.env` holds **zone**, **secrets**, and optional **overrides**.
 
 | Zone | `APP_ENV` | Backend / panel / auth | Front (SSO callback) |
@@ -100,7 +102,7 @@ Only **two** stacks:
 
 | Zone | Compose | Env | Container | Port | Command |
 |------|---------|-----|-----------|------|---------|
-| **dev** | `docker-compose.dev.yml` | `.env` | `mlm_front_dev` | 3000 | `yarn sync:dev` |
+| **dev** | `docker-compose.dev.yml` | `.env` | `mlm_front_dev_blue` / `_green` (active `:3000`, standby `127.0.0.1:2999`) | 3000 | `yarn sync:dev` / `--rollback` |
 | **live** | `docker-compose.live.yml` | `.env.live` | `mlm_front_live` | 3002 | `yarn sync:live` |
 
 Club API path is always **`/api/v2`** (BFF + backend). External **panel/auth** hosts still use their own `/api/v1` paths — those are not club API.

@@ -1,6 +1,10 @@
 # Dev zone — nibdev (APP_ENV=development)
-# Run: docker compose -p mlm-dev -f docker-compose.dev.yml --env-file .env up -d --build
-# Host port: APP_PORT from .env (default 3000)
+# Blue/green slots: active on host :3000, standby on 127.0.0.1:2999 (localhost only).
+#
+# Port specs are full publish strings, set by remote-deploy-dev.sh from .cd-state/slot-state:
+#   BLUE_PORT_SPEC=3000:3000
+#   GREEN_PORT_SPEC=127.0.0.1:2999:3000
+#
 # Requires: docker network create nginx
 
 x-app-build: &app-build
@@ -16,11 +20,25 @@ x-app-build: &app-build
     BUILD_TIME: ${BUILD_TIME:-}
 
 services:
-  app:
-    container_name: mlm_front_dev
+  app_blue:
+    container_name: mlm_front_dev_blue
+    image: mlm-dev-blue:local
     build: *app-build
     ports:
-      - "${APP_PORT:-3000}:3000"
+      - "${BLUE_PORT_SPEC:-3000:3000}"
+    env_file:
+      - path: .env
+        required: false
+    restart: unless-stopped
+    networks:
+      - nginx
+
+  app_green:
+    container_name: mlm_front_dev_green
+    image: mlm-dev-green:local
+    build: *app-build
+    ports:
+      - "${GREEN_PORT_SPEC:-127.0.0.1:2999:3000}"
     env_file:
       - path: .env
         required: false
