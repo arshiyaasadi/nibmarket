@@ -338,7 +338,10 @@ set_port() {
 patch_zone_auth_env .env development
 seed_secret .env
 set_port .env "${PUBLIC_PORT}"
-# Test flag (this nibdev build): API 401 must not log the user out. Turn off: set to 0 in .env
+# Always real API on nibdev (clear leftover UI-mock from earlier deploys).
+# Incomplete club BE routes stay LOCAL_ONLY in bff-route-handler (backend-inbox).
+clear_live_ui_mock_env .env
+# Test flag: API 401 must not log the user out. Turn off: set to 0 in .env + rebuild.
 upsert_env_var .env "NEXT_PUBLIC_KEEP_SESSION_ON_401" "1"
 
 if [[ ! -f "${COMPOSE_FILE}" ]]; then
@@ -353,7 +356,11 @@ set +a
 export APP_ENV=development
 export NEXT_PUBLIC_APP_ENV=development
 export APP_PORT="${PUBLIC_PORT}"
-echo "--- build flags: API_SERVICE_MODE=${API_SERVICE_MODE:-api} KEEP_SESSION_ON_401=${NEXT_PUBLIC_KEEP_SESSION_ON_401:-0}"
+export FORCE_UI_DEV_MODE="${FORCE_UI_DEV_MODE:-0}"
+export NEXT_PUBLIC_FORCE_UI_DEV_MODE="${NEXT_PUBLIC_FORCE_UI_DEV_MODE:-0}"
+export NEXT_PUBLIC_UI_DEV_MODE="${NEXT_PUBLIC_UI_DEV_MODE:-0}"
+export API_SERVICE_MODE="${API_SERVICE_MODE:-api}"
+echo "--- build flags: API_SERVICE_MODE=${API_SERVICE_MODE} FORCE_UI=${FORCE_UI_DEV_MODE} KEEP_SESSION_ON_401=${NEXT_PUBLIC_KEEP_SESSION_ON_401:-0}"
 
 write_status "base_image" "running" "Pulling ${NODE_BASE_IMAGE}"
 pull_base() {

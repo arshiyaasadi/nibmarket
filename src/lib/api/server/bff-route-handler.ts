@@ -11,6 +11,7 @@ import {
 import { ssoCompleteHandler } from "@/lib/api/server/handlers/auth-sso.handler";
 import { adminUsersGeoHandler } from "@/lib/api/server/handlers/admin.handler";
 import {
+  missionsCompleteHandler,
   missionsSectionBadgesHandler,
   missionsSectionMarketingHandler,
   missionsSectionOnboardingHandler,
@@ -32,11 +33,12 @@ const LOCAL_ONLY_ROUTES: Record<string, (req: Request) => Promise<Response>> = {
   "POST:/auth/sso/complete": ssoCompleteHandler,
   // The density map has no backend counterpart — it is served from fixtures in every mode.
   "GET:/admin/users/geo": adminUsersGeoHandler,
-  // Section + lead contracts not on club BE yet — merge live list / mock seed (see backend-inbox).
+  // backend-inbox gaps — stay local until club BE ships (rest of /api/v2 proxies in api mode).
   "GET:/missions/sections/promotion": missionsSectionPromotionHandler,
   "GET:/missions/sections/onboarding": missionsSectionOnboardingHandler,
   "GET:/missions/sections/marketing": missionsSectionMarketingHandler,
   "GET:/missions/sections/badges": missionsSectionBadgesHandler,
+  "POST:/missions/complete": missionsCompleteHandler,
   "POST:/leads/registration-link": leadsRegistrationLinkHandler,
 };
 

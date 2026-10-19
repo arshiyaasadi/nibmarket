@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { serverEnv } from "@/config/env.server";
 import { isMockDevelopmentMode } from "@/config/api-service";
+import { decodeJwtPayload, userIdFromNibClaims } from "@/lib/auth/nib-jwt";
 import { MOCK_USER_ID } from "@/lib/mock/fixtures";
 import type { UserRole } from "@/types/mlm";
 
@@ -126,8 +127,17 @@ export function verifySignedToken(
 }
 
 export function getCurrentUserId(req: Request): string | null {
-  const userId = verifySignedToken(readSessionToken(req), "access")?.sub;
-  if (userId) return userId;
+  const token = readSessionToken(req);
+  const localUserId = verifySignedToken(token, "access")?.sub;
+  if (localUserId) return localUserId;
+
+  // API mode SSO: nib_token is a NIB JWT (not AUTH_SECRET-signed). LOCAL_ONLY
+  // handlers (backend-inbox) still need a stable user id for merges / mocks.
+  if (token) {
+    const fromNib = userIdFromNibClaims(decodeJwtPayload(token));
+    if (fromNib) return fromNib;
+  }
+
   return isMockDevelopmentMode() ? MOCK_USER_ID : null;
 }
 
