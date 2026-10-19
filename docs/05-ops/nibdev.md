@@ -43,9 +43,7 @@ Cold start (no active container yet): builds the default slot (`blue`) directly 
 ### CLI (from laptop)
 
 ```bash
-yarn sync:dev                 # UI mock by default (401 does not log out)
-yarn sync:dev:ui              # explicit UI mock
-yarn sync:dev:api             # real club BE when ready
+yarn sync:dev                 # rsync + blue/green deploy (real API)
 yarn sync:dev --status        # deploy-status + slot-state + docker ps
 yarn sync:dev --follow        # tail remote deploy.log
 yarn sync:dev --rollback      # instant swap active ↔ standby (no rebuild)
@@ -60,9 +58,9 @@ bash scripts/remote-deploy-dev.sh --status
 bash scripts/remote-deploy-dev.sh --rollback
 ```
 
-## UI mock (default while BE is incomplete)
+## Test flag: keep session on 401
 
-`yarn sync:dev` sets `FORCE_UI_DEV_MODE=1` + `API_SERVICE_MODE=mock`. The client ignores 401 logout/redirect in this mode. Switch to real API with `yarn sync:dev --api --force`.
+While club BE is incomplete, nibdev deploy sets `NEXT_PUBLIC_KEEP_SESSION_ON_401=1` so a 401 does **not** clear the session or send the user to session-expired. Flag lives in `src/config/feature-flags.ts`. Turn off with `NEXT_PUBLIC_KEEP_SESSION_ON_401=0` in `.env` and redeploy.
 
 ## Stack on the dev host
 
@@ -79,12 +77,13 @@ cp .env.example .env
 # Ensure:
 APP_ENV=development
 NEXT_PUBLIC_APP_ENV=development
+API_SERVICE_MODE=api
 AUTH_SECRET=<long-random>
 APP_PORT=3000
-# After sync:dev (default mock): FORCE_UI_DEV_MODE=1, API_SERVICE_MODE=mock
+# Test (nibdev): NEXT_PUBLIC_KEEP_SESSION_ON_401=1
 ```
 
-Client URLs and UI-mock flags are baked at **image build**. Changing zone/mode requires rebuild.
+Client URLs / public flags are baked at **image build**. Changing them requires rebuild.
 
 `yarn sync:dev` patches server `.env` auth/SSO URLs:
 

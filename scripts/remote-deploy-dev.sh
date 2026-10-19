@@ -338,16 +338,8 @@ set_port() {
 patch_zone_auth_env .env development
 seed_secret .env
 set_port .env "${PUBLIC_PORT}"
-
-# Default UI mock on nibdev: in-memory BFF + no 401 logout (NEXT_PUBLIC_FORCE_UI_DEV_MODE).
-# Real API: DEV_UI_MOCK=0 / yarn sync:dev --api
-if [[ "${DEV_UI_MOCK:-1}" == "1" ]]; then
-  echo "--- DEV_UI_MOCK=1 → FORCE_UI_DEV_MODE + API_SERVICE_MODE=mock"
-  patch_live_ui_mock_env .env
-else
-  echo "--- DEV_UI_MOCK=0 → real API proxy"
-  clear_live_ui_mock_env .env
-fi
+# Test flag (this nibdev build): API 401 must not log the user out. Turn off: set to 0 in .env
+upsert_env_var .env "NEXT_PUBLIC_KEEP_SESSION_ON_401" "1"
 
 if [[ ! -f "${COMPOSE_FILE}" ]]; then
   fail "env" "missing ${COMPOSE_FILE}"
@@ -356,12 +348,12 @@ fi
 export_build_env
 set -a
 # shellcheck disable=SC1091
-source <(grep -E '^(APP_ENV|NEXT_PUBLIC_APP_ENV|FORCE_UI_DEV_MODE|NEXT_PUBLIC_FORCE_UI_DEV_MODE|NEXT_PUBLIC_UI_DEV_MODE|API_SERVICE_MODE)=' .env | sed 's/\r$//' || true)
+source <(grep -E '^(APP_ENV|NEXT_PUBLIC_APP_ENV|NEXT_PUBLIC_KEEP_SESSION_ON_401|FORCE_UI_DEV_MODE|NEXT_PUBLIC_FORCE_UI_DEV_MODE|NEXT_PUBLIC_UI_DEV_MODE|API_SERVICE_MODE)=' .env | sed 's/\r$//' || true)
 set +a
 export APP_ENV=development
 export NEXT_PUBLIC_APP_ENV=development
 export APP_PORT="${PUBLIC_PORT}"
-echo "--- build flags: API_SERVICE_MODE=${API_SERVICE_MODE:-?} FORCE_UI_DEV_MODE=${FORCE_UI_DEV_MODE:-0}"
+echo "--- build flags: API_SERVICE_MODE=${API_SERVICE_MODE:-api} KEEP_SESSION_ON_401=${NEXT_PUBLIC_KEEP_SESSION_ON_401:-0}"
 
 write_status "base_image" "running" "Pulling ${NODE_BASE_IMAGE}"
 pull_base() {

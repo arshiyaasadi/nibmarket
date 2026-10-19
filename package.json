@@ -18,8 +18,6 @@
     "bootstrap:live:ssh": "bash scripts/bootstrap-live-server.sh --ssh-only",
     "bootstrap:live:deploy": "bash scripts/bootstrap-live-server.sh --deploy-only",
     "sync:dev": "bash scripts/sync-dev.sh",
-    "sync:dev:ui": "DEV_UI_MOCK=1 bash scripts/sync-dev.sh --ui-mock",
-    "sync:dev:api": "DEV_UI_MOCK=0 bash scripts/sync-dev.sh --api",
     "sync:dev:files": "bash scripts/sync-dev.sh --rsync-only",
     "sync:dev:status": "bash scripts/sync-dev.sh --status",
     "sync:dev:follow": "bash scripts/sync-dev.sh --follow",

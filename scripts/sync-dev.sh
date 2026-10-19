@@ -7,17 +7,15 @@
 #   2) start remote-deploy-dev.sh DETACHED (patches .env for nibdev auth URLs)
 #
 # Usage:
-#   yarn sync:dev                 # default: UI mock (no 401 logout)
-#   yarn sync:dev --ui-mock       # same as default
-#   yarn sync:dev --api           # real club BE
+#   yarn sync:dev
 #   yarn sync:dev --status
 #   yarn sync:dev --follow
-#   yarn sync:dev --rollback      # swap active ↔ standby (no rebuild)
+#   yarn sync:dev --rollback   # swap active ↔ standby (no rebuild)
 #   yarn sync:dev --rsync-only
 #   yarn sync:dev --force
 #   DEV_SSH_HOST=<host> yarn sync:dev
 #
-# Blue/green: active :3000, standby 127.0.0.1:2999. Default DEV_UI_MOCK=1.
+# Blue/green on server: active :3000, standby 127.0.0.1:2999 (localhost only)
 #
 set -euo pipefail
 
@@ -39,7 +37,6 @@ STATUS_ONLY=0
 FOLLOW=0
 FORCE=0
 ROLLBACK=0
-DEV_UI_MOCK="${DEV_UI_MOCK:-1}"
 for arg in "$@"; do
   case "${arg}" in
     --rsync-only) RSYNC_ONLY=1 ;;
@@ -47,14 +44,12 @@ for arg in "$@"; do
     --follow) FOLLOW=1 ;;
     --force) FORCE=1 ;;
     --rollback) ROLLBACK=1 ;;
-    --ui-mock) DEV_UI_MOCK=1 ;;
-    --api) DEV_UI_MOCK=0 ;;
     --help|-h)
-      sed -n '2,24p' "$0"
+      sed -n '2,22p' "$0"
       exit 0
       ;;
     *)
-      echo "Unknown option: ${arg} (use --status | --follow | --rollback | --ui-mock | --api | --rsync-only | --force | --help)"
+      echo "Unknown option: ${arg} (use --status | --follow | --rollback | --rsync-only | --force | --help)"
       exit 1
       ;;
   esac
@@ -259,14 +254,13 @@ if [[ "${RSYNC_ONLY}" -eq 1 ]]; then
   exit 0
 fi
 
-echo ">>> Starting DETACHED remote-deploy-dev (nibdev blue/green, DEV_UI_MOCK=${DEV_UI_MOCK})"
+echo ">>> Starting DETACHED remote-deploy-dev (nibdev blue/green)"
 remote \
   SUDO_PASS="${SSH_PASS}" \
   PROJECT_DIR="${PROJECT_DIR}" \
   GIT_SHA="${GIT_SHA}" \
   BUILD_TIME="${BUILD_TIME}" \
   APP_PORT_HOST="${APP_PORT_HOST}" \
-  DEV_UI_MOCK="${DEV_UI_MOCK}" \
   'bash -s' <<'REMOTE_EOF'
 set -euo pipefail
 cd "${PROJECT_DIR}"
@@ -284,7 +278,6 @@ nohup env \
   GIT_SHA="${GIT_SHA}" \
   BUILD_TIME="${BUILD_TIME}" \
   APP_PORT_HOST="${APP_PORT_HOST}" \
-  DEV_UI_MOCK="${DEV_UI_MOCK:-1}" \
   bash "${PROJECT_DIR}/scripts/remote-deploy-dev.sh" \
   >/dev/null 2>&1 &
 
@@ -306,10 +299,5 @@ echo "    Re-check:  yarn sync:dev --status"
 echo "    Stream:    yarn sync:dev --follow"
 echo "    Rollback:  yarn sync:dev --rollback"
 echo "    Restart:   yarn sync:dev --force"
-if [[ "${DEV_UI_MOCK}" == "1" ]]; then
-  echo "    Mode:      UI mock (401 will not log you out). Real API: yarn sync:dev --api --force"
-else
-  echo "    Mode:      real API. UI mock: yarn sync:dev --ui-mock --force"
-fi
 echo "    password_fallback=${USE_PASSWORD}"
 echo "    ${COMPOSE_HINT}"
