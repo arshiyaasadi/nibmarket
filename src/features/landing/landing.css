@@ -3,7 +3,7 @@
 .landing-root {
   scroll-behavior: smooth;
   scroll-padding-top: 80px;
-  font-family: "IRANSans", ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
 }
 
 .landing-root .glass {

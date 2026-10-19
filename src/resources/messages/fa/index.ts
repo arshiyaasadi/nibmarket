@@ -12,6 +12,7 @@ import subsetDeposits from "./subsetDeposits.json";
 import admin from "./admin.json";
 import tour from "./tour.json";
 import invite from "./invite.json";
+import courses from "./courses.json";
 
 const messages = {
   common,
@@ -28,6 +29,7 @@ const messages = {
   admin,
   tour,
   invite,
+  courses,
 };
 
 export default messages;

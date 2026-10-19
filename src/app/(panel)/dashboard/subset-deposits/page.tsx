@@ -9,10 +9,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  const t = await getTranslations("subsetDeposits");
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-bold text-foreground">{t("title")}</h1>
       <Suspense>
         <SubsetDepositsContent />
       </Suspense>

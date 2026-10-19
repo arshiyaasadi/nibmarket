@@ -44,6 +44,18 @@ yarn sync:live:follow
 yarn sync:live --force
 ```
 
+### UI-mock demo on live
+
+Same host/URL, but BFF uses in-memory mocks (`FORCE_UI_DEV_MODE` + `API_SERVICE_MODE=mock`):
+
+```bash
+yarn sync:live:ui
+# or: yarn sync:live --ui-mock --force
+yarn sync:live:follow
+```
+
+WireGuard must be ON. To return to real API later, deploy without `--ui-mock` and clear mock flags in `/opt/MLM_Front/.env.live` (or re-run a normal `yarn sync:live --force` after setting `FORCE_UI_DEV_MODE=0`).
+
 Stages: `docker` → `network` → `env` → `base_image` → `build_live` → `nginx` → `ssl` → `done`
 
 ## Dev / nibdev deploy

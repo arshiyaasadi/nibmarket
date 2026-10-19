@@ -22,6 +22,7 @@
     "sync:dev:status": "bash scripts/sync-dev.sh --status",
     "sync:dev:follow": "bash scripts/sync-dev.sh --follow",
     "sync:live": "bash scripts/sync-live.sh",
+    "sync:live:ui": "LIVE_UI_MOCK=1 bash scripts/sync-live.sh --ui-mock",
     "sync:live:files": "bash scripts/sync-live.sh --rsync-only",
     "sync:live:status": "bash scripts/sync-live.sh --status",
     "sync:live:follow": "bash scripts/sync-live.sh --follow",

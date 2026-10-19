@@ -1,13 +1,30 @@
 import { formatDateTime } from "@/lib/utils";
-import { getMockMissionActivity, getMockMissions } from "@/lib/mock/store";
+import { getMockMissionActivity, getMockMissions, setMockMissions } from "@/lib/mock/store";
 import type { Mission, MissionActivityPage, MissionActivityStatus, MissionDef } from "@/types/mlm";
 
 export async function completeMissionByCode(
   _tx: unknown,
   _userId: string,
-  _code: string,
-): Promise<{ completed: boolean; reward: number }> {
-  return { completed: false, reward: 0 };
+  code: string,
+): Promise<{ completed: boolean; reward: number; alreadyCompleted?: boolean }> {
+  const list = getMockMissions();
+  const idx = list.findIndex((m) => m.code === code);
+  if (idx < 0) return { completed: false, reward: 0 };
+
+  const mission = list[idx]!;
+  if (mission.completed) {
+    return { completed: true, reward: mission.reward, alreadyCompleted: true };
+  }
+
+  const next: MissionDef = {
+    ...mission,
+    completed: true,
+    completedAt: new Date().toISOString(),
+  };
+  const updated = [...list];
+  updated[idx] = next;
+  setMockMissions(updated);
+  return { completed: true, reward: next.reward };
 }
 
 export async function completeRegistrationMissionIfNeeded(_userId: string): Promise<void> {

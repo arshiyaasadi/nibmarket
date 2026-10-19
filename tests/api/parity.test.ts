@@ -31,7 +31,9 @@ describe("Prisma vs Backend API parity", { skip: SKIP }, () => {
       !e.path.includes("/capital/funds") &&
       !e.path.includes("/leaderboard/honors") &&
       !e.path.includes("/leaderboard/history") &&
-      !e.path.includes("/dashboard/charts"),
+      !e.path.includes("/dashboard/charts") &&
+      // FE-local until club BE ships section APIs (see backend-inbox)
+      !e.path.includes("/missions/sections/"),
   );
 
   for (const endpoint of parityEndpoints) {

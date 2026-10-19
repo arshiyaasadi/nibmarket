@@ -46,3 +46,24 @@ patch_zone_auth_env() {
   upsert_env_var "${file}" "NEXT_PUBLIC_SSO_ENTRY_COOKIE" "nib_auth"
   upsert_env_var "${file}" "API_SERVICE_MODE" "api"
 }
+
+# Enable in-memory BFF mocks on a production image (demo / UI review).
+# Usage: patch_live_ui_mock_env FILE
+# Requires rebuild so NEXT_PUBLIC_* bake into the client bundle.
+patch_live_ui_mock_env() {
+  local file="$1"
+  upsert_env_var "${file}" "FORCE_UI_DEV_MODE" "1"
+  upsert_env_var "${file}" "NEXT_PUBLIC_FORCE_UI_DEV_MODE" "1"
+  upsert_env_var "${file}" "NEXT_PUBLIC_UI_DEV_MODE" "1"
+  upsert_env_var "${file}" "API_SERVICE_MODE" "mock"
+}
+
+# Disable UI-mock flags (restore real API proxy).
+# Usage: clear_live_ui_mock_env FILE
+clear_live_ui_mock_env() {
+  local file="$1"
+  upsert_env_var "${file}" "FORCE_UI_DEV_MODE" "0"
+  upsert_env_var "${file}" "NEXT_PUBLIC_FORCE_UI_DEV_MODE" "0"
+  upsert_env_var "${file}" "NEXT_PUBLIC_UI_DEV_MODE" "0"
+  upsert_env_var "${file}" "API_SERVICE_MODE" "api"
+}

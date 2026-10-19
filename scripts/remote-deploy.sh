@@ -166,6 +166,16 @@ fi
 [[ -f "${ENV_FILE}" ]] || { cp .env.live.example "${ENV_FILE}"; seed_secret "${ENV_FILE}"; }
 patch_zone_auth_env "${ENV_FILE}" production
 set_port "${ENV_FILE}" "${LIVE_PORT}"
+# LIVE_UI_MOCK=1 → mock BFF + UI-dev auth bypass (for UI review on live host)
+if [[ "${LIVE_UI_MOCK:-0}" == "1" ]]; then
+  echo "--- LIVE_UI_MOCK=1 → enabling FORCE_UI_DEV_MODE + API_SERVICE_MODE=mock"
+  patch_live_ui_mock_env "${ENV_FILE}"
+else
+  # Keep prior mock flags only if explicitly left on; default path stays real API
+  if grep -qE '^FORCE_UI_DEV_MODE=1$' "${ENV_FILE}" 2>/dev/null; then
+    echo "--- FORCE_UI_DEV_MODE already=1 in ${ENV_FILE} (leaving UI mock on)"
+  fi
+fi
 [[ -f .env ]] || cp "${ENV_FILE}" .env
 
 export GIT_SHA="${GIT_SHA:-unknown}"
@@ -212,7 +222,8 @@ fi
 write_status "build_live" "running" "Building live stack on :${LIVE_PORT}"
 set -a
 # shellcheck disable=SC1091
-source <(grep -E '^(APP_ENV|NEXT_PUBLIC_APP_ENV|APP_PORT)=' "${ENV_FILE}" | sed 's/\r$//' || true)
+# Export build-time public flags so compose ${VAR} interpolation + Dockerfile ARGs see them
+source <(grep -E '^(APP_ENV|NEXT_PUBLIC_APP_ENV|APP_PORT|FORCE_UI_DEV_MODE|NEXT_PUBLIC_FORCE_UI_DEV_MODE|NEXT_PUBLIC_UI_DEV_MODE|API_SERVICE_MODE)=' "${ENV_FILE}" | sed 's/\r$//' || true)
 set +a
 export APP_PORT="${LIVE_PORT}"
 compose_run -p "${COMPOSE_PROJECT}" -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" up -d --build --remove-orphans \

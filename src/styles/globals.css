@@ -1,49 +1,22 @@
 @import "tailwindcss";
 
-/* ── IRANSans Font ───────────────────────────────────────────── */
+/* ── IRANSansWeb(FaNum) — panel.nibmarket.com pack ───────────── */
 @font-face {
   font-family: "IRANSans";
+  src: url("/fonts/IRANSansWeb(FaNum).eot");
   src:
-    url("/fonts/IRANSans/IRANSansWeb_Light.woff2") format("woff2"),
-    url("/fonts/IRANSans/IRANSansWeb_Light.woff") format("woff");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "IRANSans";
-  src:
-    url("/fonts/IRANSans/IRANSansWeb_Regular.woff2") format("woff2"),
-    url("/fonts/IRANSans/IRANSansWeb_Regular.woff") format("woff");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "IRANSans";
-  src:
-    url("/fonts/IRANSans/IRANSansWeb_Bold.woff2") format("woff2"),
-    url("/fonts/IRANSans/IRANSansWeb_Bold.woff") format("woff");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "IRANSans";
-  src:
-    url("/fonts/IRANSans/IRANSansWeb_Black.woff2") format("woff2"),
-    url("/fonts/IRANSans/IRANSansWeb_Black.woff") format("woff");
-  font-weight: 900;
+    url("/fonts/IRANSansWeb(FaNum).eot?#iefix") format("embedded-opentype"),
+    url("/fonts/IRANSansWeb(FaNum).woff2") format("woff2"),
+    url("/fonts/IRANSansWeb(FaNum).woff") format("woff"),
+    url("/fonts/IRANSansWeb(FaNum).ttf") format("truetype");
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 
 /* ── Design Tokens (Tailwind v4 @theme) ─────────────────────── */
 @theme {
-  /* Font */
+  /* Font — IRANSans FaNum for panel + landing */
   --font-sans: "IRANSans", system-ui, sans-serif;
 
   /* Type scale — shifted one step up from Tailwind defaults */
@@ -74,19 +47,23 @@
   --text-9xl: 9rem;
   --text-9xl--line-height: 1;
 
-  /* Primary — Dark Amethyst */
-  --color-primary-50: #f1e8fc;
-  --color-primary-100: #e4d2f9;
-  --color-primary-200: #c8a4f4;
-  --color-primary-300: #ad77ee;
-  --color-primary-400: #9149e9;
-  --color-primary-500: #761ce3;
-  --color-primary-600: #5e16b6;
-  --color-primary-700: #471188;
-  --color-primary-800: #2f0b5b;
-  --color-primary-900: #18062d;
-  --color-primary-950: #100420;
-  --color-primary: #761ce3;
+  /* Primary — Tanvin landing purple (synced panel + landing) */
+  --color-primary-50: #e1dbf4;
+  --color-primary-100: #f1effa;
+  --color-primary-200: #c8beeb;
+  --color-primary-300: #a897d8;
+  --color-primary-400: #8971c4;
+  --color-primary-500: #6e50b4;
+  --color-primary-600: #623c9c;
+  --color-primary-700: #592d8a;
+  --color-primary-800: #501e78;
+  --color-primary-900: #2e1444;
+  --color-primary-950: #1a0c28;
+  --color-primary: #501e78;
+
+  /* Accent — landing gold CTAs */
+  --color-accent: #ffc83a;
+  --color-accent-hover: #ffd65c;
 
   /* Secondary — neutral purple-grey (no brand secondary defined) */
   --color-secondary-50: #f2f1f6;
@@ -155,29 +132,37 @@
 }
 
 /* ── Dark Mode Overrides ─────────────────────────────────────── */
-
-/* System: follow OS — only when no explicit class is set */
+/*
+ * Neutral charcoal base (less purple wash) + clearer surfaces/borders.
+ * Primary stays amethyst but slightly brighter for contrast on dark UI.
+ */
 @media (prefers-color-scheme: dark) {
   :root:not(.light):not(.dark) {
-    --color-background: #100420;
-    --color-surface: #1a0f2e;
-    --color-surface-2: #251840;
-    --color-border: #3a2860;
-    --color-muted: #9b8fbc;
-    --color-foreground: #ede9f8;
-    --color-primary: #9149e9;
+    --color-background: #0c0b10;
+    --color-surface: #15131a;
+    --color-surface-2: #1c1924;
+    --color-border: #2c2836;
+    --color-muted: #9e98ad;
+    --color-foreground: #f0eef6;
+    --color-primary: #a897d8;
+    --color-success: #22c55e;
+    --color-warning: #f59e0b;
+    --color-danger: #f87171;
   }
 }
 
 /* Explicit dark mode */
 html.dark {
-  --color-background: #100420;
-  --color-surface: #1a0f2e;
-  --color-surface-2: #251840;
-  --color-border: #3a2860;
-  --color-muted: #9b8fbc;
-  --color-foreground: #ede9f8;
-  --color-primary: #9149e9;
+  --color-background: #0c0b10;
+  --color-surface: #15131a;
+  --color-surface-2: #1c1924;
+  --color-border: #2c2836;
+  --color-muted: #9e98ad;
+  --color-foreground: #f0eef6;
+  --color-primary: #a897d8;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #f87171;
 }
 
 /* Explicit light mode — force light even if OS is dark */
@@ -188,7 +173,7 @@ html.light {
   --color-border: #dddce8;
   --color-muted: #8b8ba8;
   --color-foreground: #1a1020;
-  --color-primary: #761ce3;
+  --color-primary: #501e78;
 }
 
 /* ── Base ────────────────────────────────────────────────────── */
@@ -275,7 +260,6 @@ body {
     background-color 0.15s ease;
 }
 
-/* Map counters use Latin digits and a neutral font for reliable optical centring. */
 .nib-map-cluster span {
   display: flex;
   width: 100%;
@@ -284,7 +268,7 @@ body {
   justify-content: center;
   padding-top: 1px;
   direction: ltr;
-  font-family: Arial, system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: var(--text-sm);
   font-weight: 700;
   line-height: 1;

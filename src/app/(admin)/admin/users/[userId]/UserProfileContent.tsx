@@ -2,12 +2,22 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Coins, LayoutGrid, Network, Shield, Target, User, Wallet } from "lucide-react";
+import {
+  ArrowRight,
+  Coins,
+  LayoutGrid,
+  MapPin,
+  Network,
+  Shield,
+  Target,
+  User,
+  Wallet,
+} from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { ENDPOINTS } from "@/lib/api/endpoints";
 import { ROUTES } from "@/config/routes";
 import { formatDisplayDate } from "@/lib/utils";
-import type { AdminUserProfileResponse, AdminUserStatus } from "@/types/admin";
+import type { AdminUserProfileResponse, AdminUserSejam, AdminUserStatus } from "@/types/admin";
 
 const STATUS_LABELS: Record<AdminUserStatus, string> = {
   active: "فعال",
@@ -22,6 +32,26 @@ const KYC_LABELS = {
   verified: "تأیید شده",
   rejected: "رد شده",
 } as const;
+
+function displayOrDash(value: string | number | null | undefined): string {
+  if (value == null || value === "") return "—";
+  return String(value);
+}
+
+function formatSejamGender(
+  sejamGender: AdminUserSejam["gender"],
+  fallback: "male" | "female" | null | undefined,
+): string {
+  if (sejamGender === "male" || sejamGender === 1 || sejamGender === "1" || sejamGender === "M") {
+    return "مرد";
+  }
+  if (sejamGender === "female" || sejamGender === 2 || sejamGender === "2" || sejamGender === "F") {
+    return "زن";
+  }
+  if (fallback === "male") return "مرد";
+  if (fallback === "female") return "زن";
+  return "—";
+}
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -79,6 +109,15 @@ export default function UserProfileContent({ userId }: { userId: string }) {
     referrer,
   } = data;
 
+  const sejam = user.sejam ?? null;
+  const displayName =
+    [sejam?.firstName, sejam?.lastName].filter(Boolean).join(" ").trim() || user.fullName;
+  const mobile = sejam?.mobile || user.mobile;
+  const email = sejam?.email ?? user.email;
+  const birthDate = sejam?.birthDate ?? user.birthDate;
+  const nationalId = sejam?.nationalNo ?? user.nationalId;
+  const addresses = sejam?.addresses ?? [];
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -90,7 +129,7 @@ export default function UserProfileContent({ userId }: { userId: string }) {
             <ArrowRight size={14} />
             بازگشت به کاربران
           </Link>
-          <h1 className="text-foreground text-xl font-bold">{user.fullName}</h1>
+          <h1 className="text-foreground text-xl font-bold">{displayName}</h1>
           <p className="text-muted mt-1 text-xs">پروفایل کاربر — نمای ادمین</p>
         </div>
         <span
@@ -119,10 +158,11 @@ export default function UserProfileContent({ userId }: { userId: string }) {
             <User size={18} className="text-primary" />
             <h2 className="text-foreground text-sm font-semibold">اطلاعات کاربر</h2>
           </div>
-          <InfoRow label="نام" value={user.fullName} />
-          <InfoRow label="موبایل" value={<span dir="ltr">{user.mobile}</span>} />
-          <InfoRow label="ایمیل" value={<span dir="ltr">{user.email ?? "—"}</span>} />
-          <InfoRow label="نقش" value={user.role} />
+          <InfoRow label="نام" value={displayName} />
+          <InfoRow label="نام پدر" value={displayOrDash(sejam?.fatherName)} />
+          <InfoRow label="موبایل" value={<span dir="ltr">{mobile}</span>} />
+          <InfoRow label="ایمیل" value={<span dir="ltr">{email ?? "—"}</span>} />
+          <InfoRow label="نقش" value={user.role || "—"} />
           <InfoRow label="KYC" value={KYC_LABELS[user.kycStatus]} />
           <InfoRow
             label="کد معرف"
@@ -132,15 +172,12 @@ export default function UserProfileContent({ userId }: { userId: string }) {
               </span>
             }
           />
-          <InfoRow
-            label="تاریخ تولد"
-            value={user.birthDate ? formatDisplayDate(user.birthDate) : "—"}
-          />
-          <InfoRow
-            label="جنسیت"
-            value={user.gender === "male" ? "مرد" : user.gender === "female" ? "زن" : "—"}
-          />
-          <InfoRow label="کد ملی" value={user.nationalId ?? "—"} />
+          <InfoRow label="تاریخ تولد" value={birthDate ? formatDisplayDate(birthDate) : "—"} />
+          <InfoRow label="محل تولد" value={displayOrDash(sejam?.placeOfBirth)} />
+          <InfoRow label="جنسیت" value={formatSejamGender(sejam?.gender, user.gender)} />
+          <InfoRow label="کد ملی" value={displayOrDash(nationalId)} />
+          <InfoRow label="سریال شناسنامه" value={displayOrDash(sejam?.birthCertificateSerial)} />
+          <InfoRow label="شماره شناسنامه" value={displayOrDash(sejam?.birthCertificateNumber)} />
           <InfoRow label="نیب مارکت" value={user.nibMarketLinked ? "متصل" : "متصل نیست"} />
           <InfoRow label="تاریخ عضویت" value={formatDisplayDate(user.createdAt)} />
           {referrer && (
@@ -226,6 +263,53 @@ export default function UserProfileContent({ userId }: { userId: string }) {
           </div>
         </section>
       </div>
+
+      <section className="border-border bg-surface rounded-2xl border p-5">
+        <div className="mb-4 flex items-center gap-2">
+          <MapPin size={18} className="text-primary" />
+          <h2 className="text-foreground text-sm font-semibold">آدرس‌ها</h2>
+        </div>
+        {addresses.length === 0 ? (
+          <p className="text-muted py-6 text-center text-sm">آدرسی ثبت نشده</p>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {addresses.map((address) => (
+              <div key={address.addressId} className="border-border rounded-xl border px-4 py-3">
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  {address.isDefault && (
+                    <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-[10px] font-semibold">
+                      پیش‌فرض
+                    </span>
+                  )}
+                  {address.isSejamAddress && (
+                    <span className="rounded-full bg-indigo-500/10 px-2 py-0.5 text-[10px] font-semibold text-indigo-600">
+                      سجام
+                    </span>
+                  )}
+                  {!address.isActive && (
+                    <span className="rounded-full bg-gray-500/10 px-2 py-0.5 text-[10px] font-semibold text-gray-500">
+                      غیرفعال
+                    </span>
+                  )}
+                </div>
+                <p className="text-foreground text-sm leading-relaxed">
+                  {displayOrDash(address.addressBody)}
+                </p>
+                <div className="mt-3 flex flex-col gap-1">
+                  <InfoRow
+                    label="کد پستی"
+                    value={<span dir="ltr">{displayOrDash(address.postalCode)}</span>}
+                  />
+                  <InfoRow
+                    label="تلفن"
+                    value={<span dir="ltr">{displayOrDash(address.phoneNumber)}</span>}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       <section className="border-border bg-surface rounded-2xl border p-5">
         <div className="mb-4 flex items-center gap-2">

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUserId, unauthorized } from "@/lib/api/server/session";
 import {
   getCompetitionPool,
-  getEmptyCompetitionHistory,
+  getCompetitionHistory,
   getEmptyHonors,
   getLeaderboard,
   getMySubsetsLeaderboard,
@@ -25,7 +25,8 @@ export async function leaderboardCurrentMonthHandler(req: Request): Promise<Resp
 export async function leaderboardMySubsetsHandler(req: Request): Promise<Response> {
   const userId = getCurrentUserId(req);
   if (!userId) return unauthorized();
-  return NextResponse.json(await getMySubsetsLeaderboard(userId, 7));
+  // Full direct-subset list for table UI (not top-N)
+  return NextResponse.json(await getMySubsetsLeaderboard(userId));
 }
 
 export async function leaderboardMissionsHandler(req: Request): Promise<Response> {
@@ -45,5 +46,5 @@ export async function leaderboardHonorsHandler(): Promise<Response> {
 }
 
 export async function leaderboardHistoryHandler(): Promise<Response> {
-  return NextResponse.json(await getEmptyCompetitionHistory());
+  return NextResponse.json(await getCompetitionHistory());
 }

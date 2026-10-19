@@ -13,6 +13,8 @@
 #   yarn sync:live --follow          # stream remote log until done/failed
 #   yarn sync:live --rsync-only
 #   yarn sync:live --force           # kill stuck remote deploy and restart
+#   yarn sync:live --ui-mock         # live host with in-memory mocks (UI review)
+#   LIVE_UI_MOCK=1 yarn sync:live    # same as --ui-mock
 #   LIVE_SSH_HOST=<ip> yarn sync:live
 #
 # Ports on live host: live stack :3002 only
@@ -26,6 +28,7 @@ SSH_KEY="${LIVE_SSH_KEY:-${HOME}/.ssh/nibmarket_live_ed25519}"
 PROJECT_DIR="${LIVE_PROJECT_DIR:-/opt/MLM_Front}"
 LIVE_PORT="${LIVE_PORT:-${PROD_PORT:-3002}}"
 NGINX_DOMAIN="${NGINX_DOMAIN:-club.nibmarket.ir}"
+LIVE_UI_MOCK="${LIVE_UI_MOCK:-0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -41,12 +44,13 @@ for arg in "$@"; do
     --status) STATUS_ONLY=1 ;;
     --follow) FOLLOW=1 ;;
     --force) FORCE=1 ;;
+    --ui-mock) LIVE_UI_MOCK=1 ;;
     --help|-h)
-      sed -n '2,22p' "$0"
+      sed -n '2,24p' "$0"
       exit 0
       ;;
     *)
-      echo "Unknown option: ${arg} (use --status | --follow | --rsync-only | --force | --help)"
+      echo "Unknown option: ${arg} (use --status | --follow | --rsync-only | --force | --ui-mock | --help)"
       exit 1
       ;;
   esac
@@ -222,7 +226,7 @@ if [[ "${RSYNC_ONLY}" -eq 1 ]]; then
 fi
 
 echo ">>> Starting DETACHED remote deploy (survives closed terminal)"
-echo "    live :${LIVE_PORT} | nginx ${NGINX_DOMAIN}"
+echo "    live :${LIVE_PORT} | nginx ${NGINX_DOMAIN} | LIVE_UI_MOCK=${LIVE_UI_MOCK}"
 
 remote \
   SUDO_PASS="${SSH_PASS}" \
@@ -232,6 +236,7 @@ remote \
   LIVE_PORT="${LIVE_PORT}" \
   NGINX_DOMAIN="${NGINX_DOMAIN}" \
   CERTBOT_EMAIL="${CERTBOT_EMAIL:-}" \
+  LIVE_UI_MOCK="${LIVE_UI_MOCK}" \
   'bash -s' <<'REMOTE_EOF'
 set -euo pipefail
 cd "${PROJECT_DIR}"
@@ -253,6 +258,7 @@ nohup env \
   LIVE_PORT="${LIVE_PORT}" \
   NGINX_DOMAIN="${NGINX_DOMAIN}" \
   CERTBOT_EMAIL="${CERTBOT_EMAIL:-}" \
+  LIVE_UI_MOCK="${LIVE_UI_MOCK:-0}" \
   bash "${PROJECT_DIR}/scripts/remote-deploy.sh" \
   >/dev/null 2>&1 &
 
@@ -274,4 +280,7 @@ echo ">>> Deploy is running on the server (you can close this terminal)."
 echo "    Re-check stage:  yarn sync:live --status"
 echo "    Stream log:      yarn sync:live --follow"
 echo "    Force restart:   yarn sync:live --force"
+if [[ "${LIVE_UI_MOCK}" == "1" ]]; then
+  echo "    UI mock mode:    ON (FORCE_UI_DEV_MODE + mock BFF)"
+fi
 echo "    password_fallback=${USE_PASSWORD}"

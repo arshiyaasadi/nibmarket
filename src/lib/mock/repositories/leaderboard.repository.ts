@@ -1,5 +1,6 @@
 import { mapLeaderboardEntry } from "@/types/mappers";
 import { getMockUser } from "@/lib/mock/store";
+import { JALALI_MONTH_NAMES, jalaliPartsFromDate } from "@/lib/datetime/jalali";
 import type {
   CompetitionPeriod,
   CompetitionPool,
@@ -27,6 +28,11 @@ const MOCK_SUBSET_ROWS = [
   { userId: "s5", fullName: "پریسا مرادی", tokens: 510, subsetCount: 1 },
   { userId: "s6", fullName: "کامران یوسفی", tokens: 320, subsetCount: 0 },
   { userId: "s7", fullName: "لیلا رستمی", tokens: 180, subsetCount: 0 },
+  { userId: "s8", fullName: "امیر زارع کاریزی", tokens: 150, subsetCount: 1 },
+  { userId: "s9", fullName: "نیما کاظمی", tokens: 95, subsetCount: 0 },
+  { userId: "s10", fullName: "هانیه فرهادی", tokens: 60, subsetCount: 0 },
+  { userId: "s11", fullName: "آرمان جلالی", tokens: 40, subsetCount: 0 },
+  { userId: "s12", fullName: "سحر امینی", tokens: 25, subsetCount: 0 },
 ];
 
 export async function getLeaderboard(
@@ -49,12 +55,13 @@ export async function getLeaderboard(
   return rows.map((row, index) => mapLeaderboardEntry(row, index, currentUserId));
 }
 
-/** Leaderboard of the current user's direct subsets, ranked by Twin balance. */
+/** Leaderboard of the current user's direct subsets, ranked by Twin balance (all rows). */
 export async function getMySubsetsLeaderboard(
   _currentUserId?: string,
-  limit = 7,
+  limit?: number,
 ): Promise<LeaderboardEntry[]> {
-  const rows = [...MOCK_SUBSET_ROWS].sort((a, b) => b.tokens - a.tokens).slice(0, limit);
+  const sorted = [...MOCK_SUBSET_ROWS].sort((a, b) => b.tokens - a.tokens);
+  const rows = typeof limit === "number" && limit > 0 ? sorted.slice(0, limit) : sorted;
   return rows.map((row, index) => mapLeaderboardEntry(row, index));
 }
 
@@ -94,6 +101,32 @@ export async function getEmptyHonors(): Promise<HonorItem[]> {
   return [];
 }
 
+/** Past closed competition months (mock). Current month is not included. */
+export async function getCompetitionHistory(): Promise<CompetitionPeriod[]> {
+  const now = new Date();
+  const periods: CompetitionPeriod[] = [];
+
+  for (let i = 1; i <= 4; i++) {
+    const start = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59, 999);
+    const { month, year } = jalaliPartsFromDate(start);
+    const title = `${JALALI_MONTH_NAMES[month - 1]} ${year.toLocaleString("fa-IR")}`;
+    periods.push({
+      id: `period-${start.getFullYear()}-${start.getMonth() + 1}`,
+      title,
+      startDate: start.toISOString(),
+      endDate: end.toISOString(),
+      totalPool: 42_000 - i * 3_500,
+      winnerName: ["علی رضایی", "مریم احمدی", "حسین کریمی", "سارا محمدی"][i - 1] ?? "—",
+      myRank: i === 1 ? 3 : i === 2 ? undefined : 8,
+      myReward: i === 1 ? 1_200 : i === 2 ? undefined : 0,
+    });
+  }
+
+  return periods;
+}
+
+/** @deprecated use getCompetitionHistory */
 export async function getEmptyCompetitionHistory(): Promise<CompetitionPeriod[]> {
-  return [];
+  return getCompetitionHistory();
 }

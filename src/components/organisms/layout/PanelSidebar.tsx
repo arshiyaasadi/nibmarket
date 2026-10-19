@@ -20,6 +20,8 @@ import {
   Landmark,
   X,
   Shield,
+  Home,
+  GraduationCap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PROJECT } from "@/config/project";
@@ -48,6 +50,14 @@ interface PanelSidebarProps {
 
 const COLLAPSED_W = "5.5rem"; // 72px — icon only
 const EXPANDED_W = "17rem"; // 272px — icon + label
+
+function guidelineIcon(key: string) {
+  const cls = "size-5 shrink-0 transition-transform duration-300 group-hover:scale-110";
+  if (key === "home") return <Home aria-hidden="true" className={cls} />;
+  if (key === "courses") return <GraduationCap aria-hidden="true" className={cls} />;
+  if (key === "rules-network") return <ScrollText aria-hidden="true" className={cls} />;
+  return <Landmark aria-hidden="true" className={cls} />;
+}
 
 export function PanelSidebar({ open, onClose }: PanelSidebarProps) {
   const t = useTranslations("nav");
@@ -98,11 +108,14 @@ export function PanelSidebar({ open, onClose }: PanelSidebarProps) {
   ];
 
   const guidelineNav: NavChild[] = [
+    { key: "home", label: t("home"), href: ROUTES.HOME },
+    { key: "courses", label: t("courses"), href: ROUTES.COURSES },
     { key: "rules-network", label: t("rulesNetwork"), href: ROUTES.RULES },
     { key: "rules-deposit", label: t("rulesDeposit"), href: ROUTES.CAPITAL },
   ];
 
   const isActive = (href: string) => {
+    if (href === ROUTES.HOME) return pathname === href;
     if (href === ROUTES.DASHBOARD) return pathname === href;
     return pathname === href || pathname.startsWith(`${href}/`);
   };
@@ -207,17 +220,7 @@ export function PanelSidebar({ open, onClose }: PanelSidebarProps) {
                       onClick={onClose}
                       className={itemCls(isActive(item.href))}
                     >
-                      {item.key === "rules-network" ? (
-                        <ScrollText
-                          aria-hidden="true"
-                          className="size-5 shrink-0 transition-transform duration-300 group-hover:scale-110"
-                        />
-                      ) : (
-                        <Landmark
-                          aria-hidden="true"
-                          className="size-5 shrink-0 transition-transform duration-300 group-hover:scale-110"
-                        />
-                      )}
+                      {guidelineIcon(item.key)}
                       <span
                         className="ms-[0.625rem] flex-1 truncate transition-all duration-300"
                         style={{ opacity: isExpanded ? 1 : 0, width: isExpanded ? "auto" : 0 }}
@@ -367,11 +370,7 @@ function MobileDrawerContent({
             {guidelineNav.map((item) => (
               <li key={item.key}>
                 <Link href={item.href} onClick={onClose} className={itemCls(isActive(item.href))}>
-                  {item.key === "rules-network" ? (
-                    <ScrollText aria-hidden="true" className="size-5 shrink-0" />
-                  ) : (
-                    <Landmark aria-hidden="true" className="size-5 shrink-0" />
-                  )}
+                  {guidelineIcon(item.key)}
                   <span className="flex-1 truncate">{item.label}</span>
                 </Link>
               </li>

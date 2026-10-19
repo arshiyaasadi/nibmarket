@@ -138,7 +138,7 @@ function CoinAnimation({ mouseX, mouseY, ...props }: CoinAnimationProps) {
               textAnchor="middle"
               className="fill-gray-800 text-4xl font-bold"
               style={{
-                fontFamily: "IRANSans, sans-serif",
+                fontFamily: "var(--font-sans)",
               }}
             >
               تنوین

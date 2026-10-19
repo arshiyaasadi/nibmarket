@@ -82,20 +82,51 @@ export const MOCK_MISSIONS: MissionDef[] = MEHR_MISSIONS.map((seed, index) => {
     return {
       ...base,
       id: "m2",
-      completed: true,
-      completedAt: formatDateTime("2024-06-07T15:34:11.000Z"),
+      title: "معرفی ۳ زیرمجموعه در ماه",
+      description: undefined,
+      completed: false,
+      progressCurrent: 2,
+      progressTarget: 3,
     };
   }
   if (seed.code === "new_referral") {
     return {
       ...base,
       id: "m3",
-      completed: true,
-      completedAt: formatDateTime("2024-06-05T10:00:00.000Z"),
+      description: undefined,
+      completed: false,
+      referralCount: 7,
+      referralTokensEarned: 350,
     };
   }
   if (seed.code === "daily_login") {
-    return { ...base, id: "m1" };
+    const today = new Date();
+    const iso = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const claimed: string[] = [];
+    for (let i = 1; i <= 3; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      claimed.push(iso(d));
+    }
+    // today claimed for demo week UI
+    claimed.push(iso(today));
+    return {
+      ...base,
+      id: "m1",
+      progressCurrent: 1,
+      progressTarget: 1,
+      completed: true,
+      loginClaimedDates: claimed,
+    };
+  }
+  if (seed.code === "direct_subsets_10") {
+    return {
+      ...base,
+      id: `m-${index + 1}`,
+      completed: true,
+      completedAt: formatDateTime("2024-06-01T10:00:00.000Z"),
+    };
   }
   return { ...base, id: `m-${index + 1}` };
 });

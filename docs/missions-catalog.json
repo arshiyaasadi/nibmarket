@@ -1,0 +1,301 @@
+{
+  "version": 1,
+  "source": "src/resources/data/mehr-missions.ts",
+  "categories": [
+    {
+      "id": "promotion",
+      "labelFa": "ماموریت پروموشن",
+      "layout": "promotion",
+      "codes": [
+        "daily_login",
+        "new_referral",
+        "monthly_referrals_3"
+      ]
+    },
+    {
+      "id": "onboarding",
+      "labelFa": "شروع کار",
+      "layout": "staged",
+      "codes": [
+        "registration",
+        "identity_verification",
+        "first_fund_purchase"
+      ]
+    },
+    {
+      "id": "marketing",
+      "labelFa": "بازاریابی",
+      "layout": "staged",
+      "codes": [
+        "training_level_1",
+        "first_referral",
+        "subset_aum_200m",
+        "subset_aum_500m",
+        "subset_aum_1_2b"
+      ]
+    },
+    {
+      "id": "badges",
+      "labelFa": "نشان‌ها",
+      "layout": "badges",
+      "codes": [
+        "direct_subsets_10",
+        "subsets_high_aum_1_5b",
+        "network_all_funds",
+        "leader_5x3",
+        "badge_safir_novin"
+      ]
+    }
+  ],
+  "missions": [
+    {
+      "code": "registration",
+      "title": "ثبت‌نام",
+      "description": "ثبت‌نام در سامانه (یک‌بار)",
+      "reward": 10,
+      "missionType": "registration",
+      "frequency": "once",
+      "categoryId": "onboarding",
+      "stepOrder": 1,
+      "feExtraFields": []
+    },
+    {
+      "code": "identity_verification",
+      "title": "احراز هویت",
+      "description": "تکمیل احراز هویت (یک‌بار)",
+      "reward": 40,
+      "missionType": "custom",
+      "frequency": "once",
+      "categoryId": "onboarding",
+      "stepOrder": 2,
+      "feExtraFields": []
+    },
+    {
+      "code": "first_fund_purchase",
+      "title": "اولین خرید صندوق",
+      "description": "حداقل ۱۰ میلیون دارایی",
+      "reward": 100,
+      "missionType": "purchase",
+      "frequency": "once",
+      "categoryId": "onboarding",
+      "stepOrder": 3,
+      "feExtraFields": [
+        "description"
+      ]
+    },
+    {
+      "code": "training_level_1",
+      "title": "گذراندن دوره آموزشی سطح یک",
+      "description": "یک‌بار",
+      "reward": 200,
+      "missionType": "custom",
+      "frequency": "once",
+      "categoryId": "marketing",
+      "stepOrder": 1,
+      "feExtraFields": []
+    },
+    {
+      "code": "first_referral",
+      "title": "اولین معرفی فرد جدید",
+      "description": "فقط برای اولین زیرمجموعه (یک‌بار)",
+      "reward": 300,
+      "missionType": "referral_count",
+      "frequency": "once",
+      "categoryId": "marketing",
+      "stepOrder": 2,
+      "feExtraFields": []
+    },
+    {
+      "code": "subset_aum_200m",
+      "title": "مجموع دارایی زیرمجموعه به ۲۰۰ میلیون تومان",
+      "description": "یک‌بار",
+      "reward": 50,
+      "missionType": "custom",
+      "frequency": "once",
+      "categoryId": "marketing",
+      "stepOrder": 3,
+      "feExtraFields": [
+        "progressCurrent",
+        "progressTarget"
+      ]
+    },
+    {
+      "code": "subset_aum_500m",
+      "title": "مجموع دارایی زیرمجموعه به ۵۰۰ میلیون تومان",
+      "description": "یک‌بار",
+      "reward": 100,
+      "missionType": "custom",
+      "frequency": "once",
+      "categoryId": "marketing",
+      "stepOrder": 4,
+      "feExtraFields": [
+        "progressCurrent",
+        "progressTarget"
+      ]
+    },
+    {
+      "code": "subset_aum_1_2b",
+      "title": "مجموع دارایی زیرمجموعه به ۱٫۲ میلیارد تومان",
+      "description": "یک‌بار",
+      "reward": 200,
+      "missionType": "custom",
+      "frequency": "once",
+      "categoryId": "marketing",
+      "stepOrder": 5,
+      "feExtraFields": [
+        "progressCurrent",
+        "progressTarget"
+      ]
+    },
+    {
+      "code": "daily_login",
+      "title": "لاگین روزانه",
+      "description": "فقط برای کسانی که در زیرمجموعه‌شان دارایی است",
+      "reward": 2,
+      "missionType": "custom",
+      "frequency": "recurring",
+      "recurrence": "daily",
+      "categoryId": "promotion",
+      "stepOrder": 1,
+      "defaultProgressTarget": 1,
+      "feExtraFields": [
+        "loginClaimedDates",
+        "progressCurrent",
+        "progressTarget",
+        "periodEndsAt"
+      ],
+      "aliases": [
+        "daily_login"
+      ]
+    },
+    {
+      "code": "new_referral",
+      "title": "معرفی فرد جدید",
+      "description": "",
+      "reward": 50,
+      "missionType": "referral_count",
+      "frequency": "recurring",
+      "recurrence": "per_event",
+      "categoryId": "promotion",
+      "stepOrder": 2,
+      "feExtraFields": [
+        "referralCount",
+        "referralTokensEarned"
+      ],
+      "aliases": [
+        "invite_new",
+        "new_referral"
+      ]
+    },
+    {
+      "code": "monthly_referrals_3",
+      "title": "معرفی ۳ زیرمجموعه در ماه",
+      "description": "",
+      "reward": 500,
+      "missionType": "referral_count",
+      "frequency": "recurring",
+      "recurrence": "monthly",
+      "categoryId": "promotion",
+      "stepOrder": 3,
+      "defaultProgressTarget": 3,
+      "feExtraFields": [
+        "progressCurrent",
+        "progressTarget",
+        "periodEndsAt"
+      ],
+      "aliases": [
+        "referral_3",
+        "monthly_referrals_3",
+        "direct_subsets_3"
+      ]
+    },
+    {
+      "code": "direct_subsets_10",
+      "title": "رسیدن به ۱۰ زیرمجموعه",
+      "description": "یک‌بار + نشان پیشگام",
+      "reward": 3000,
+      "missionType": "referral_count",
+      "frequency": "once",
+      "categoryId": "badges",
+      "stepOrder": 1,
+      "badgeKey": "pishgam",
+      "feExtraFields": [
+        "completedAt"
+      ]
+    },
+    {
+      "code": "subsets_high_aum_1_5b",
+      "title": "۳ زیرمجموعه با دارایی بیش از ۱٫۵ میلیارد تومان",
+      "description": "در یک ماه + نشان معتبر",
+      "reward": 6000,
+      "missionType": "custom",
+      "frequency": "once",
+      "categoryId": "badges",
+      "stepOrder": 2,
+      "badgeKey": "motabar",
+      "feExtraFields": [
+        "completedAt"
+      ]
+    },
+    {
+      "code": "network_all_funds",
+      "title": "دارایی شبکه در همه صندوق‌ها",
+      "description": "یک‌بار + نشان کلکسیونر",
+      "reward": 3000,
+      "missionType": "fund_issue",
+      "frequency": "once",
+      "categoryId": "badges",
+      "stepOrder": 3,
+      "badgeKey": "collector",
+      "feExtraFields": [
+        "completedAt"
+      ]
+    },
+    {
+      "code": "leader_5x3",
+      "title": "۵ زیرمجموعه که هرکدام ۳ زیرمجموعه داشته باشند",
+      "description": "یک‌بار + نشان راهبر",
+      "reward": 10000,
+      "missionType": "referral_count",
+      "frequency": "once",
+      "categoryId": "badges",
+      "stepOrder": 4,
+      "badgeKey": "rahbar",
+      "feExtraFields": [
+        "completedAt"
+      ]
+    },
+    {
+      "code": "badge_safir_novin",
+      "title": "دریافت نشان سفیر نوین",
+      "description": "پاداش دریافت نشان سفیر نوین",
+      "reward": 30000,
+      "missionType": "custom",
+      "frequency": "once",
+      "categoryId": "badges",
+      "stepOrder": 5,
+      "badgeKey": "safir",
+      "feExtraFields": [
+        "completedAt"
+      ]
+    }
+  ],
+  "optionalBoostFields": [
+    "rewardBoostPercent",
+    "boostedReward",
+    "boostEndsAt",
+    "doubleBonus"
+  ],
+  "endpoints": {
+    "promotion": "GET /api/v2/missions/sections/promotion",
+    "onboarding": "GET /api/v2/missions/sections/onboarding",
+    "marketing": "GET /api/v2/missions/sections/marketing",
+    "badges": "GET /api/v2/missions/sections/badges",
+    "userList": "GET /api/v2/missions/list",
+    "dashboard": "GET /api/v2/dashboard/missions",
+    "activity": "GET /api/v2/missions/activity",
+    "complete": "POST /api/v2/missions/complete",
+    "leaderboard": "GET /api/v2/leaderboard/missions",
+    "adminList": "GET /api/v2/admin/missions/list"
+  }
+}

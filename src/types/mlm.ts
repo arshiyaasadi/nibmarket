@@ -93,7 +93,76 @@ export interface MissionDef {
   status: "draft" | "active" | "paused" | "archived";
   completed?: boolean;
   completedAt?: string;
+  /** Legacy flag — treat as +100% boost when set */
   doubleBonus?: boolean;
+  /**
+   * Optional campaign boost from backend (mlm-16).
+   * FE only renders boost UI when these are present / doubleBonus is true.
+   */
+  rewardBoostPercent?: number;
+  boostedReward?: number;
+  boostEndsAt?: string;
+  /**
+   * Optional period progress from backend (promotion / recurring missions).
+   * FE falls back to code defaults when missing.
+   */
+  progressCurrent?: number;
+  progressTarget?: number;
+  periodEndsAt?: string;
+  /** ISO dates (YYYY-MM-DD) when daily login was claimed this week */
+  loginClaimedDates?: string[];
+  /** Lifetime / cumulative referral count for per-event referral mission */
+  referralCount?: number;
+  /** Tokens earned from referral rewards so far */
+  referralTokensEarned?: number;
+}
+
+/** GET /missions/sections/{promotion|onboarding|marketing} */
+export interface MissionSectionResponse {
+  items: MissionDef[];
+}
+
+export type MarketingBadgeCode = "pishgam" | "motabar" | "collector" | "rahbar" | "safir_novin";
+
+/** GET /missions/sections/badges item */
+export interface MarketingBadgeItem {
+  code: MarketingBadgeCode;
+  missionCode: string;
+  title: string;
+  description?: string;
+  reward: number;
+  unlocked: boolean;
+  achievedAt?: string | null;
+  imageUrl?: string | null;
+}
+
+export interface MarketingBadgesResponse {
+  items: MarketingBadgeItem[];
+}
+
+/** POST /missions/complete */
+export interface MissionCompleteRequest {
+  code: string;
+}
+
+export interface MissionCompleteResponse {
+  ok: boolean;
+  code: string;
+  completed: boolean;
+  reward: number;
+  alreadyCompleted?: boolean;
+}
+
+/** POST /leads/registration-link */
+export type RegistrationLinkLeadSource = "landing_hero" | "landing_join";
+
+export interface RegistrationLinkLeadRequest {
+  mobile: string;
+  source: RegistrationLinkLeadSource;
+}
+
+export interface RegistrationLinkLeadResponse {
+  ok: true;
 }
 
 export interface SubsetDeposits {
@@ -293,6 +362,10 @@ export interface HonorItem {
   title: string;
   description: string;
   achievedAt: string;
+  /** Optional badge code / image when backend supports marketing badges */
+  code?: string;
+  imageUrl?: string | null;
+  reward?: number;
 }
 
 // ── Capital / Funds ──────────────────────────────────────────

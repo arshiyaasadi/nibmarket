@@ -34,6 +34,71 @@ export type AdminUserStatus = "pending_verification" | "active" | "suspended" | 
 export type AdminUserKycStatus = "none" | "pending" | "verified" | "rejected";
 export type AdminUserGender = "male" | "female";
 
+/** Sejam KYC address nested under `AdminUserSejam` */
+export interface AdminUserSejamAddress {
+  addressId: number;
+  addressBody: string | null;
+  postalCode: string | null;
+  phoneNumber: string | null;
+  cityId: number | null;
+  isActive: boolean;
+  isSejamAddress: boolean;
+  isDefault: boolean;
+}
+
+/** Sejam bank account nested under `AdminUserSejam` */
+export interface AdminUserSejamBankAccount {
+  bankAccountId: number;
+  accountNumber: string | null;
+  iban: string | null;
+  accountType: string | null;
+  bankId: number | null;
+  bankName: string | null;
+  branchId: number | null;
+  branchName: string | null;
+  bankBranchCode: string | null;
+  isSejamAccount: boolean;
+  isDefault: boolean;
+}
+
+/**
+ * Sejam investor profile returned on admin user list/detail.
+ * Dates like `birthDate` are often already Jalali (`1365/10/18`).
+ */
+export interface AdminUserSejam {
+  investorId: number | null;
+  legalType: number | null;
+  isIranian: boolean | null;
+  authenticationStatusTypeId: number | null;
+  sejamStatusId: number | null;
+  nationalNo: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  fatherName: string | null;
+  gender: string | number | null;
+  mobile: string | null;
+  email: string | null;
+  birthDate: string | null;
+  birthCertificateSerial: string | null;
+  birthCertificateNumber: string | null;
+  birthCertificatePlaceOfIssue: string | null;
+  placeOfBirth: string | null;
+  exchangeCode: string | null;
+  nationalityId: number | null;
+  englishFirstName: string | null;
+  englishLastName: string | null;
+  englishFatherName: string | null;
+  companyName: string | null;
+  registerNo: string | null;
+  companyRegisterDate: string | null;
+  companyRegisterPlace: string | null;
+  ceoNationalNo: string | null;
+  isArchive: boolean | null;
+  registeredAt: string | null;
+  addresses: AdminUserSejamAddress[];
+  bankAccounts: AdminUserSejamBankAccount[];
+}
+
 /** GET /admin/users — list item */
 export interface AdminUserListItem {
   id: string;
@@ -47,6 +112,10 @@ export interface AdminUserListItem {
   kycStatus: AdminUserKycStatus;
   referralCode: string;
   createdAt: string;
+  nibId?: number | null;
+  isClubMember?: boolean;
+  /** Present when BE attaches Sejam KYC payload */
+  sejam?: AdminUserSejam | null;
 }
 
 /** GET /admin/users/geo — one member pinned on the density map */

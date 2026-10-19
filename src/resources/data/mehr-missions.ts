@@ -47,8 +47,8 @@ export const MEHR_MISSIONS: MehrMissionSeed[] = [
   },
   {
     code: "monthly_referrals_3",
-    title: "معرفی حداقل ۳ فرد در یک ماه",
-    description: "تکرارشونده — حداقل ۳ معرفی در یک ماه",
+    title: "معرفی ۳ زیرمجموعه در ماه",
+    description: "",
     reward: 500,
     missionType: "referral_count",
     frequency: "recurring",
@@ -56,7 +56,7 @@ export const MEHR_MISSIONS: MehrMissionSeed[] = [
   {
     code: "new_referral",
     title: "معرفی فرد جدید",
-    description: "تکرارشونده — هر معرفی جدید",
+    description: "",
     reward: 50,
     missionType: "referral_count",
     frequency: "recurring",
@@ -64,7 +64,7 @@ export const MEHR_MISSIONS: MehrMissionSeed[] = [
   {
     code: "first_fund_purchase",
     title: "اولین خرید صندوق",
-    description: "توسط خود فرد، به شرط حداقل ۱۰ میلیون دارایی (یک‌بار)",
+    description: "حداقل ۱۰ میلیون دارایی",
     reward: 100,
     missionType: "purchase",
     frequency: "once",
@@ -72,7 +72,7 @@ export const MEHR_MISSIONS: MehrMissionSeed[] = [
   {
     code: "daily_login",
     title: "لاگین روزانه",
-    description: "فقط برای کسانی که در زیرمجموعه‌شان دارایی است (تکرارشونده)",
+    description: "فقط برای کسانی که در زیرمجموعه‌شان دارایی است",
     reward: 2,
     missionType: "custom",
     frequency: "recurring",

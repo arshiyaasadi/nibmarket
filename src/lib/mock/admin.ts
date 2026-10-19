@@ -29,18 +29,69 @@ const ALLOCATION_SOURCES: AdminTwinAllocationSource[] = [
 ];
 
 function toAdminUserListItem(user: MockUserRecord): AdminUserListItem {
+  const fullName = `${user.firstName} ${user.lastName}`.trim();
+  const hasKyc = user.kycStatus === "verified" && user.nationalId;
+
   return {
     id: user.id,
     mobile: user.mobile,
     email: user.email,
     firstName: user.firstName,
     lastName: user.lastName,
-    fullName: `${user.firstName} ${user.lastName}`.trim(),
+    fullName,
     role: user.role,
     status: user.status,
     kycStatus: user.kycStatus,
     referralCode: user.referralCode,
     createdAt: user.createdAt,
+    sejam: hasKyc
+      ? {
+          investorId: 1000,
+          legalType: 0,
+          isIranian: true,
+          authenticationStatusTypeId: 2,
+          sejamStatusId: 7,
+          nationalNo: user.nationalId,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          fatherName: "علی",
+          gender: user.gender,
+          mobile: user.mobile,
+          email: user.email,
+          birthDate: user.birthDate?.includes("-")
+            ? user.birthDate.replace(/-/g, "/")
+            : user.birthDate,
+          birthCertificateSerial: "ا-12 345678",
+          birthCertificateNumber: "1234",
+          birthCertificatePlaceOfIssue: null,
+          placeOfBirth: "تهران",
+          exchangeCode: null,
+          nationalityId: null,
+          englishFirstName: null,
+          englishLastName: null,
+          englishFatherName: null,
+          companyName: null,
+          registerNo: null,
+          companyRegisterDate: null,
+          companyRegisterPlace: null,
+          ceoNationalNo: null,
+          isArchive: null,
+          registeredAt: user.createdAt,
+          addresses: [
+            {
+              addressId: 1,
+              addressBody: "تهران، خیابان ولیعصر، پلاک ۱۲۳",
+              postalCode: "1234567890",
+              phoneNumber: "2122334455",
+              cityId: null,
+              isActive: true,
+              isSejamAddress: true,
+              isDefault: true,
+            },
+          ],
+          bankAccounts: [],
+        }
+      : null,
   };
 }
 

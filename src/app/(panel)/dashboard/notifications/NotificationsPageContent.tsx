@@ -37,8 +37,7 @@ export function NotificationsPageContent() {
     <div className="flex flex-col gap-4" dir="rtl">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-foreground text-xl font-bold">{t("title")}</h1>
-          <p className="text-muted mt-1 text-sm">{t("subtitle")}</p>
+          <p className="text-muted text-sm">{t("subtitle")}</p>
         </div>
         <Button
           size="sm"

@@ -69,6 +69,18 @@ export const ENDPOINTS = {
   MISSIONS: {
     LIST: "/missions/list",
     ACTIVITY: "/missions/activity",
+    /** Mark a mission complete by code (e.g. training_level_1 on course visit). */
+    COMPLETE: "/missions/complete",
+    SECTIONS: {
+      PROMOTION: "/missions/sections/promotion",
+      ONBOARDING: "/missions/sections/onboarding",
+      MARKETING: "/missions/sections/marketing",
+      BADGES: "/missions/sections/badges",
+    },
+  },
+  LEADS: {
+    /** Public — rate-limited on BE; no captcha. */
+    REGISTRATION_LINK: "/leads/registration-link",
   },
   NOTIFICATIONS: {
     LIST: "/notifications",

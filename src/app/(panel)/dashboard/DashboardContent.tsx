@@ -3,8 +3,9 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { CircleCheck, Zap, Trophy, ArrowLeft, Sparkles } from "lucide-react";
-import { useMissionsList, useSubsetDeposits } from "@/features/dashboard/queries";
+import { CircleCheck, Trophy, ArrowLeft, Circle } from "lucide-react";
+import { useSubsetDeposits } from "@/features/dashboard/queries";
+import { useMissionSections } from "@/features/missions/queries";
 import { useCompetitionPool } from "@/features/leaderboard/queries";
 import { NetworkTreeWidget } from "@/components/organisms/network/NetworkTreeWidget";
 import { InviteModal } from "@/components/organisms/network/InviteModal";
@@ -12,8 +13,16 @@ import { InviteKycGateModal } from "@/components/organisms/network/InviteKycGate
 import { MissionsBonusBanner } from "@/components/molecules/MissionsBonusBanner";
 import { SubsetDepositsWidget } from "@/components/molecules/SubsetDepositsWidget";
 import { useInviteLauncher } from "@/features/network/use-invite-launcher";
+import {
+  buildWeekLoginDays,
+  getMissionBoost,
+  getMissionCodeMeta,
+  groupMissionsByCategory,
+  missionsHaveAnyBoost,
+} from "@/lib/missions/categories";
 import { ROUTES } from "@/config/routes";
 import { cn } from "@/lib/utils";
+import type { MissionDef } from "@/types/mlm";
 
 function pn(n: number) {
   return n.toLocaleString("fa-IR");
@@ -23,28 +32,40 @@ function pn(n: number) {
 
 function MissionsWidget({ onInvite }: { onInvite?: () => void }) {
   const t = useTranslations("missions");
-  const { data: missions = [], isLoading } = useMissionsList();
+  const { missions, isLoading } = useMissionSections();
 
-  const sorted = useMemo(
-    () =>
-      [...missions]
-        .sort((a, b) => {
-          if (a.completed !== b.completed) return a.completed ? 1 : -1;
-          if (a.doubleBonus !== b.doubleBonus) return a.doubleBonus ? -1 : 1;
-          return 0;
-        })
-        .slice(0, 10),
+  const dailyLogin = useMemo(
+    () => missions.find((m) => getMissionCodeMeta(m.code).recurrence === "daily") ?? null,
     [missions],
   );
 
+  /** Next incomplete step per stage (one card each, side-by-side). */
+  const stageCards = useMemo(() => {
+    const groups = groupMissionsByCategory(missions);
+    const pick = (id: "onboarding" | "marketing") => {
+      const g = groups.find((x) => x.meta.id === id);
+      if (!g) return null;
+      const mission = g.missions.find((m) => !m.completed) ?? null;
+      if (!mission) return null;
+      return { categoryLabelKey: g.meta.labelKey, mission };
+    };
+    return [pick("onboarding"), pick("marketing")].filter(
+      (x): x is { categoryLabelKey: string; mission: MissionDef } => x != null,
+    );
+  }, [missions]);
+
   const completedCount = missions.filter((m) => m.completed).length;
-  const progressPct = missions.length > 0 ? (completedCount / missions.length) * 100 : 0;
+  const showBoostBanner = missionsHaveAnyBoost(missions);
+  const week = dailyLogin ? buildWeekLoginDays(dailyLogin) : [];
+  const dailyReward = dailyLogin
+    ? (getMissionBoost(dailyLogin)?.effectiveReward ?? dailyLogin.reward)
+    : 0;
 
   return (
     <div className="border-border bg-surface flex h-full flex-col gap-4 rounded-2xl border p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-foreground text-sm font-semibold">{t("title")}</h2>
             {!isLoading && missions.length > 0 && (
               <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-[11px] font-bold">
@@ -52,14 +73,6 @@ function MissionsWidget({ onInvite }: { onInvite?: () => void }) {
               </span>
             )}
           </div>
-          {!isLoading && missions.length > 0 && (
-            <div className="bg-border mt-2 h-1 overflow-hidden rounded-full">
-              <div
-                className="bg-primary h-full rounded-full transition-all duration-500"
-                style={{ width: `${progressPct}%` }}
-              />
-            </div>
-          )}
         </div>
         <Link
           href={ROUTES.MISSIONS}
@@ -70,79 +83,104 @@ function MissionsWidget({ onInvite }: { onInvite?: () => void }) {
         </Link>
       </div>
 
-      <MissionsBonusBanner onInvite={onInvite} />
+      <MissionsBonusBanner onInvite={onInvite} visible={showBoostBanner} />
 
       {isLoading ? (
         <div className="flex h-28 items-center justify-center">
           <div className="border-primary h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
         </div>
       ) : (
-        <ul className="-mx-1 flex snap-x snap-mandatory [scrollbar-width:none] gap-3 overflow-x-auto px-1 pb-0.5 [&::-webkit-scrollbar]:hidden">
-          {sorted.map((m) => {
-            const reward = m.doubleBonus && !m.completed ? m.reward * 2 : m.reward;
-            return (
-              <li key={m.id} className="w-[9.5rem] shrink-0 snap-start sm:w-[10.5rem]">
-                <div
-                  className={cn(
-                    "relative flex h-full min-h-[7.5rem] flex-col gap-2 rounded-xl border p-3 transition",
-                    m.completed
-                      ? "border-border/80 bg-background/50 opacity-70"
-                      : m.doubleBonus
-                        ? "border-primary/30 from-primary/10 to-surface bg-gradient-to-b shadow-sm"
-                        : "border-border bg-background hover:border-primary/20",
-                  )}
-                >
-                  {m.doubleBonus && !m.completed && (
-                    <span className="bg-primary absolute start-3 -top-2 inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">
-                      <Zap className="size-2.5" />
-                      ۲×
-                    </span>
-                  )}
-
-                  <div
-                    className={cn(
-                      "flex size-8 items-center justify-center rounded-lg",
-                      m.completed ? "bg-success/15" : "bg-primary/10",
-                    )}
-                  >
-                    {m.completed ? (
-                      <CircleCheck className="text-success size-4" />
-                    ) : m.doubleBonus ? (
-                      <Sparkles className="text-primary size-4" />
-                    ) : (
-                      <CircleCheck className="text-primary/40 size-4" />
-                    )}
-                  </div>
-
-                  <p
-                    className={cn(
-                      "line-clamp-2 flex-1 text-xs leading-snug font-medium",
-                      m.completed ? "text-muted line-through" : "text-foreground",
-                    )}
-                  >
-                    {m.title}
-                  </p>
-
-                  <div className="flex items-baseline gap-1">
+        <div className="flex flex-col gap-4">
+          {/* Daily login week */}
+          {dailyLogin && (
+            <div className="border-border bg-background rounded-xl border p-3">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-foreground text-xs font-bold">{dailyLogin.title}</p>
+                  {dailyLogin.description ? (
+                    <p className="text-muted mt-0.5 line-clamp-1 text-[10px]">
+                      {dailyLogin.description}
+                    </p>
+                  ) : null}
+                </div>
+                <p className="text-primary shrink-0 text-sm font-black tabular-nums">
+                  {pn(dailyReward)}
+                  <span className="text-muted ms-0.5 text-[10px] font-medium">تنوین</span>
+                </p>
+              </div>
+              <ul className="grid grid-cols-7 gap-1">
+                {week.map((d) => (
+                  <li key={d.iso} className="flex flex-col items-center gap-1">
+                    <span className="text-muted text-[9px] font-medium">{d.label}</span>
                     <span
                       className={cn(
-                        "text-sm font-bold tabular-nums",
-                        m.completed
-                          ? "text-muted"
-                          : m.doubleBonus
-                            ? "text-primary"
-                            : "text-foreground",
+                        "flex size-7 items-center justify-center rounded-full border",
+                        d.claimed
+                          ? "border-success/35 bg-success/15 text-success"
+                          : d.kind === "today"
+                            ? "border-primary/40 bg-primary/10 text-primary"
+                            : d.kind === "future"
+                              ? "border-border/50"
+                              : "border-border bg-surface-2 text-muted",
                       )}
                     >
-                      {pn(reward)}
+                      {d.claimed ? (
+                        <CircleCheck className="size-3.5" />
+                      ) : d.kind === "future" ? (
+                        <span className="bg-border size-1 rounded-full opacity-50" />
+                      ) : (
+                        <Circle className="size-3 opacity-35" />
+                      )}
                     </span>
-                    <span className="text-muted text-[11px]">تنوین</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Next incomplete step: شروع کار | بازاریابی — equal height */}
+          {stageCards.length > 0 && (
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:items-stretch">
+              {stageCards.map(({ categoryLabelKey, mission: m }) => {
+                const reward = getMissionBoost(m)?.effectiveReward ?? m.reward;
+                return (
+                  <div
+                    key={m.id}
+                    className="border-border bg-background flex min-h-[5.5rem] flex-col justify-between gap-2 rounded-xl border px-3 py-2.5"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-muted text-[10px] font-medium">
+                        {t(categoryLabelKey as "categories.onboarding")}
+                      </p>
+                      <p className="text-foreground mt-0.5 line-clamp-2 text-xs font-semibold">
+                        {m.title}
+                      </p>
+                      {m.code === "first_fund_purchase" && m.description ? (
+                        <p className="text-muted mt-0.5 line-clamp-2 text-[10px]">
+                          {m.description}
+                        </p>
+                      ) : null}
+                    </div>
+                    <div className="flex items-end justify-between gap-2">
+                      <p className="text-primary shrink-0 text-sm font-black tabular-nums">
+                        {pn(reward)}
+                        <span className="text-muted ms-0.5 text-[10px] font-medium">تنوین</span>
+                      </p>
+                      {m.code === "training_level_1" ? (
+                        <Link
+                          href={ROUTES.COURSE_LEVEL_1}
+                          className="bg-primary/10 text-primary hover:bg-primary/15 shrink-0 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition"
+                        >
+                          {t("visitCourse")}
+                        </Link>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+                );
+              })}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
@@ -236,10 +274,10 @@ export function DashboardContent() {
     <>
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
-          <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 flex-1 flex-col">
             <MissionsWidget onInvite={openInvite} />
           </div>
-          <div className="lg:w-[38%] lg:shrink-0">
+          <div className="flex flex-col lg:w-[38%] lg:shrink-0">
             <PoolWidget />
           </div>
         </div>

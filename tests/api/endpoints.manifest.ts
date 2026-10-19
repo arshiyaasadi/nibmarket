@@ -33,6 +33,14 @@ export const API_ENDPOINTS = {
   MISSIONS: {
     LIST: { method: "GET", path: "/missions/list", auth: true },
     ACTIVITY: { method: "GET", path: "/missions/activity", auth: true, query: "?page=1" },
+    COMPLETE: { method: "POST", path: "/missions/complete", auth: true },
+    SECTION_PROMOTION: { method: "GET", path: "/missions/sections/promotion", auth: true },
+    SECTION_ONBOARDING: { method: "GET", path: "/missions/sections/onboarding", auth: true },
+    SECTION_MARKETING: { method: "GET", path: "/missions/sections/marketing", auth: true },
+    SECTION_BADGES: { method: "GET", path: "/missions/sections/badges", auth: true },
+  },
+  LEADS: {
+    REGISTRATION_LINK: { method: "POST", path: "/leads/registration-link", auth: false },
   },
   LEADERBOARD: {
     POOL_BALANCE: { method: "GET", path: "/leaderboard/pool-balance", auth: true },

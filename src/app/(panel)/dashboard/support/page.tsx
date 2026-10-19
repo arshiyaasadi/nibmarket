@@ -7,11 +7,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  const t = await getTranslations("pages");
   const tCommon = await getTranslations("common");
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-bold">{t("support.title")}</h1>
       <div className="flex items-center justify-center rounded-lg border p-12 text-sm text-gray-400">
         {tCommon("comingSoon")}
       </div>

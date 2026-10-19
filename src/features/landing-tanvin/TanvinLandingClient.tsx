@@ -1,36 +1,69 @@
+/**
+ * Tanvin marketing landing — composed from design-system organisms.
+ */
 "use client";
 
-import { useEffect, useRef } from "react";
 import { startAuthEntry } from "@/config/auth-redirect";
 import { ROUTES } from "@/config/routes";
-import { TANVIN_LANDING_MARKUP } from "./markup";
-import { initTanvinLanding } from "./initTanvinLanding";
+import { LandingReveal } from "@/components/molecules/landing/LandingReveal";
+import { LandingBadges } from "@/components/organisms/landing/LandingBadges";
+import { LandingCalc } from "@/components/organisms/landing/LandingCalc";
+import { LandingFooter } from "@/components/organisms/landing/LandingFooter";
+import { LandingHero } from "@/components/organisms/landing/LandingHero";
+import { LandingJoin } from "@/components/organisms/landing/LandingJoin";
+import {
+  LandingFaq,
+  LandingInvitee,
+  LandingPool,
+  LandingWho,
+} from "@/components/organisms/landing/LandingMoreSections";
+import { LandingMissions } from "@/components/organisms/landing/LandingMissions";
+import { LandingNav } from "@/components/organisms/landing/LandingNav";
+import { LandingStory, LandingStrip } from "@/components/organisms/landing/LandingStory";
 import "./tanvin-landing.css";
 
-/**
- * New Tanvin marketing landing — styles scoped to `.tanvin-landing` only.
- * Does not affect panel/admin theme tokens.
- */
 export function TanvinLandingClient() {
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) return;
-
-    root.innerHTML = TANVIN_LANDING_MARKUP;
-
-    const cleanup = initTanvinLanding(root, () => {
-      startAuthEntry(ROUTES.DASHBOARD);
-    });
-
-    return () => {
-      cleanup();
-      root.innerHTML = "";
-    };
-  }, []);
+  function onAuthEntry() {
+    startAuthEntry(ROUTES.DASHBOARD);
+  }
 
   return (
-    <div ref={rootRef} className="tanvin-landing" dir="rtl" lang="fa" suppressHydrationWarning />
+    <div className="bg-background text-foreground min-h-dvh font-sans" dir="rtl" lang="fa">
+      <LandingNav onAuthEntry={onAuthEntry} />
+      <LandingHero />
+      <div className="flex flex-col">
+        <LandingReveal>
+          <LandingStrip />
+        </LandingReveal>
+        <LandingReveal>
+          <LandingStory />
+        </LandingReveal>
+        <LandingReveal>
+          <LandingCalc onStartMarketing={onAuthEntry} />
+        </LandingReveal>
+        <LandingReveal>
+          <LandingBadges />
+        </LandingReveal>
+        <LandingReveal>
+          <LandingWho />
+        </LandingReveal>
+        <LandingReveal>
+          <LandingMissions />
+        </LandingReveal>
+        <LandingReveal>
+          <LandingInvitee />
+        </LandingReveal>
+        <LandingReveal>
+          <LandingPool />
+        </LandingReveal>
+        <LandingReveal>
+          <LandingFaq />
+        </LandingReveal>
+        <LandingReveal>
+          <LandingJoin onAuthEntry={onAuthEntry} />
+        </LandingReveal>
+      </div>
+      <LandingFooter />
+    </div>
   );
 }

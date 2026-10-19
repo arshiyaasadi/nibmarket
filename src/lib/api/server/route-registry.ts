@@ -65,7 +65,16 @@ import {
   leaderboardMySubsetsHandler,
   leaderboardPoolBalanceHandler,
 } from "./handlers/leaderboard.handler";
-import { missionsActivityHandler, missionsListHandler } from "./handlers/missions.handler";
+import {
+  missionsActivityHandler,
+  missionsCompleteHandler,
+  missionsListHandler,
+  missionsSectionBadgesHandler,
+  missionsSectionMarketingHandler,
+  missionsSectionOnboardingHandler,
+  missionsSectionPromotionHandler,
+} from "./handlers/missions.handler";
+import { leadsRegistrationLinkHandler } from "./handlers/leads.handler";
 import {
   getInviteQuotaHandler,
   inviteTemplatesHandler,
@@ -149,6 +158,12 @@ const CUSTOM_ROUTES: Record<string, RouteHandler> = {
 
   "GET:/missions/list": missionsListHandler,
   "GET:/missions/activity": missionsActivityHandler,
+  "POST:/missions/complete": missionsCompleteHandler,
+  "GET:/missions/sections/promotion": missionsSectionPromotionHandler,
+  "GET:/missions/sections/onboarding": missionsSectionOnboardingHandler,
+  "GET:/missions/sections/marketing": missionsSectionMarketingHandler,
+  "GET:/missions/sections/badges": missionsSectionBadgesHandler,
+  "POST:/leads/registration-link": leadsRegistrationLinkHandler,
 
   "GET:/leaderboard/pool-balance": leaderboardPoolBalanceHandler,
   "GET:/leaderboard/current-month": leaderboardCurrentMonthHandler,

@@ -3,6 +3,9 @@ export const ROUTES = {
   LOGIN: "/login",
   SESSION_EXPIRED: "/session-expired",
   LOGOUT_INCOMPLETE: "/logout-incomplete",
+  /** Public courses (landing chrome) — level-1 training mission */
+  COURSES: "/courses",
+  COURSE_LEVEL_1: "/courses/level-1",
   /** SMS invite entry: /invite/:code or /invite/:code/:fundId */
   INVITE: (code: string, fundId?: string): string =>
     fundId

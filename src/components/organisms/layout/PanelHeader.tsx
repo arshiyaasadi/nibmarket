@@ -4,7 +4,11 @@
  */
 "use client";
 
+import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { PROJECT } from "@/config/project";
+import { ROUTES } from "@/config/routes";
+import { resolvePanelNavTitle } from "@/lib/panel/page-title";
 import { WalletBalanceChip } from "./WalletBalanceChip";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { AdminPanelLink } from "./AdminPanelLink";
@@ -15,6 +19,14 @@ interface PanelHeaderProps {
 }
 
 export function PanelHeader({ onOpenMobile: _onOpenMobile }: PanelHeaderProps) {
+  const pathname = usePathname() ?? ROUTES.DASHBOARD;
+  const t = useTranslations("nav");
+  const navTitle = resolvePanelNavTitle(pathname);
+  const title =
+    navTitle.kind === "brand"
+      ? t("brandFull")
+      : t(`pageTitles.${navTitle.key}` as "pageTitles.wallet");
+
   return (
     <header className="sticky top-0 z-40 w-full">
       {/* Glass bar */}
@@ -30,13 +42,11 @@ export function PanelHeader({ onOpenMobile: _onOpenMobile }: PanelHeaderProps) {
           className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-transparent dark:from-white/10"
         />
 
-        {/* Logo + name (mobile only) */}
-        <div className="gap-atom-md relative flex items-center">
+        {/* Logo + dynamic title (brand on dashboard only) */}
+        <div className="gap-atom-md relative flex min-w-0 items-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={PROJECT.logoSrc} alt="" aria-hidden="true" className="size-7 shrink-0" />
-          <span className="text-foreground text-sm font-bold">
-            باشگاه مشتریان تامین سرمایه نوین
-          </span>
+          <span className="text-foreground truncate text-sm font-bold">{title}</span>
         </div>
 
         {/* Spacer */}

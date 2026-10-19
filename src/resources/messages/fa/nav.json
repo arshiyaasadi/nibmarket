@@ -10,6 +10,8 @@
   "leaderboard": "لیدربورد",
   "missions": "ماموریت‌ها",
   "guidelinesTitle": "راهنمای سیستم",
+  "home": "صفحه اصلی",
+  "courses": "دوره‌ها",
   "rulesNetwork": "قوانین زیر مجموعه",
   "rulesDeposit": "قوانین رسوب",
   "reports": "گزارشات",
@@ -29,5 +31,22 @@
   "openMenu": "باز کردن منو",
   "closeMenu": "بستن منو",
   "walletBalance": "موجودی",
-  "adminPanel": "پنل ادمین"
+  "adminPanel": "پنل ادمین",
+  "brandFull": "باشگاه مشتریان تامین سرمایه نوین",
+  "pageTitles": {
+    "wallet": "کیف پول تنوین",
+    "missions": "ماموریت‌ها",
+    "leaderboardPool": "تابلوی استخر",
+    "network": "شبکه من",
+    "subsetDeposits": "رسوب زیرمجموعه",
+    "capital": "واریز سرمایه",
+    "notifications": "اعلان‌ها",
+    "rules": "قوانین و مقررات",
+    "support": "پشتیبانی",
+    "reportsSubsets": "گزارش زیرمجموعه‌ها",
+    "reportsIncome": "گزارش درآمد",
+    "competitionParticipate": "شرکت در مسابقه",
+    "competitionRecords": "سوابق مسابقات",
+    "competitionPrizes": "جوایز و هدایا"
+  }
 }

@@ -1,19 +1,21 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { useTranslations } from "next-intl";
-import { Users, Zap } from "lucide-react";
+import { Users, Zap, Check, Copy, Link2 } from "lucide-react";
 import { useNetworkInvited } from "@/features/network/queries";
 import { useDashboardReferral } from "@/features/dashboard/queries";
+import { useMarketingBadges } from "@/features/missions/queries";
 import { useSession } from "@/hooks/use-session";
 import { InviteModal } from "@/components/organisms/network/InviteModal";
 import { VipInviteButton } from "@/components/molecules/VipInviteButton";
 import { NetworkTreeWidget } from "@/components/organisms/network/NetworkTreeWidget";
+import { MarketingBadgesSection } from "@/components/molecules/MarketingBadgesSection";
 import { ROUTES } from "@/config/routes";
 import type { InviteStatus } from "@/types/mlm";
-import { formatDisplayDate } from "@/lib/utils";
+import { cn, formatDisplayDate } from "@/lib/utils";
 import { normalizeSearchInput } from "@/lib/normalization/digits";
 import { buildPublicInviteUrl } from "@/lib/invite/pending-invite";
 
@@ -52,32 +54,55 @@ function InviteCard({ onVipInvite }: { onVipInvite: () => void }) {
         </div>
 
         {inviteCode && (
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-            <div className="border-border bg-background flex min-w-0 flex-1 items-center rounded-xl border px-3 py-2.5">
-              <div className="min-w-0">
-                <p className="text-muted text-[11px]">{t("inviteCardCodeLabel")}</p>
-                <p
-                  className="text-foreground mt-0.5 truncate font-mono text-sm font-bold tracking-widest"
-                  dir="ltr"
-                >
-                  {inviteCode}
-                </p>
-              </div>
+          <div className="border-border bg-background overflow-hidden rounded-2xl border">
+            <div className="px-4 py-3">
+              <p className="text-muted text-[11px]">{t("inviteCardCodeLabel")}</p>
+              <p
+                className="text-foreground mt-1 font-mono text-base font-bold tracking-[0.18em]"
+                dir="ltr"
+              >
+                {inviteCode}
+              </p>
             </div>
-            <div className="border-border bg-background flex shrink-0 flex-row gap-2 rounded-xl border p-2 sm:flex-col sm:justify-center">
+            <div className="border-border divide-border grid grid-cols-2 divide-x border-t">
               <button
                 type="button"
                 onClick={copyCode}
-                className="border-border bg-surface text-muted hover:text-foreground flex-1 rounded-lg border px-2.5 py-1.5 text-xs transition sm:flex-none"
+                className={cn(
+                  "relative flex h-11 items-center justify-center gap-1.5 text-xs font-medium transition",
+                  copiedCode
+                    ? "bg-success/10 text-success"
+                    : "text-muted hover:bg-surface-2 hover:text-foreground",
+                )}
               >
-                {copiedCode ? t("copied") : t("copyCode")}
+                {/* Fixed-size content so copy feedback never shifts layout */}
+                <span className="invisible inline-flex items-center gap-1.5 font-medium">
+                  <Link2 className="size-3.5" />
+                  {t("copyInviteLink")}
+                </span>
+                <span className="absolute inset-0 flex items-center justify-center gap-1.5">
+                  {copiedCode ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+                  {copiedCode ? t("copied") : t("copyCode")}
+                </span>
               </button>
               <button
                 type="button"
                 onClick={copyLink}
-                className="border-border bg-surface text-muted hover:text-foreground flex-1 rounded-lg border px-2.5 py-1.5 text-xs transition sm:flex-none"
+                className={cn(
+                  "border-border relative flex h-11 items-center justify-center gap-1.5 border-s text-xs font-medium transition",
+                  copiedLink
+                    ? "bg-success/10 text-success"
+                    : "text-muted hover:bg-surface-2 hover:text-foreground",
+                )}
               >
-                {copiedLink ? t("copied") : t("copyInviteLink")}
+                <span className="invisible inline-flex items-center gap-1.5 font-medium">
+                  <Link2 className="size-3.5" />
+                  {t("copyInviteLink")}
+                </span>
+                <span className="absolute inset-0 flex items-center justify-center gap-1.5">
+                  {copiedLink ? <Check className="size-3.5" /> : <Link2 className="size-3.5" />}
+                  {copiedLink ? t("copied") : t("copyInviteLink")}
+                </span>
               </button>
             </div>
           </div>
@@ -86,6 +111,27 @@ function InviteCard({ onVipInvite }: { onVipInvite: () => void }) {
         <VipInviteButton onClick={onVipInvite} />
       </div>
     </div>
+  );
+}
+
+function MarketingBadgesPromo() {
+  const t = useTranslations("network");
+  const { data: badgeItems = [] } = useMarketingBadges();
+  const unlockMap = useMemo(() => {
+    const map: Record<string, { unlocked: boolean; achievedAtLabel?: string | null }> = {};
+    for (const b of badgeItems) {
+      const state = {
+        unlocked: b.unlocked,
+        achievedAtLabel: b.achievedAt ? formatDisplayDate(b.achievedAt) : null,
+      };
+      map[b.missionCode] = state;
+      map[b.code] = state;
+    }
+    return map;
+  }, [badgeItems]);
+
+  return (
+    <MarketingBadgesSection title={t("badgesPromoTitle")} unlockByMissionCode={unlockMap} compact />
   );
 }
 
@@ -280,10 +326,9 @@ export function NetworkPageClient() {
         <InviteCard onVipInvite={() => setShowInviteModal(true)} />
       </div>
 
-      {/* Row 2: Info banner */}
+      <MarketingBadgesPromo />
       <InfoBanner />
 
-      {/* Row 3: Invited table */}
       <InvitedTable />
 
       {showInviteModal && <InviteModal onClose={() => setShowInviteModal(false)} />}
