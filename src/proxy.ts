@@ -27,6 +27,14 @@ function loginRedirect(req: NextRequest, returnPath: string): NextResponse {
 export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // Exact static Tanvin landings (no App Router chrome / globals.css).
+  if (pathname === "/") {
+    return NextResponse.rewrite(new URL("/landing-v2/index.html", req.url));
+  }
+  if (pathname === "/landing-legacy" || pathname === "/landing-legacy/") {
+    return NextResponse.rewrite(new URL("/landing-v1/index.html", req.url));
+  }
+
   if (pathname === "/admin/login") {
     return loginRedirect(req, ROUTES.ADMIN.ROOT);
   }

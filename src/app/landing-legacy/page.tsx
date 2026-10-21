@@ -1,5 +1,5 @@
 /**
- * `/landing-legacy` is rewritten by middleware to `public/landing-v1/index.html`
+ * `/landing-legacy` is rewritten by proxy.ts to `public/landing-v1/index.html`
  * (exact previous landing-1). This route is only a build/type fallback.
  */
 import type { Metadata } from "next";
