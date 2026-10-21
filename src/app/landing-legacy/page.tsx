@@ -1,14 +1,12 @@
-/**
- * `/landing-legacy` is rewritten by proxy.ts to `public/landing-v1/index.html`
- * (exact previous landing-1). This route is only a build/type fallback.
- */
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "تنوین · شبکه بازاریابان نوین (نسخه قبلی)",
-  description: "نسخه قبلی لندینگ تنوین (landing-1) — لندینگ اصلی الان landing-2 روی مسیر خانه است.",
+  description: "نسخه قبلی لندینگ تنوین (landing-1).",
 };
 
+/** Fallback if rewrite misses — previous landing-1 static. */
 export default function LandingLegacyFallback() {
-  return null;
+  redirect("/landing-v1/index.html");
 }

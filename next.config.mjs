@@ -14,6 +14,19 @@ const nextConfig = {
     remotePatterns: [],
     formats: ["image/avif", "image/webp"],
   },
+  /**
+   * Exact static landings — beforeFiles so this wins over `app/page.tsx`
+   * (proxy rewrite alone is unreliable in standalone Docker).
+   */
+  async rewrites() {
+    return {
+      beforeFiles: [
+        { source: "/", destination: "/landing-v2/index.html" },
+        { source: "/landing-legacy", destination: "/landing-v1/index.html" },
+        { source: "/landing-legacy/", destination: "/landing-v1/index.html" },
+      ],
+    };
+  },
 };
 
 export default withNextIntl(nextConfig);

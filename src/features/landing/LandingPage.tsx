@@ -1,5 +1,13 @@
-/**
- * Fallback if the `/` → `/landing-v1/index.html` rewrite is unavailable.
- * Primary home is the exact static landing-1 files under `public/landing-v1/`.
- */
-export { default, metadata } from "@/features/landing-v1/LandingV1Page";
+import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "تنوین · شبکه بازاریابان نوین",
+  description:
+    "تنوین، طرح همکاری شبکه بازاریابان تأمین سرمایه نوین؛ سرمایه‌گذار معرفی کنید و هر روز سهم خود را به‌صورت سکه نقره تنوین دریافت کنید.",
+};
+
+/** Alias of home fallback — exact landing is `public/landing-v2`. */
+export default function LandingPage() {
+  redirect("/landing-v2/index.html");
+}
