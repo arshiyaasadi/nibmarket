@@ -15,11 +15,11 @@
 #   yarn sync:live --force           # kill stuck remote deploy and restart
 #   yarn sync:live --ui-mock         # live host with in-memory mocks (UI review)
 #   LIVE_UI_MOCK=1 yarn sync:live    # same as --ui-mock
-#   SKIP_NGINX=0 yarn sync:live      # optional: configure nginx on docker host (default skip)
+#   SKIP_NGINX=1 yarn sync:live      # skip host nginx (default: write CDN-origin :80→:3000)
 #   LIVE_SSH_HOST=<ip> yarn sync:live
 #
-# Ports on live host: app on :3000 only. Public HTTPS is on the edge host
-# (club.nibmarket.com → this machine :3000). Deploy does not touch nginx by default.
+# App :3000 + host nginx :80 (HTTP only) as ArvanCloud origin.
+# Never certbot on this host — CDN terminates HTTPS.
 #
 set -euo pipefail
 
@@ -31,7 +31,7 @@ PROJECT_DIR="${LIVE_PROJECT_DIR:-/opt/MLM_Front}"
 LIVE_PORT="${LIVE_PORT:-${PROD_PORT:-3000}}"
 NGINX_DOMAIN="${NGINX_DOMAIN:-club.nibmarket.com}"
 LIVE_UI_MOCK="${LIVE_UI_MOCK:-0}"
-SKIP_NGINX="${SKIP_NGINX:-1}"
+SKIP_NGINX="${SKIP_NGINX:-0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -230,7 +230,7 @@ fi
 
 echo ">>> Starting DETACHED remote deploy (survives closed terminal)"
 echo "    live :${LIVE_PORT} | SKIP_NGINX=${SKIP_NGINX} | LIVE_UI_MOCK=${LIVE_UI_MOCK}"
-echo "    public edge: https://${NGINX_DOMAIN} → this host :${LIVE_PORT}"
+echo "    CDN https://${NGINX_DOMAIN} → this host :80 → :${LIVE_PORT} (no certbot)"
 
 remote \
   SUDO_PASS="${SSH_PASS}" \

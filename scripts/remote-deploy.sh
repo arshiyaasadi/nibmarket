@@ -22,9 +22,9 @@ LOCK_FILE="${STATE_DIR}/deploy.lock"
 LIVE_PORT="${LIVE_PORT:-${PROD_PORT:-3000}}"
 NGINX_DOMAIN="${NGINX_DOMAIN:-club.nibmarket.com}"
 CERTBOT_EMAIL="${CERTBOT_EMAIL:-}"
-# Edge (club.nibmarket.com :80/:443) lives on another host and proxies here :3000.
-# Default: do NOT touch nginx/certbot on the docker host.
-SKIP_NGINX="${SKIP_NGINX:-1}"
+# ArvanCloud (public HTTPS) → this host :80 → app :3000.
+# Always (re)write HTTP-only origin nginx; never run certbot (would 301-loop the CDN).
+SKIP_NGINX="${SKIP_NGINX:-0}"
 COMPOSE_FILE="docker-compose.live.yml"
 COMPOSE_PROJECT="mlm-live"
 ENV_FILE=".env.live"
@@ -239,17 +239,15 @@ else
 fi
 
 if [[ "${SKIP_NGINX}" == "1" ]]; then
-  echo "--- SKIP_NGINX=1 → not touching host nginx/certbot (edge handles ${NGINX_DOMAIN} → :${LIVE_PORT})"
+  echo "--- SKIP_NGINX=1 → not touching host nginx"
   compose_run -p "${COMPOSE_PROJECT}" -f "${COMPOSE_FILE}" ps || true
-  write_status "done" "done" "Deploy finished. live :${LIVE_PORT} (edge: https://${NGINX_DOMAIN})"
+  write_status "done" "done" "Deploy finished. live :${LIVE_PORT} (SKIP_NGINX)"
   echo "======== remote-deploy done ========"
   echo ">>> live container :${LIVE_PORT} | SKIP_NGINX=1"
-  echo ">>> edge should proxy https://${NGINX_DOMAIN} → this host :${LIVE_PORT}"
-  echo ">>> direct check: http://127.0.0.1:${LIVE_PORT}/build-info.json"
   exit 0
 fi
 
-write_status "nginx" "running" "Configuring nginx for ${NGINX_DOMAIN}"
+write_status "nginx" "running" "CDN origin nginx :80 → :${LIVE_PORT} (no certbot)"
 if ! command -v nginx >/dev/null 2>&1; then
   sudo_run apt-get update -y
   sudo_run DEBIAN_FRONTEND=noninteractive apt-get install -y nginx \
@@ -265,7 +263,8 @@ if [[ ! -f "${NGINX_SRC}" ]]; then
   fail "nginx" "missing ${NGINX_SRC}"
 fi
 
-echo "--- nginx: enabling only ${NGINX_DOMAIN}.conf (proxy → :${LIVE_PORT})"
+# Drop every other vhost (legacy .ir, novina, default, …)
+echo "--- nginx: sole origin vhost ${NGINX_DOMAIN}.conf → 127.0.0.1:${LIVE_PORT}"
 if [[ -d /etc/nginx/sites-enabled ]]; then
   for enabled in /etc/nginx/sites-enabled/*; do
     [[ -e "${enabled}" ]] || continue
@@ -277,6 +276,7 @@ if [[ -d /etc/nginx/sites-enabled ]]; then
   done
 fi
 
+# Overwrite completely — wipes leftover certbot listen 443 / return 301 https (CDN loop)
 TMP_CONF="$(mktemp)"
 sed \
   -e "s/__LIVE_PORT__/${LIVE_PORT}/g" \
@@ -288,32 +288,32 @@ sed \
 sudo_run cp "${TMP_CONF}" "${NGINX_AVAIL}"
 rm -f "${TMP_CONF}"
 sudo_run ln -sfn "${NGINX_AVAIL}" "${NGINX_ENABLED}"
+
+# Disable certbot renew for this domain if present (do not re-inject SSL into our vhost)
+if [[ -d /etc/letsencrypt/renewal ]]; then
+  for renew in /etc/letsencrypt/renewal/"${NGINX_DOMAIN}".conf /etc/letsencrypt/renewal/"${NGINX_DOMAIN}"-*.conf; do
+    if [[ -f "${renew}" ]]; then
+      echo "--- disabling certbot renewal: ${renew}"
+      sudo_run mv "${renew}" "${renew}.disabled-cdn-origin" 2>/dev/null || true
+    fi
+  done
+fi
+
 sudo_run nginx -t || fail "nginx" "nginx -t failed"
 sudo_run systemctl enable --now nginx
 sudo_run systemctl reload nginx || sudo_run systemctl restart nginx
 
-write_status "ssl" "running" "Ensuring HTTPS for ${NGINX_DOMAIN}"
-if command -v certbot >/dev/null 2>&1 || sudo_run apt-get install -y certbot python3-certbot-nginx; then
-  if [[ -n "${CERTBOT_EMAIL}" ]]; then
-    sudo_run certbot --nginx -d "${NGINX_DOMAIN}" --non-interactive --agree-tos -m "${CERTBOT_EMAIL}" --redirect \
-      || echo "Warning: certbot failed — HTTP still works; fix DNS/80 then re-run"
-  else
-    if [[ ! -d "/etc/letsencrypt/live/${NGINX_DOMAIN}" ]]; then
-      sudo_run certbot --nginx -d "${NGINX_DOMAIN}" --non-interactive --agree-tos --register-unsafely-without-email --redirect \
-        || echo "Warning: certbot failed — HTTP proxy is up on :80; run certbot manually for HTTPS"
-    else
-      sudo_run certbot install --cert-name "${NGINX_DOMAIN}" --nginx --non-interactive --reinstall \
-        || sudo_run certbot --nginx -d "${NGINX_DOMAIN}" --non-interactive --agree-tos --register-unsafely-without-email --redirect \
-        || echo "Warning: certbot reinstall failed — HTTP proxy still up"
-      sudo_run nginx -t && sudo_run systemctl reload nginx || true
-    fi
-  fi
-else
-  echo "Warning: certbot not available — HTTP only"
+# Origin smoke: must be 200 (not 301) so ArvanCloud does not loop
+ORIGIN_CODE="$(curl -s -o /dev/null -w '%{http_code}' --max-time 8 -H "Host: ${NGINX_DOMAIN}" "http://127.0.0.1/build-info.json" || echo 000)"
+echo "--- origin check Host=${NGINX_DOMAIN} http://127.0.0.1/build-info.json → HTTP ${ORIGIN_CODE}"
+if [[ "${ORIGIN_CODE}" != "200" ]]; then
+  fail "nginx" "origin expected HTTP 200, got ${ORIGIN_CODE} (301 means leftover HTTPS redirect — CDN will loop)"
 fi
 
 compose_run -p "${COMPOSE_PROJECT}" -f "${COMPOSE_FILE}" ps || true
 
-write_status "done" "done" "Deploy finished. live :${LIVE_PORT} | https://${NGINX_DOMAIN}"
+write_status "done" "done" "Deploy finished. live :${LIVE_PORT} | origin :80 → app (CDN: https://${NGINX_DOMAIN})"
 echo "======== remote-deploy done ========"
-echo ">>> live :${LIVE_PORT} | nginx ${NGINX_DOMAIN} | container mlm_front_live"
+echo ">>> live :${LIVE_PORT} | nginx HTTP origin for ${NGINX_DOMAIN} (no certbot)"
+echo ">>> CDN https://${NGINX_DOMAIN} → this host :80 → :${LIVE_PORT}"
+echo ">>> local origin OK: HTTP ${ORIGIN_CODE} for /build-info.json"

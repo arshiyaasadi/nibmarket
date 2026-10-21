@@ -127,8 +127,8 @@ yarn sync:live:follow
 yarn sync:live --force
 ```
 
-Remote worker: `scripts/remote-deploy.sh` (`SKIP_NGINX=1` by default)  
-Optional host nginx template: `deploy/nginx/club.nibmarket.com.conf` (only if `SKIP_NGINX=0`)
+Remote worker: `scripts/remote-deploy.sh` — HTTP origin nginx `:80`→`:3000` (no certbot; Arvan CDN does HTTPS)  
+Template: `deploy/nginx/club.nibmarket.com.conf`
 
 Dev: `yarn sync:dev` → `scripts/remote-deploy-dev.sh`
 
