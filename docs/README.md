@@ -23,8 +23,17 @@ Do **not** maintain a separate markdown API contract. When BE needs a new field 
 | [`02-architecture/`](./02-architecture/) | Stack, BFF, feature pattern, proxy |
 | [`03-data/`](./03-data/) | Seed JSON (missions catalog) |
 | [`04-design/`](./04-design/) | Design system + spacing tokens |
-| [`05-ops/`](./05-ops/) | Env, nibdev, nibmarket deploy zones |
+| [`05-ops/`](./05-ops/) | Deploy (دو + لایو), env, nibdev, nibmarket |
 | [`06-agents/`](./06-agents/) | Agent playbooks (docs sync) |
+
+## Ops quick links
+
+| Doc | Use |
+|-----|-----|
+| [`05-ops/deploy.md`](./05-ops/deploy.md) | **شروع از اینجا** — هر دو زون پایدار |
+| [`05-ops/nibdev.md`](./05-ops/nibdev.md) | دو / dig blue-green |
+| [`05-ops/nibmarket.md`](./05-ops/nibmarket.md) | لایو CDN origin |
+| [`05-ops/env.md`](./05-ops/env.md) | Env / presets |
 
 ## Related
 

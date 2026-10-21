@@ -5,7 +5,8 @@
 #
 # Builds ONLY the live stack (docker-compose.live.yml).
 #
-# Stages: docker → network → env → base_image → build_live → nginx → ssl → done
+# Stages: docker → network → env → base_image → build_live → nginx → done
+# (no ssl/certbot — Arvan CDN terminates HTTPS; this host is HTTP origin only)
 #
 # Usage (on server):
 #   PROJECT_DIR=/opt/MLM_Front GIT_SHA=abc BUILD_TIME=... bash scripts/remote-deploy.sh

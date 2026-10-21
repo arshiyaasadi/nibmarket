@@ -1,87 +1,83 @@
-# nibdev (development zone)
+# nibdev (development / دو)
 
-Staging / test zone for the Novin club panel. DNS and APIs use the **nibdev** brand.
+زون دو پایدار است. نمای کلی دو زون: [deploy.md](./deploy.md).
+
+Staging با برند **nibdev**.
 
 ## Identity
 
 | Key | Value |
 |-----|--------|
-| Zone name | `nibdev` (dev) |
+| Zone | `nibdev` (dev / دو) |
 | `APP_ENV` | `development` |
-| Typical host | `pod1.nibdev.com` (alias `nibdev`) |
-| Project dir on server | `/opt/MLM_Front` |
+| Host / SSH | `pod1.nibdev.com` / alias `nibdev` |
+| Project dir | `/opt/MLM_Front` |
 
 ## URLs
 
 | Role | URL |
 |------|-----|
-| Panel (legacy SSO) | https://panel.nibdev.com |
-| Club panel (SSO callback) | https://club.nibdev.com |
+| Club (public) | https://club.nibdev.com |
 | Club API | https://api-club.nibdev.com (`/api/v2`) |
+| Panel SSO | https://panel.nibdev.com |
 | Account auth | https://auth.nibdev.com |
+| SSO callback | `https://club.nibdev.com/login/sso/` (origin از request) |
 
-## Blue / green (rollback)
+## Blue / green
 
-Exactly **two** app containers. No third proxy.
+دقیقاً **دو** کانتینر اپ. پراکسی سوم نداریم.
 
 | Role | Container | Host publish |
 |------|-----------|--------------|
-| **Active** (public) | `mlm_front_dev_blue` **or** `mlm_front_dev_green` | `:3000` → container `3000` |
-| **Standby** (previous) | the other slot | `127.0.0.1:2999` → container `3000` (localhost only — not on the public NIC) |
+| **Active** (public) | `mlm_front_dev_blue` **یا** `_green` | `:3000` → container `3000` |
+| **Standby** (قبلی) | اسلات دیگر | `127.0.0.1:2999` → container `3000` (فقط localhost) |
 
-State file on server: `/opt/MLM_Front/.cd-state/slot-state` (`ACTIVE=blue|green`).
+State: `/opt/MLM_Front/.cd-state/slot-state` (`ACTIVE=blue|green`).
 
 ### Deploy flow
 
-1. Build into the **inactive** slot on `127.0.0.1:2999`.
-2. Health-check that bind.
-3. Swap: new build → `:3000`, previous → `127.0.0.1:2999`.
-4. Prune dangling images.
+1. Build در اسلات **غیرفعال** روی `127.0.0.1:2999`
+2. Health-check
+3. Swap: بیلد جدید → `:3000`، قبلی → `127.0.0.1:2999`
+4. Prune dangling images
 
-Cold start (no active container yet): builds the default slot (`blue`) directly on `:3000`. Standby appears on the next successful deploy.
+Cold start (بدون active): اسلات پیش‌فرض (`blue`) مستقیم روی `:3000`. Standby از دیپلوی بعدی.
 
-### CLI (from laptop)
+### CLI
 
 ```bash
-yarn sync:dev                 # rsync + blue/green deploy (real API)
-yarn sync:dev --status        # deploy-status + slot-state + docker ps
-yarn sync:dev --follow        # tail remote deploy.log
-yarn sync:dev --rollback      # instant swap active ↔ standby (no rebuild)
-yarn sync:dev --force         # kill stuck deploy lock, then deploy
-yarn sync:dev:rollback        # same as --rollback
+yarn sync:dev                 # rsync + blue/green (real API)
+yarn sync:dev --status
+yarn sync:dev --follow
+yarn sync:dev --rollback      # سوییچ فوری بدون rebuild
+yarn sync:dev --force
+yarn sync:dev:rollback
 ```
 
-On server (same scripts):
+روی سرور:
 
 ```bash
 bash scripts/remote-deploy-dev.sh --status
 bash scripts/remote-deploy-dev.sh --rollback
 ```
 
-## Real API (default)
+## Real API (پیش‌فرض)
 
-nibdev deploy always uses **club BE** (`API_SERVICE_MODE=api`) and hard-clears UI-mock flags (`FORCE_UI_DEV_MODE=0`, …) so the panel does not serve «کاربر تست» fixtures. BFF only keeps session-cookie routes (+ admin geo fixture) local; all other `/api/v2` calls proxy to `api-club.nibdev.com`.
+همیشه `API_SERVICE_MODE=api` و UI-mock خاموش (`FORCE_UI_DEV_MODE=0`، …). BFF فقط روت‌های session-cookie (+ geo ادمین) را محلی نگه می‌دارد؛ بقیه `/api/v2` به `api-club.nibdev.com`.
 
-### Test flag: keep session on 401
+### فلگ تست: نگه داشتن session روی 401
 
-`NEXT_PUBLIC_KEEP_SESSION_ON_401=1` — a 401 does **not** clear the session or redirect to session-expired (`src/config/feature-flags.ts`).
+`NEXT_PUBLIC_KEEP_SESSION_ON_401=1` — 401 نشست را پاک / به session-expired نمی‌فرستد (`src/config/feature-flags.ts`).
 
-### Blue / green ports
+## Stack
 
-| Role | Host publish |
-|------|----------------|
-| **Active** (public, new build after swap) | `:3000` |
-| **Standby** (previous good build) | `127.0.0.1:2999` |
+| Compose | Env | Project | Notes |
+|---------|-----|---------|--------|
+| `docker-compose.dev.yml` | `.env` | `mlm-dev` | `app_blue` / `app_green` |
 
-## Stack on the dev host
+نیاز به Docker network خارجی `nginx`.
 
-| Compose | Env file | Project | Notes |
-|---------|----------|---------|--------|
-| `docker-compose.dev.yml` | `.env` | `mlm-dev` | services `app_blue` / `app_green` |
-
-Requires Docker network name `nginx` (compose external network).
-
-## Env on server
+## Env روی سرور
 
 ```bash
 cp .env.example .env
@@ -91,19 +87,18 @@ NEXT_PUBLIC_APP_ENV=development
 API_SERVICE_MODE=api
 AUTH_SECRET=<long-random>
 APP_PORT=3000
-# Test (nibdev): NEXT_PUBLIC_KEEP_SESSION_ON_401=1
+# اختیاری تست: NEXT_PUBLIC_KEEP_SESSION_ON_401=1
 ```
 
-Client zone flags are baked at **image build**. Changing `NEXT_PUBLIC_APP_ENV` requires rebuild.
+فلگ‌های `NEXT_PUBLIC_*` در **بیلد ایمیج** بیک می‌شوند؛ عوض کردن زون = rebuild.
 
-`yarn sync:dev` patches server `.env` auth/SSO/backend URLs (front origin comes from the request):
+`yarn sync:dev` این‌ها را روی `.env` سرور پچ می‌کند:
 
 - `BACKEND_API_BASE_URL=https://api-club.nibdev.com`
 - `NEXT_PUBLIC_AUTH_BASE_URL=https://auth.nibdev.com`
 - `NEXT_PUBLIC_PANEL_BASE_URL=https://panel.nibdev.com`
+- (origin فرانت از request؛ `NEXT_PUBLIC_PUBLIC_ORIGIN` عمداً ست نمی‌شود)
 
 ## Related
 
-- Live zone: [nibmarket.md](./nibmarket.md) → `yarn sync:live` (not blue/green yet)
-- Env reference: [env.md](./env.md)
-- Docs map: [../README.md](../README.md)
+- [deploy.md](./deploy.md) · لایو: [nibmarket.md](./nibmarket.md) · [env.md](./env.md)
