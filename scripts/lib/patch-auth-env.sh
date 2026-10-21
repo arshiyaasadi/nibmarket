@@ -35,6 +35,7 @@ patch_zone_auth_env() {
   if [[ "${zone}" == "production" ]]; then
     upsert_env_var "${file}" "APP_ENV" "production"
     upsert_env_var "${file}" "NEXT_PUBLIC_APP_ENV" "production"
+    upsert_env_var "${file}" "NEXT_PUBLIC_PUBLIC_ORIGIN" "https://club.nibmarket.com"
     upsert_env_var "${file}" "BACKEND_API_BASE_URL" "https://club-srv.nibmarket.com"
     upsert_env_var "${file}" "NEXT_PUBLIC_AUTH_BASE_URL" "https://auth.nibmarket.com"
     upsert_env_var "${file}" "NEXT_PUBLIC_PANEL_BASE_URL" "https://panel.nibmarket.com"
@@ -44,6 +45,10 @@ patch_zone_auth_env() {
   else
     upsert_env_var "${file}" "APP_ENV" "development"
     upsert_env_var "${file}" "NEXT_PUBLIC_APP_ENV" "development"
+    # Clear live origin so nibdev uses browser host (club.nibdev.com)
+    if grep -qE '^NEXT_PUBLIC_PUBLIC_ORIGIN=' "${file}" 2>/dev/null; then
+      sed -i.bak -E '/^NEXT_PUBLIC_PUBLIC_ORIGIN=/d' "${file}" && rm -f "${file}.bak"
+    fi
     upsert_env_var "${file}" "BACKEND_API_BASE_URL" "https://api-club.nibdev.com"
     upsert_env_var "${file}" "NEXT_PUBLIC_AUTH_BASE_URL" "https://auth.nibdev.com"
     upsert_env_var "${file}" "NEXT_PUBLIC_PANEL_BASE_URL" "https://panel.nibdev.com"

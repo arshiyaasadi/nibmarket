@@ -225,7 +225,9 @@ write_status "build_live" "running" "Building live stack on :${LIVE_PORT}"
 set -a
 # shellcheck disable=SC1091
 # Export build-time public flags so compose ${VAR} interpolation + Dockerfile ARGs see them
-source <(grep -E '^(APP_ENV|NEXT_PUBLIC_APP_ENV|APP_PORT|FORCE_UI_DEV_MODE|NEXT_PUBLIC_FORCE_UI_DEV_MODE|NEXT_PUBLIC_UI_DEV_MODE|API_SERVICE_MODE)=' "${ENV_FILE}" | sed 's/\r$//' || true)
+source <(grep -E '^(APP_ENV|NEXT_PUBLIC_APP_ENV|NEXT_PUBLIC_PUBLIC_ORIGIN|APP_PORT|FORCE_UI_DEV_MODE|NEXT_PUBLIC_FORCE_UI_DEV_MODE|NEXT_PUBLIC_UI_DEV_MODE|API_SERVICE_MODE)=' "${ENV_FILE}" | sed 's/\r$//' || true)
+# Ensure live SSO origin is present for image build even on older .env.live files
+export NEXT_PUBLIC_PUBLIC_ORIGIN="${NEXT_PUBLIC_PUBLIC_ORIGIN:-https://club.nibmarket.com}"
 set +a
 export APP_PORT="${LIVE_PORT}"
 compose_run -p "${COMPOSE_PROJECT}" -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" up -d --build --remove-orphans \

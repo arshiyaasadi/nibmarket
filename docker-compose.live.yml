@@ -11,6 +11,8 @@ x-app-build: &app-build
     NODE_BASE_IMAGE: ${NODE_BASE_IMAGE:-mirror.gcr.io/library/node:22-bookworm-slim}
     APP_ENV: ${APP_ENV:-production}
     NEXT_PUBLIC_APP_ENV: ${NEXT_PUBLIC_APP_ENV:-production}
+    # Bake SSO/invite public origin into the client bundle (CDN host, not club-docker:3000)
+    NEXT_PUBLIC_PUBLIC_ORIGIN: ${NEXT_PUBLIC_PUBLIC_ORIGIN:-https://club.nibmarket.com}
     FORCE_UI_DEV_MODE: ${FORCE_UI_DEV_MODE:-}
     NEXT_PUBLIC_FORCE_UI_DEV_MODE: ${NEXT_PUBLIC_FORCE_UI_DEV_MODE:-}
     NEXT_PUBLIC_UI_DEV_MODE: ${NEXT_PUBLIC_UI_DEV_MODE:-}

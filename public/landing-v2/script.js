@@ -307,11 +307,13 @@
       .then(function (res) {
         if (!res.ok) throw new Error('lead_failed');
         msg.textContent = 'ثبت شد. در حال ورود به کلاب تنوین…';
-        window.location.href = '/login?returnUrl=' + encodeURIComponent('/dashboard');
+        window.location.href =
+          'https://club.nibmarket.com/login?returnUrl=' + encodeURIComponent('/dashboard');
       })
       .catch(function () {
         msg.textContent = 'ثبت موقت نشد؛ مستقیم وارد کلاب می‌شوید…';
-        window.location.href = '/login?returnUrl=' + encodeURIComponent('/dashboard');
+        window.location.href =
+          'https://club.nibmarket.com/login?returnUrl=' + encodeURIComponent('/dashboard');
       })
       .finally(function () {
         if (joinBtn) joinBtn.disabled = false;
