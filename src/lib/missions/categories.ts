@@ -1,3 +1,4 @@
+import { toGregorian } from "@/lib/datetime/jalali";
 import type { MissionDef } from "@/types/mlm";
 
 export type MissionCategoryId = "onboarding" | "marketing" | "promotion" | "badges" | "other";
@@ -371,23 +372,103 @@ export function getWeekStartSaturday(from = new Date()): Date {
   return d;
 }
 
+/** Payout state for one day in the daily-login week widget. */
+export type WeekLoginPayoutStatus = "paid" | "reviewing" | "missed" | "none";
+
 export type WeekLoginDay = {
   iso: string;
   label: string;
   /** past | today | future */
   kind: "past" | "today" | "future";
+  /** True when reward was paid (completed). */
   claimed: boolean;
+  /** From mission activity / deposit history when available. */
+  payoutStatus: WeekLoginPayoutStatus;
 };
+
+export type WeekLoginActivityLike = {
+  missionId?: string;
+  title: string;
+  date: string;
+  status: string;
+};
+
+function toLatinDigits(value: string): string {
+  return value
+    .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 1776))
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 1632));
+}
+
+function activityDateToIso(date: string): string | null {
+  const raw = String(date ?? "").trim();
+  if (!raw) return null;
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10);
+
+  const parsed = new Date(raw);
+  if (!Number.isNaN(parsed.getTime())) return toLocalIsoDate(parsed);
+
+  // Jalali UI labels from mock/formatters: ۱۴۰۵/۰۷/۲۹ or 1405/07/29[, time]
+  const latin = toLatinDigits(raw);
+  const match = latin.match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+  if (!match) return null;
+  const jy = Number(match[1]);
+  const jm = Number(match[2]);
+  const jd = Number(match[3]);
+  if (!(jy > 1200 && jy < 1600 && jm >= 1 && jm <= 12 && jd >= 1 && jd <= 31)) return null;
+
+  const [gy, gm, gd] = toGregorian(jy, jm, jd);
+  return `${gy}-${String(gm).padStart(2, "0")}-${String(gd).padStart(2, "0")}`;
+}
+
+function isDailyLoginActivity(a: WeekLoginActivityLike, m: MissionDef): boolean {
+  if (a.missionId && m.id && a.missionId === m.id) return true;
+  const title = a.title.trim();
+  return title.includes("لاگین روزانه") || /daily\s*login/i.test(title);
+}
+
+function payoutFromActivityStatus(status: string): WeekLoginPayoutStatus | null {
+  switch (status) {
+    case "completed":
+      return "paid";
+    case "pending_verification":
+    case "in_progress":
+      return "reviewing";
+    case "rejected":
+    case "expired":
+      return "missed";
+    default:
+      return null;
+  }
+}
 
 /**
  * Builds Sat–Fri week for daily-login UI.
- * claimedDates from API when present; otherwise if mission completed today, mark today.
+ * Prefer mission activity / deposit history for per-day payout colors;
+ * fall back to `loginClaimedDates` / completed-today when history is empty.
  */
-export function buildWeekLoginDays(m: MissionDef, now = new Date()): WeekLoginDay[] {
+export function buildWeekLoginDays(
+  m: MissionDef,
+  options?: { now?: Date; activity?: WeekLoginActivityLike[] },
+): WeekLoginDay[] {
+  const now = options?.now ?? new Date();
   const start = getWeekStartSaturday(now);
   const todayIso = toLocalIsoDate(now);
+
+  const byDay = new Map<string, WeekLoginPayoutStatus>();
+  for (const a of options?.activity ?? []) {
+    if (!isDailyLoginActivity(a, m)) continue;
+    const iso = activityDateToIso(a.date);
+    if (!iso) continue;
+    const next = payoutFromActivityStatus(a.status);
+    if (!next) continue;
+    const prev = byDay.get(iso);
+    // Prefer paid > reviewing > missed when multiple rows share a day.
+    const rank = { paid: 3, reviewing: 2, missed: 1, none: 0 } as const;
+    if (!prev || rank[next] >= rank[prev]) byDay.set(iso, next);
+  }
+
   const claimedSet = new Set(m.loginClaimedDates ?? []);
-  if (claimedSet.size === 0 && m.completed) {
+  if (claimedSet.size === 0 && m.completed && byDay.size === 0) {
     claimedSet.add(todayIso);
   }
 
@@ -397,11 +478,18 @@ export function buildWeekLoginDays(m: MissionDef, now = new Date()): WeekLoginDa
     const iso = toLocalIsoDate(day);
     const kind: WeekLoginDay["kind"] =
       iso === todayIso ? "today" : iso < todayIso ? "past" : "future";
+
+    let payoutStatus: WeekLoginPayoutStatus = byDay.get(iso) ?? "none";
+    if (payoutStatus === "none" && claimedSet.has(iso)) payoutStatus = "paid";
+    if (payoutStatus === "none" && kind === "past") payoutStatus = "missed";
+    if (kind === "future") payoutStatus = "none";
+
     return {
       iso,
       label: PERSIAN_WEEKDAY_SHORT[i]!,
       kind,
-      claimed: claimedSet.has(iso),
+      claimed: payoutStatus === "paid",
+      payoutStatus,
     };
   });
 }

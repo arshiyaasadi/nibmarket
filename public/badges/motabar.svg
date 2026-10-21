@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="motabar">
+<defs>
+            <linearGradient id="mt-silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".35" stop-color="#D9D9E0"/><stop offset=".6" stop-color="#9FA0AE"/><stop offset=".8" stop-color="#ECECF1"/><stop offset="1" stop-color="#B4B5C2"/></linearGradient>
+            <linearGradient id="mt-body" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#552F80"/><stop offset=".55" stop-color="#502B77"/><stop offset="1" stop-color="#46226A"/></linearGradient>
+            <pattern id="mt-slash" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(-25)"><rect width="3" height="14" fill="#FFFFFF" opacity=".08"/></pattern>
+          </defs>
+          <path d="M100 6 L176 32 V94 C176 142 144 174 100 194 C56 174 24 142 24 94 V32 Z" fill="url(#mt-silver)"/>
+          <path d="M100 20 L163 41.5 V95 C163 134 136 161 100 178 C64 161 37 134 37 95 V41.5 Z" fill="url(#mt-body)"/>
+          <path d="M100 20 L163 41.5 V95 C163 134 136 161 100 178 C64 161 37 134 37 95 V41.5 Z" fill="url(#mt-slash)"/>
+          <path d="M100 28 L156 47 V95 C156 129 133 153 100 169 C67 153 44 129 44 95 V47 Z" fill="none" stroke="#FFFFFF" stroke-opacity=".25"/>
+          <circle cx="100" cy="68" r="16" fill="#FFFFFF"/>
+          <path d="M92 68 L98 74 L109 62" fill="none" stroke="#502B77" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <g fill="url(#mt-silver)" stroke="#46226A" stroke-width="1.5">
+            <rect x="62" y="128" width="24" height="8" rx="4"/><rect x="62" y="119" width="24" height="8" rx="4"/><rect x="62" y="110" width="24" height="8" rx="4"/><rect x="62" y="101" width="24" height="8" rx="4"/>
+            <rect x="88" y="128" width="24" height="8" rx="4"/><rect x="88" y="119" width="24" height="8" rx="4"/><rect x="88" y="110" width="24" height="8" rx="4"/><rect x="88" y="101" width="24" height="8" rx="4"/>
+            <rect x="114" y="128" width="24" height="8" rx="4"/><rect x="114" y="119" width="24" height="8" rx="4"/><rect x="114" y="110" width="24" height="8" rx="4"/><rect x="114" y="101" width="24" height="8" rx="4"/>
+          </g>
+          <line x1="58" y1="142" x2="142" y2="142" stroke="#FFFFFF" stroke-opacity=".6" stroke-width="2" stroke-linecap="round"/>
+</svg>

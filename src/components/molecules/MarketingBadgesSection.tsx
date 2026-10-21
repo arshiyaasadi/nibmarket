@@ -3,7 +3,12 @@
 import { useMemo, useState } from "react";
 import { Info } from "lucide-react";
 import { cn, formatDisplayDate } from "@/lib/utils";
-import { getMarketingBadgeByCode, type MarketingBadgeDef } from "@/resources/data/marketing-badges";
+import {
+  getMarketingBadgeByCode,
+  getMarketingBadgeByMissionCode,
+  MARKETING_BADGES,
+  type MarketingBadgeDef,
+} from "@/resources/data/marketing-badges";
 import { MarketingBadgeDetailModal } from "@/components/molecules/MarketingBadgeDetailModal";
 import type { MarketingBadgeItem } from "@/types/mlm";
 
@@ -20,18 +25,33 @@ function pn(n: number) {
   return n.toLocaleString("fa-IR");
 }
 
-function letterFor(code: string, title: string): string {
-  const known = getMarketingBadgeByCode(code);
+function resolveKnownBadge(item: MarketingBadgeItem): MarketingBadgeDef | undefined {
+  return (
+    getMarketingBadgeByCode(item.code) ||
+    getMarketingBadgeByMissionCode(item.missionCode) ||
+    MARKETING_BADGES.find((b) => b.title === item.title.trim())
+  );
+}
+
+function letterFor(item: MarketingBadgeItem): string {
+  const known = resolveKnownBadge(item);
   if (known?.letter) return known.letter;
-  const trimmed = title.trim();
+  const trimmed = item.title.trim();
   return trimmed ? trimmed.slice(0, 1) : "?";
 }
 
+function resolveBadgeImage(item: MarketingBadgeItem): string | null {
+  const known = resolveKnownBadge(item);
+  const fromApi = item.imageUrl?.trim();
+  // Prefer local artwork when API sends empty / missing URL (common in live BE).
+  return fromApi || known?.imageSrc || null;
+}
+
 function toDetailBadge(item: MarketingBadgeItem): MarketingBadgeDef {
-  const known = getMarketingBadgeByCode(item.code);
+  const known = resolveKnownBadge(item);
   return {
     code: item.code,
-    letter: letterFor(item.code, item.title),
+    letter: letterFor(item),
     title: item.title || known?.title || item.code,
     description: item.description || known?.description || "",
     conditions: known?.conditions?.length
@@ -41,7 +61,7 @@ function toDetailBadge(item: MarketingBadgeItem): MarketingBadgeDef {
         : [],
     reward: item.reward,
     missionCode: item.missionCode || known?.missionCode || item.code,
-    imageSrc: item.imageUrl ?? known?.imageSrc ?? null,
+    imageSrc: resolveBadgeImage(item),
   };
 }
 
@@ -107,10 +127,7 @@ export function MarketingBadgesSection({
                     <img
                       src={imageSrc}
                       alt=""
-                      className={cn(
-                        "size-14 rounded-2xl object-cover",
-                        !unlocked && "opacity-40 grayscale",
-                      )}
+                      className={cn("size-14 object-contain", !unlocked && "opacity-40 grayscale")}
                     />
                   ) : (
                     <div

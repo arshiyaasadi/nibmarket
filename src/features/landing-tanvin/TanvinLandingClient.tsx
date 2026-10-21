@@ -30,7 +30,7 @@ export function TanvinLandingClient() {
   return (
     <div className="bg-background text-foreground min-h-dvh font-sans" dir="rtl" lang="fa">
       <LandingNav onAuthEntry={onAuthEntry} />
-      <LandingHero />
+      <LandingHero onAuthEntry={onAuthEntry} />
       <div className="flex flex-col">
         <LandingReveal>
           <LandingStrip />

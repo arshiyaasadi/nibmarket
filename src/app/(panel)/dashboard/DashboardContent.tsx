@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { CircleCheck, Trophy, ArrowLeft, Circle } from "lucide-react";
+import { CircleCheck, Trophy, ArrowLeft, Circle, Clock } from "lucide-react";
 import { useSubsetDeposits } from "@/features/dashboard/queries";
-import { useMissionSections } from "@/features/missions/queries";
+import { useMissionSections, useMissionsActivity } from "@/features/missions/queries";
 import { useCompetitionPool } from "@/features/leaderboard/queries";
 import { NetworkTreeWidget } from "@/components/organisms/network/NetworkTreeWidget";
 import { InviteModal } from "@/components/organisms/network/InviteModal";
@@ -33,6 +33,23 @@ function pn(n: number) {
 function MissionsWidget({ onInvite }: { onInvite?: () => void }) {
   const t = useTranslations("missions");
   const { missions, isLoading } = useMissionSections();
+  const {
+    data: activityPages,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useMissionsActivity("all");
+
+  useEffect(() => {
+    if (hasNextPage && !isFetchingNextPage && (activityPages?.pages.length ?? 0) < 3) {
+      void fetchNextPage();
+    }
+  }, [activityPages?.pages.length, fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  const activityItems = useMemo(
+    () => activityPages?.pages.flatMap((p) => p.items) ?? [],
+    [activityPages],
+  );
 
   const dailyLogin = useMemo(
     () => missions.find((m) => getMissionCodeMeta(m.code).recurrence === "daily") ?? null,
@@ -56,7 +73,7 @@ function MissionsWidget({ onInvite }: { onInvite?: () => void }) {
 
   const completedCount = missions.filter((m) => m.completed).length;
   const showBoostBanner = missionsHaveAnyBoost(missions);
-  const week = dailyLogin ? buildWeekLoginDays(dailyLogin) : [];
+  const week = dailyLogin ? buildWeekLoginDays(dailyLogin, { activity: activityItems }) : [];
   const dailyReward = dailyLogin
     ? (getMissionBoost(dailyLogin)?.effectiveReward ?? dailyLogin.reward)
     : 0;
@@ -115,21 +132,25 @@ function MissionsWidget({ onInvite }: { onInvite?: () => void }) {
                     <span
                       className={cn(
                         "flex size-7 items-center justify-center rounded-full border",
-                        d.claimed
-                          ? "border-success/35 bg-success/15 text-success"
-                          : d.kind === "today"
+                        d.payoutStatus === "paid" && "border-success/35 bg-success/15 text-success",
+                        d.payoutStatus === "reviewing" &&
+                          "border-amber-500/45 bg-amber-500/15 text-amber-600 dark:text-amber-400",
+                        d.payoutStatus === "missed" &&
+                          "border-red-500/40 bg-red-500/12 text-red-600",
+                        d.payoutStatus === "none" &&
+                          (d.kind === "today"
                             ? "border-primary/40 bg-primary/10 text-primary"
-                            : d.kind === "future"
-                              ? "border-border/50"
-                              : "border-border bg-surface-2 text-muted",
+                            : "border-border/50"),
                       )}
                     >
-                      {d.claimed ? (
+                      {d.payoutStatus === "paid" ? (
                         <CircleCheck className="size-3.5" />
-                      ) : d.kind === "future" ? (
-                        <span className="bg-border size-1 rounded-full opacity-50" />
+                      ) : d.payoutStatus === "reviewing" ? (
+                        <Clock className="size-3" />
+                      ) : d.payoutStatus === "missed" ? (
+                        <Circle className="size-3 opacity-70" />
                       ) : (
-                        <Circle className="size-3 opacity-35" />
+                        <span className="bg-border size-1 rounded-full opacity-50" />
                       )}
                     </span>
                   </li>

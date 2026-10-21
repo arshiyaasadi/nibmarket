@@ -58,6 +58,35 @@ export function MissionsContent() {
     isFetchingNextPage,
   } = useMissionsActivity(statusFilter);
 
+  /** Unfiltered history for daily-login week colors (paid / reviewing / missed). */
+  const {
+    data: allActivityPages,
+    hasNextPage: hasMoreAllActivity,
+    fetchNextPage: fetchMoreAllActivity,
+    isFetchingNextPage: fetchingMoreAllActivity,
+  } = useMissionsActivity("all");
+
+  useEffect(() => {
+    // Pull a few pages so the current Sat–Fri week is covered.
+    if (
+      hasMoreAllActivity &&
+      !fetchingMoreAllActivity &&
+      (allActivityPages?.pages.length ?? 0) < 3
+    ) {
+      void fetchMoreAllActivity();
+    }
+  }, [
+    allActivityPages?.pages.length,
+    fetchMoreAllActivity,
+    fetchingMoreAllActivity,
+    hasMoreAllActivity,
+  ]);
+
+  const allActivityItems = useMemo(
+    () => allActivityPages?.pages.flatMap((p) => p.items) ?? [],
+    [allActivityPages],
+  );
+
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -104,7 +133,11 @@ export function MissionsContent() {
                   const isDaily = getMissionCodeMeta(m.code).recurrence === "daily";
                   return (
                     <div key={m.id} className={cn(isDaily && "col-span-2 lg:col-span-1")}>
-                      <RecurringMissionCard mission={m} t={t} />
+                      <RecurringMissionCard
+                        mission={m}
+                        t={t}
+                        activity={isDaily ? allActivityItems : undefined}
+                      />
                     </div>
                   );
                 })}
@@ -447,17 +480,40 @@ function MarketerSplitList({ missions, t }: { missions: MissionDef[]; t: TMissio
   );
 }
 
-function RecurringMissionCard({ mission: m, t }: { mission: MissionDef; t: TMissions }) {
+function RecurringMissionCard({
+  mission: m,
+  t,
+  activity,
+}: {
+  mission: MissionDef;
+  t: TMissions;
+  activity?: MissionActivityRow[];
+}) {
   const recurrence = getMissionCodeMeta(m.code).recurrence;
-  if (recurrence === "daily") return <DailyLoginCard mission={m} t={t} />;
+  if (recurrence === "daily") return <DailyLoginCard mission={m} t={t} activity={activity} />;
   if (recurrence === "monthly") return <MonthlyReferralCard mission={m} t={t} />;
   return <PerEventReferralCard mission={m} t={t} />;
 }
 
-function DailyLoginCard({ mission: m, t }: { mission: MissionDef; t: TMissions }) {
+type MissionActivityRow = {
+  missionId?: string;
+  title: string;
+  date: string;
+  status: string;
+};
+
+function DailyLoginCard({
+  mission: m,
+  t,
+  activity,
+}: {
+  mission: MissionDef;
+  t: TMissions;
+  activity?: MissionActivityRow[];
+}) {
   const boost = getMissionBoost(m);
   const reward = boost?.effectiveReward ?? m.reward;
-  const week = buildWeekLoginDays(m);
+  const week = buildWeekLoginDays(m, { activity });
   const progress = getMissionPeriodProgress(m);
   const remaining = formatDurationRemaining(progress?.msRemaining ?? null);
 
@@ -486,21 +542,24 @@ function DailyLoginCard({ mission: m, t }: { mission: MissionDef; t: TMissions }
             <span
               className={cn(
                 "flex size-8 items-center justify-center rounded-full border text-[10px]",
-                d.claimed
-                  ? "border-success/35 bg-success/15 text-success"
-                  : d.kind === "today"
+                d.payoutStatus === "paid" && "border-success/35 bg-success/15 text-success",
+                d.payoutStatus === "reviewing" &&
+                  "border-amber-500/45 bg-amber-500/15 text-amber-600 dark:text-amber-400",
+                d.payoutStatus === "missed" && "border-red-500/40 bg-red-500/12 text-red-600",
+                d.payoutStatus === "none" &&
+                  (d.kind === "today"
                     ? "border-primary/40 bg-primary/10 text-primary"
-                    : d.kind === "future"
-                      ? "border-border/60 bg-transparent text-transparent"
-                      : "border-border bg-surface-2 text-muted",
+                    : "border-border/60 bg-transparent text-transparent"),
               )}
             >
-              {d.claimed ? (
+              {d.payoutStatus === "paid" ? (
                 <CheckCircle2 className="size-4" />
-              ) : d.kind === "future" ? (
-                <span className="bg-border size-1.5 rounded-full opacity-40" />
+              ) : d.payoutStatus === "reviewing" ? (
+                <Clock className="size-3.5" />
+              ) : d.payoutStatus === "missed" ? (
+                <Circle className="size-3.5 opacity-70" />
               ) : (
-                <Circle className="size-3.5 opacity-40" />
+                <span className="bg-border size-1.5 rounded-full opacity-40" />
               )}
             </span>
           </li>

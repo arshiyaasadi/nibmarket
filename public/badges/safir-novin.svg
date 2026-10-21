@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="safir-novin">
+<defs>
+              <linearGradient id="sf-silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".35" stop-color="#D9D9E0"/><stop offset=".6" stop-color="#9FA0AE"/><stop offset=".8" stop-color="#ECECF1"/><stop offset="1" stop-color="#B4B5C2"/></linearGradient>
+              <linearGradient id="sf-body" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#552F80"/><stop offset=".55" stop-color="#502B77"/><stop offset="1" stop-color="#46226A"/></linearGradient>
+              <linearGradient id="sf-core" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#46226A"/><stop offset="1" stop-color="#2E1444"/></linearGradient>
+              <pattern id="sf-slash" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(-25)"><rect width="3" height="14" fill="#FFFFFF" opacity=".08"/></pattern>
+            </defs>
+            <polygon points="100,4 128.1,32.1 167.9,32.1 167.9,71.9 196,100 167.9,128.1 167.9,167.9 128.1,167.9 100,196 71.9,167.9 32.1,167.9 32.1,128.1 4,100 32.1,71.9 32.1,32.1 71.9,32.1" fill="url(#sf-silver)" stroke="url(#sf-silver)" stroke-width="4" stroke-linejoin="round"/>
+            <polygon points="100,18 124,42 158,42 158,76 182,100 158,124 158,158 124,158 100,182 76,158 42,158 42,124 18,100 42,76 42,42 76,42" fill="url(#sf-body)" stroke="url(#sf-body)" stroke-width="3" stroke-linejoin="round"/>
+            <polygon points="100,18 124,42 158,42 158,76 182,100 158,124 158,158 124,158 100,182 76,158 42,158 42,124 18,100 42,76 42,42 76,42" fill="url(#sf-slash)"/>
+            <circle cx="100" cy="100" r="67" fill="url(#sf-core)" stroke="url(#sf-silver)" stroke-width="2"/>
+            <g fill="#FFFFFF" opacity=".75">
+              <circle cx="100" cy="39" r="1.9"/><circle cx="130.5" cy="47.2" r="1.9"/><circle cx="152.8" cy="69.5" r="1.9"/><circle cx="161" cy="100" r="1.9"/>
+              <circle cx="152.8" cy="130.5" r="1.9"/><circle cx="130.5" cy="152.8" r="1.9"/><circle cx="100" cy="161" r="1.9"/><circle cx="69.5" cy="152.8" r="1.9"/>
+              <circle cx="47.2" cy="130.5" r="1.9"/><circle cx="39" cy="100" r="1.9"/><circle cx="47.2" cy="69.5" r="1.9"/><circle cx="69.5" cy="47.2" r="1.9"/>
+            </g>
+            <circle cx="100" cy="100" r="54" fill="none" stroke="#FFF15B" stroke-width="1.2"/>
+            <rect x="-7" y="-30" width="14" height="60" rx="7" fill="url(#sf-silver)" transform="translate(87 100) rotate(25)"/>
+            <rect x="-7" y="-30" width="14" height="60" rx="7" fill="url(#sf-silver)" transform="translate(113 100) rotate(25)"/>
+</svg>

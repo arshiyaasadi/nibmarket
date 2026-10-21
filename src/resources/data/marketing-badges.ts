@@ -1,6 +1,6 @@
 /**
  * Marketing badges from PDF «تسک های mlm» task 27 (14 Mehr).
- * Images are placeholders until marketing delivers assets.
+ * Artwork: SVGs ported from landing-1 badge marks → `/public/badges`.
  */
 
 import type { MarketingBadgeCode } from "@/types/mlm";
@@ -29,7 +29,7 @@ export const MARKETING_BADGES: MarketingBadgeDef[] = [
     conditions: ["رسیدن به ۱۰ زیرمجموعه"],
     reward: 3000,
     missionCode: "direct_subsets_10",
-    imageSrc: null,
+    imageSrc: "/badges/pishgam.svg",
   },
   {
     code: "motabar",
@@ -39,7 +39,7 @@ export const MARKETING_BADGES: MarketingBadgeDef[] = [
     conditions: ["داشتن ۳ زیرمجموعه با دارایی بیش از ۱٫۵ میلیارد تومان در یک ماه"],
     reward: 6000,
     missionCode: "subsets_high_aum_1_5b",
-    imageSrc: null,
+    imageSrc: "/badges/motabar.svg",
   },
   {
     code: "collector",
@@ -49,7 +49,7 @@ export const MARKETING_BADGES: MarketingBadgeDef[] = [
     conditions: ["دارایی شبکه در همه صندوق‌های تأمین سرمایه نوین باشد"],
     reward: 3000,
     missionCode: "network_all_funds",
-    imageSrc: null,
+    imageSrc: "/badges/collector.svg",
   },
   {
     code: "rahbar",
@@ -59,7 +59,7 @@ export const MARKETING_BADGES: MarketingBadgeDef[] = [
     conditions: ["داشتن ۵ زیرمجموعه که هرکدام حداقل ۳ زیرمجموعه داشته باشند"],
     reward: 10000,
     missionCode: "leader_5x3",
-    imageSrc: null,
+    imageSrc: "/badges/rahbar.svg",
   },
   {
     code: "safir_novin",
@@ -74,10 +74,15 @@ export const MARKETING_BADGES: MarketingBadgeDef[] = [
     ],
     reward: 30000,
     missionCode: "badge_safir_novin",
-    imageSrc: null,
+    imageSrc: "/badges/safir-novin.svg",
   },
 ];
 
 export function getMarketingBadgeByCode(code: string): MarketingBadgeDef | undefined {
   return MARKETING_BADGES.find((b) => b.code === code);
+}
+
+/** Resolve badge artwork by mission code (admin / missions list). */
+export function getMarketingBadgeByMissionCode(missionCode: string): MarketingBadgeDef | undefined {
+  return MARKETING_BADGES.find((b) => b.missionCode === missionCode);
 }

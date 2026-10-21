@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="pishgam">
+<defs>
+            <linearGradient id="pg-silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".35" stop-color="#D9D9E0"/><stop offset=".6" stop-color="#9FA0AE"/><stop offset=".8" stop-color="#ECECF1"/><stop offset="1" stop-color="#B4B5C2"/></linearGradient>
+            <linearGradient id="pg-body" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#552F80"/><stop offset=".55" stop-color="#502B77"/><stop offset="1" stop-color="#46226A"/></linearGradient>
+            <pattern id="pg-slash" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(-25)"><rect width="3" height="14" fill="#FFFFFF" opacity=".08"/></pattern>
+          </defs>
+          <circle cx="100" cy="100" r="96" fill="url(#pg-silver)"/>
+          <circle cx="100" cy="100" r="78" fill="url(#pg-body)"/>
+          <circle cx="100" cy="100" r="78" fill="url(#pg-slash)"/>
+          <circle cx="100" cy="100" r="71" fill="none" stroke="#FFFFFF" stroke-opacity=".25"/>
+          <g fill="#46226A">
+            <circle cx="100" cy="14" r="3.2"/><circle cx="150.5" cy="30.4" r="3.2"/><circle cx="181.8" cy="73.4" r="3.2"/><circle cx="181.8" cy="126.6" r="3.2"/><circle cx="150.5" cy="169.6" r="3.2"/>
+            <circle cx="100" cy="186" r="3.2"/><circle cx="49.5" cy="169.6" r="3.2"/><circle cx="18.2" cy="126.6" r="3.2"/><circle cx="18.2" cy="73.4" r="3.2"/><circle cx="49.5" cy="30.4" r="3.2"/>
+          </g>
+          <path d="M56 146 Q100 122 144 146" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+          <line x1="116" y1="58" x2="116" y2="136" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="116" cy="54" r="5" fill="#FFFFFF"/>
+          <path d="M113 62 L64 79 L113 96 Z" fill="url(#pg-silver)"/>
+          <path d="M113 62 L88 70.7 L113 79 Z" fill="#FFFFFF" opacity=".55"/>
+</svg>

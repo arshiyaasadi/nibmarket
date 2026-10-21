@@ -11,12 +11,17 @@ function pn(n: number) {
 export function LandingBadgeCard({ badge }: { badge: MarketingBadgeDef }) {
   return (
     <article className="border-border bg-background gap-atom-md p-pad-mol flex h-full flex-col rounded-2xl border text-center">
-      <span
-        className="bg-primary/10 text-primary mx-auto flex size-12 items-center justify-center rounded-2xl text-xl font-black"
-        aria-hidden
-      >
-        {badge.letter}
-      </span>
+      {badge.imageSrc ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={badge.imageSrc} alt="" className="mx-auto size-20 object-contain" aria-hidden />
+      ) : (
+        <span
+          className="bg-primary/10 text-primary mx-auto flex size-12 items-center justify-center rounded-2xl text-xl font-black"
+          aria-hidden
+        >
+          {badge.letter}
+        </span>
+      )}
       <h3 className="text-foreground text-sm font-bold">{badge.title.replace(/^نشان\s+/, "")}</h3>
       <p className="text-muted flex-1 text-xs leading-relaxed">{badge.description}</p>
       <p className="text-primary text-sm font-black tabular-nums">

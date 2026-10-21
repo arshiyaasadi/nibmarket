@@ -1,10 +1,14 @@
-import LegacyLandingPage, {
-  metadata as legacyMetadata,
-} from "@/features/landing/LegacyLandingPage";
+/**
+ * `/landing-legacy` is rewritten by middleware to `public/landing-v1/index.html`
+ * (exact previous landing-1). This route is only a build/type fallback.
+ */
+import type { Metadata } from "next";
 
-export const metadata = legacyMetadata;
+export const metadata: Metadata = {
+  title: "تنوین · شبکه بازاریابان نوین (نسخه قبلی)",
+  description: "نسخه قبلی لندینگ تنوین (landing-1) — لندینگ اصلی الان landing-2 روی مسیر خانه است.",
+};
 
-/** Previous MLM landing — kept for reference; not deleted. */
-export default function LandingLegacyRoute() {
-  return <LegacyLandingPage />;
+export default function LandingLegacyFallback() {
+  return null;
 }

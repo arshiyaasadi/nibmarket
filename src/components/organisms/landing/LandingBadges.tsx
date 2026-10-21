@@ -26,10 +26,23 @@ export function LandingBadges() {
         <div className="border-border bg-primary p-pad-mol-md sm:p-pad-org overflow-hidden rounded-2xl border text-white">
           <div className="gap-mol lg:gap-org grid lg:grid-cols-2">
             <div className="gap-atom-md flex flex-col">
-              <span className="text-xs font-semibold text-white/70">نشان نهایی</span>
-              <h3 className="text-2xl font-black">
-                {LANDING_SAFIR_BADGE.title.replace(/^نشان\s+/, "")}
-              </h3>
+              <div className="gap-atom-md flex items-center">
+                {LANDING_SAFIR_BADGE.imageSrc ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={LANDING_SAFIR_BADGE.imageSrc}
+                    alt=""
+                    className="size-16 shrink-0 object-contain sm:size-20"
+                    aria-hidden
+                  />
+                ) : null}
+                <div className="gap-atom flex min-w-0 flex-col">
+                  <span className="text-xs font-semibold text-white/70">نشان نهایی</span>
+                  <h3 className="text-2xl font-black">
+                    {LANDING_SAFIR_BADGE.title.replace(/^نشان\s+/, "")}
+                  </h3>
+                </div>
+              </div>
               <div className="gap-atom-md flex flex-wrap">
                 <span className="px-pad-atom-md py-pad-atom-xs rounded-full bg-white/15 text-xs">
                   همکار رسمی تأمین سرمایه نوین

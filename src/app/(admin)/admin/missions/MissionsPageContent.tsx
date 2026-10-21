@@ -20,6 +20,7 @@ import {
   mergeMehrAdminMissions,
   shouldMergeMehrAdminPreview,
 } from "@/resources/data/mehr-missions";
+import { getMarketingBadgeByMissionCode } from "@/resources/data/marketing-badges";
 import type {
   AdminMissionCompletionRow,
   AdminMissionCompletionsResponse,
@@ -142,7 +143,27 @@ export default function MissionsPageContent() {
           </span>
         ),
       },
-      { accessorKey: "title", header: t("columns.title") },
+      {
+        accessorKey: "title",
+        header: t("columns.title"),
+        cell: ({ row, getValue }) => {
+          const badge = getMarketingBadgeByMissionCode(row.original.code);
+          const title = String(getValue());
+          if (!badge?.imageSrc) return title;
+          return (
+            <div className="flex items-center gap-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={badge.imageSrc}
+                alt=""
+                className="size-8 shrink-0 object-contain"
+                aria-hidden
+              />
+              <span>{title}</span>
+            </div>
+          );
+        },
+      },
       {
         accessorKey: "missionType",
         header: t("columns.type"),

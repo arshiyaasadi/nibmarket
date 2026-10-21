@@ -181,7 +181,7 @@ export function LandingNav({ onAuthEntry, linkMode = "landing" }: LandingNavProp
                 onClick={onAuthEntry}
                 className="bg-accent px-pad-mol text-foreground hover:bg-accent-hover h-9 rounded-full border-0 text-xs font-semibold"
               >
-                ورود و ثبت‌نام
+                ورود به تنوین
               </Button>
             )}
             <button

@@ -35,10 +35,7 @@ export function MarketingBadgeDetailModal({
             <img
               src={badge.imageSrc}
               alt=""
-              className={cn(
-                "size-20 rounded-2xl object-cover",
-                !unlocked && "opacity-40 grayscale",
-              )}
+              className={cn("size-20 object-contain", !unlocked && "opacity-40 grayscale")}
             />
           ) : (
             <div
