@@ -10,6 +10,7 @@ import {
 } from "@/lib/api/server/handlers/auth.handler";
 import { ssoCompleteHandler } from "@/lib/api/server/handlers/auth-sso.handler";
 import { adminUsersGeoHandler } from "@/lib/api/server/handlers/admin.handler";
+import { leadsRegistrationLinkHandler } from "@/lib/api/server/handlers/leads.handler";
 import { isDevAdminAuthEnabled } from "@/config/dev-admin-auth";
 import { internalServerError } from "@/lib/api/server/session";
 import { logger } from "@/lib/errors/logger";
@@ -25,6 +26,8 @@ const LOCAL_ONLY_ROUTES: Record<string, (req: Request) => Promise<Response>> = {
   "POST:/auth/sso/complete": ssoCompleteHandler,
   // Density map has no club BE counterpart.
   "GET:/admin/users/geo": adminUsersGeoHandler,
+  // Public landing lead — stays on BFF until club BE ships the route.
+  "POST:/leads/registration-link": leadsRegistrationLinkHandler,
 };
 
 async function tryLocalHandler(

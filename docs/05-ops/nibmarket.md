@@ -35,8 +35,9 @@ What happens:
 
 1. **rsync** local tree → `/opt/MLM_Front`
 2. Patches `.env.live` auth/SSO/backend URLs (`club-srv` / `auth` / `panel`) — **not** front domain
-3. Builds **live only** (stops legacy containers if present)
-4. Starts **`scripts/remote-deploy.sh` detached**
+3. Clears UI-mock flags unless `--ui-mock` / `LIVE_UI_MOCK=1` (default = real API)
+4. Builds **live only** (stops legacy containers if present)
+5. Starts **`scripts/remote-deploy.sh` detached**
 
 ```bash
 yarn sync:live:status

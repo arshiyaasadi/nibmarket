@@ -282,8 +282,9 @@
     }
   });
 
-  /* ---------- Join form ---------- */
+  /* ---------- Join form → club BFF lead + entry to club ---------- */
   var mob = $('#mob');
+  var joinBtn = $('#joinForm button[type="submit"]');
   mob.addEventListener('input', function () { mob.classList.remove('is-bad'); });
   $('#joinForm').addEventListener('submit', function (e) {
     e.preventDefault();
@@ -295,7 +296,26 @@
       mob.focus();
       return;
     }
-    msg.textContent = 'نسخه نمایشی: در نسخه نهایی، لینک معرفی از طریق پیامک ارسال می‌شود.';
+    if (joinBtn) joinBtn.disabled = true;
+    msg.textContent = 'در حال ثبت…';
+    fetch('/api/v2/leads/registration-link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ mobile: v, source: 'landing_join' }),
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error('lead_failed');
+        msg.textContent = 'ثبت شد. در حال ورود به کلاب تنوین…';
+        window.location.href = '/login?returnUrl=' + encodeURIComponent('/dashboard');
+      })
+      .catch(function () {
+        msg.textContent = 'ثبت موقت نشد؛ مستقیم وارد کلاب می‌شوید…';
+        window.location.href = '/login?returnUrl=' + encodeURIComponent('/dashboard');
+      })
+      .finally(function () {
+        if (joinBtn) joinBtn.disabled = false;
+      });
   });
 
   /* ---------- Nav: scroll state, active link, mobile menu ---------- */

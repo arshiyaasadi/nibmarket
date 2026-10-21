@@ -166,15 +166,14 @@ fi
 [[ -f "${ENV_FILE}" ]] || { cp .env.live.example "${ENV_FILE}"; seed_secret "${ENV_FILE}"; }
 patch_zone_auth_env "${ENV_FILE}" production
 set_port "${ENV_FILE}" "${LIVE_PORT}"
-# LIVE_UI_MOCK=1 → mock BFF + UI-dev auth bypass (for UI review on live host)
+# LIVE_UI_MOCK=1 → mock BFF + UI-dev auth bypass (for UI review on live host).
+# Default live path always clears mock flags so production talks to club BE.
 if [[ "${LIVE_UI_MOCK:-0}" == "1" ]]; then
   echo "--- LIVE_UI_MOCK=1 → enabling FORCE_UI_DEV_MODE + API_SERVICE_MODE=mock"
   patch_live_ui_mock_env "${ENV_FILE}"
 else
-  # Keep prior mock flags only if explicitly left on; default path stays real API
-  if grep -qE '^FORCE_UI_DEV_MODE=1$' "${ENV_FILE}" 2>/dev/null; then
-    echo "--- FORCE_UI_DEV_MODE already=1 in ${ENV_FILE} (leaving UI mock on)"
-  fi
+  echo "--- clearing UI mock flags (real API: club-srv)"
+  clear_live_ui_mock_env "${ENV_FILE}"
 fi
 [[ -f .env ]] || cp "${ENV_FILE}" .env
 
