@@ -1,4 +1,5 @@
 import { env } from "@/config/env";
+import { getBrowserOrigin } from "@/config/public-origin";
 
 function trimTrailingSlash(value: string): string {
   return value.replace(/\/+$/, "");
@@ -26,7 +27,8 @@ export type SsoCallbackParams = {
 export function getSsoCallbackUrl(params?: SsoCallbackParams): string {
   const path = getSsoCallbackPath();
   const normalizedPath = path.endsWith("/") ? path : `${path}/`;
-  const base = `${trimTrailingSlash(env.APP_URL)}${normalizedPath}`;
+  const origin = getBrowserOrigin();
+  const base = origin ? `${origin}${normalizedPath}` : normalizedPath;
 
   const search = new URLSearchParams();
   const inviteCode = String(params?.inviteCode ?? "").trim();

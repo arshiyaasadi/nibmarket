@@ -10,8 +10,6 @@ const optionalUrl = z.preprocess(
 const clientSchema = z.object({
   NEXT_PUBLIC_APP_ENV: z.enum(["development", "production"]),
   NEXT_PUBLIC_APP_NAME: z.string().min(1),
-  NEXT_PUBLIC_SITE_URL: z.string().url(),
-  NEXT_PUBLIC_APP_URL: z.string().url(),
   NEXT_PUBLIC_AUTH_BASE_URL: z.string().url(),
   NEXT_PUBLIC_SSO_CALLBACK_PATH: z.string().min(1),
   NEXT_PUBLIC_PANEL_BASE_URL: optionalUrl,
@@ -28,8 +26,6 @@ function createClientEnv() {
   const parsed = clientSchema.safeParse({
     NEXT_PUBLIC_APP_ENV: appEnv,
     NEXT_PUBLIC_APP_NAME: resolveEnvValue(process.env.NEXT_PUBLIC_APP_NAME, preset.appName),
-    NEXT_PUBLIC_SITE_URL: resolveEnvValue(process.env.NEXT_PUBLIC_SITE_URL, preset.siteUrl),
-    NEXT_PUBLIC_APP_URL: resolveEnvValue(process.env.NEXT_PUBLIC_APP_URL, preset.appUrl),
     NEXT_PUBLIC_AUTH_BASE_URL: resolveEnvValue(
       process.env.NEXT_PUBLIC_AUTH_BASE_URL,
       preset.authBaseUrl,

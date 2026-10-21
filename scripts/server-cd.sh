@@ -2,7 +2,7 @@
 #
 # server-cd.sh — runs ON the live host (behind WireGuard).
 # Polls git remote; on new commits rebuilds the live stack:
-#   - mlm-live  (docker-compose.live.yml + .env.live)  → port 3002
+#   - mlm-live  (docker-compose.live.yml + .env.live)  → port 3000
 #
 # Installed by bootstrap-live-server.sh as a systemd timer.
 # Manual: sudo /opt/MLM_Front/scripts/server-cd.sh
@@ -18,7 +18,7 @@ LOG_PREFIX="[mlm-cd]"
 COMPOSE_FILE="docker-compose.live.yml"
 COMPOSE_PROJECT="mlm-live"
 ENV_FILE=".env.live"
-LIVE_PORT=3002
+LIVE_PORT=3000
 
 cd "${PROJECT_DIR}"
 mkdir -p "${STATE_DIR}"

@@ -17,7 +17,7 @@
 #   LIVE_UI_MOCK=1 yarn sync:live    # same as --ui-mock
 #   LIVE_SSH_HOST=<ip> yarn sync:live
 #
-# Ports on live host: live stack :3002 only
+# Ports on live host: live stack :3000 (same as dig)
 #
 set -euo pipefail
 
@@ -26,8 +26,8 @@ SSH_USER="${LIVE_SSH_USER:-novin}"
 SSH_ALIAS="${LIVE_SSH_ALIAS:-nibmarket-live}"
 SSH_KEY="${LIVE_SSH_KEY:-${HOME}/.ssh/nibmarket_live_ed25519}"
 PROJECT_DIR="${LIVE_PROJECT_DIR:-/opt/MLM_Front}"
-LIVE_PORT="${LIVE_PORT:-${PROD_PORT:-3002}}"
-NGINX_DOMAIN="${NGINX_DOMAIN:-club.nibmarket.ir}"
+LIVE_PORT="${LIVE_PORT:-${PROD_PORT:-3000}}"
+NGINX_DOMAIN="${NGINX_DOMAIN:-club.nibmarket.com}"
 LIVE_UI_MOCK="${LIVE_UI_MOCK:-0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

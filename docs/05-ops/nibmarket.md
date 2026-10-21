@@ -1,6 +1,6 @@
 # nibmarket (production / live zone)
 
-Live production zone for the Novin club panel. **One** Docker stack + host nginx for **club.nibmarket.ir**.
+Live production zone for the Novin club panel. **One** Docker stack + host nginx for **club.nibmarket.com**.
 
 ## Identity
 
@@ -10,8 +10,8 @@ Live production zone for the Novin club panel. **One** Docker stack + host nginx
 | `APP_ENV` | `production` |
 | Live host (SSH) | `club-docker.nibmarket.com` / alias `nibmarket-live` |
 | Project dir | `/opt/MLM_Front` |
-| Public front | https://club.nibmarket.ir |
-| Backend API | https://api-club.nibmarket.com (`/api/v2`) |
+| Public front | https://club.nibmarket.com (origin from request — not env) |
+| Backend API | https://club-srv.nibmarket.com (`/api/v2`) |
 | Panel (legacy SSO) | https://panel.nibmarket.com |
 | Account auth | https://auth.nibmarket.com |
 
@@ -19,9 +19,9 @@ Live production zone for the Novin club panel. **One** Docker stack + host nginx
 
 | Compose | Env file | Container | Host port | Purpose |
 |---------|----------|-----------|-----------|---------|
-| `docker-compose.live.yml` | `.env.live` | `mlm_front_live` | **3002** | Real API + auth |
+| `docker-compose.live.yml` | `.env.live` | `mlm_front_live` | **3000** | Real API + auth |
 
-nginx listens on **80/443** and reverse-proxies `club.nibmarket.ir` → `127.0.0.1:3002`.
+nginx listens on **80/443** and reverse-proxies `club.nibmarket.com` → `127.0.0.1:3000`.
 
 ## Deploy (live only)
 
@@ -34,7 +34,7 @@ yarn sync:live
 What happens:
 
 1. **rsync** local tree → `/opt/MLM_Front`
-2. Patches `.env.live` auth/SSO URLs (`club.nibmarket.ir` / `auth.nibmarket.com` / `panel.nibmarket.com`)
+2. Patches `.env.live` auth/SSO/backend URLs (`club-srv` / `auth` / `panel`) — **not** front domain
 3. Builds **live only** (stops legacy containers if present)
 4. Starts **`scripts/remote-deploy.sh` detached**
 

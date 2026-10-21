@@ -42,7 +42,7 @@ export function resolveReturnUrl(fallback?: string | null): string {
 
 /**
  * Start NIB Market SSO (panel.nibdev.com / panel.nibmarket.com).
- * Callback URL is this club panel (`NEXT_PUBLIC_APP_URL` + `/login/sso/`), not the backend API.
+ * Callback URL is this club panel (`window.location.origin` + `/login/sso/`), not the backend API.
  */
 export function redirectToPanelLogin(
   returnUrl?: string,
@@ -67,10 +67,7 @@ export function redirectToPanelLogin(
 /**
  * SMS invite entry: go to panel login with callback that carries the referral code (+ optional fund).
  */
-export function redirectToPanelLoginWithInvite(
-  inviteCode: string,
-  fundId?: string | null,
-): void {
+export function redirectToPanelLoginWithInvite(inviteCode: string, fundId?: string | null): void {
   const code = normalizeInviteCode(inviteCode);
   if (!code) {
     redirectToPanelLogin(ROUTES.DASHBOARD);

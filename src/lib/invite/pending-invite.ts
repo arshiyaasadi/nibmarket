@@ -1,4 +1,4 @@
-import { env } from "@/config/env";
+import { getBrowserOrigin } from "@/config/public-origin";
 import { inviteFunds } from "@/resources/data/funds";
 
 const PENDING_INVITE_KEY = "pending_invite_payload";
@@ -100,13 +100,10 @@ export function buildInviteEntryPath(code: string, fundId?: string | null): stri
   return fund ? `${base}/${encodeURIComponent(fund)}` : base;
 }
 
-/** Absolute invite URL for SMS / clipboard (uses public club APP_URL). */
+/** Absolute invite URL for SMS / clipboard (browser origin — not env). */
 export function buildPublicInviteUrl(code: string, fundId?: string | null): string {
   const path = buildInviteEntryPath(code, fundId);
-  const origin =
-    typeof window !== "undefined" && window.location?.origin
-      ? window.location.origin
-      : String(env.APP_URL || env.SITE_URL || "").replace(/\/+$/, "");
+  const origin = getBrowserOrigin();
   if (!origin) return path;
-  return `${origin.replace(/\/+$/, "")}${path}`;
+  return `${origin}${path}`;
 }

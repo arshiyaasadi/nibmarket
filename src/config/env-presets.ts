@@ -1,14 +1,15 @@
 /**
  * Single source of truth for zone-specific URLs and shared constants.
  * Override any value via explicit env vars in `.env` / `.env.local`.
+ *
+ * Club front public host is NOT here — derive from the request / browser
+ * (`src/config/public-origin.ts`).
  */
 
 export type AppEnv = "development" | "production";
 
 export type EnvPreset = {
   appName: string;
-  appUrl: string;
-  siteUrl: string;
   backendApiBaseUrl: string;
   backendApiVersion: string;
   /** NIB account auth host (refresh / logout). */
@@ -42,18 +43,13 @@ function panelUrls(panelBase: string) {
 export const ENV_PRESETS: Record<AppEnv, EnvPreset> = {
   development: {
     ...SHARED,
-    // Club panel public host (SSO callback) — NOT api-club
-    appUrl: "https://club.nibdev.com",
-    siteUrl: "https://club.nibdev.com",
     backendApiBaseUrl: "https://api-club.nibdev.com",
     authBaseUrl: "https://auth.nibdev.com",
     ...panelUrls("https://panel.nibdev.com"),
   },
   production: {
     ...SHARED,
-    appUrl: "https://club.nibmarket.ir",
-    siteUrl: "https://club.nibmarket.ir",
-    backendApiBaseUrl: "https://api-club.nibmarket.com",
+    backendApiBaseUrl: "https://club-srv.nibmarket.com",
     authBaseUrl: "https://auth.nibmarket.com",
     ...panelUrls("https://panel.nibmarket.com"),
   },

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# remote-deploy.sh — runs ON the live host (nibmarket / club.nibmarket.ir).
+# remote-deploy.sh — runs ON the live host (nibmarket / club.nibmarket.com).
 # Detached-safe: writes stage progress so a closed local terminal does not stop work.
 #
 # Builds ONLY the live stack (docker-compose.live.yml).
@@ -19,8 +19,8 @@ STATUS_FILE="${STATE_DIR}/deploy-status"
 LOG_FILE="${STATE_DIR}/deploy.log"
 PID_FILE="${STATE_DIR}/deploy.pid"
 LOCK_FILE="${STATE_DIR}/deploy.lock"
-LIVE_PORT="${LIVE_PORT:-${PROD_PORT:-3002}}"
-NGINX_DOMAIN="${NGINX_DOMAIN:-club.nibmarket.ir}"
+LIVE_PORT="${LIVE_PORT:-${PROD_PORT:-3000}}"
+NGINX_DOMAIN="${NGINX_DOMAIN:-club.nibmarket.com}"
 CERTBOT_EMAIL="${CERTBOT_EMAIL:-}"
 COMPOSE_FILE="docker-compose.live.yml"
 COMPOSE_PROJECT="mlm-live"
@@ -236,7 +236,7 @@ if ! command -v nginx >/dev/null 2>&1; then
     || fail "nginx" "apt install nginx failed"
 fi
 
-NGINX_SRC="${PROJECT_DIR}/deploy/nginx/club.nibmarket.ir.conf"
+NGINX_SRC="${PROJECT_DIR}/deploy/nginx/club.nibmarket.com.conf"
 NGINX_AVAIL="/etc/nginx/sites-available/${NGINX_DOMAIN}.conf"
 NGINX_ENABLED="/etc/nginx/sites-enabled/${NGINX_DOMAIN}.conf"
 if [[ ! -f "${NGINX_SRC}" ]]; then

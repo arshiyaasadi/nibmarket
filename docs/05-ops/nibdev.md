@@ -94,11 +94,11 @@ APP_PORT=3000
 # Test (nibdev): NEXT_PUBLIC_KEEP_SESSION_ON_401=1
 ```
 
-Client URLs / public flags are baked at **image build**. Changing them requires rebuild.
+Client zone flags are baked at **image build**. Changing `NEXT_PUBLIC_APP_ENV` requires rebuild.
 
-`yarn sync:dev` patches server `.env` auth/SSO URLs:
+`yarn sync:dev` patches server `.env` auth/SSO/backend URLs (front origin comes from the request):
 
-- `NEXT_PUBLIC_APP_URL=https://club.nibdev.com` (SSO callback — never api-club)
+- `BACKEND_API_BASE_URL=https://api-club.nibdev.com`
 - `NEXT_PUBLIC_AUTH_BASE_URL=https://auth.nibdev.com`
 - `NEXT_PUBLIC_PANEL_BASE_URL=https://panel.nibdev.com`
 

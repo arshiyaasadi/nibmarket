@@ -476,7 +476,7 @@ fi
 write_status "prune" "running" "Pruning dangling images"
 docker_run image prune -f >/dev/null 2>&1 || true
 
-APP_URL_VALUE="$(grep -E '^NEXT_PUBLIC_APP_URL=' .env 2>/dev/null | head -1 | cut -d= -f2- || echo 'https://club.nibdev.com')"
+APP_URL_VALUE="https://club.nibdev.com (from request Host — not env)"
 
 write_status "done" "done" "Deploy finished. active=${ACTIVE_SLOT} :${PUBLIC_PORT}, standby=${INACTIVE_SLOT} ${STANDBY_BIND}"
 echo "======== remote-deploy-dev done ========"

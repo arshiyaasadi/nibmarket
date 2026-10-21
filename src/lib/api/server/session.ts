@@ -9,11 +9,8 @@ import type { UserRole } from "@/types/mlm";
 function shouldUseSecureCookies(): boolean {
   if (process.env.COOKIE_SECURE === "1") return true;
   if (process.env.COOKIE_SECURE === "0") return false;
-
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
-  if (siteUrl.startsWith("https://")) return true;
-
-  return process.env.NODE_ENV !== "production";
+  // Production images always serve over HTTPS behind nginx; local `next dev` stays insecure.
+  return process.env.NODE_ENV === "production";
 }
 
 export const COOKIE_OPTS = {

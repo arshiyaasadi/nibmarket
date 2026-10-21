@@ -1,11 +1,10 @@
 import { clientEnv } from "./env.client";
 
 // Client-safe env — only NEXT_PUBLIC_* vars.
+// Club public origin: use getBrowserOrigin() / getRequestOrigin() — not env.
 // For server-only env, import from env.server.ts.
 export const env = {
   APP_ENV: clientEnv.NEXT_PUBLIC_APP_ENV,
-  SITE_URL: clientEnv.NEXT_PUBLIC_SITE_URL,
-  APP_URL: clientEnv.NEXT_PUBLIC_APP_URL,
   APP_NAME: clientEnv.NEXT_PUBLIC_APP_NAME,
   AUTH_BASE_URL: clientEnv.NEXT_PUBLIC_AUTH_BASE_URL,
   SSO_CALLBACK_PATH: clientEnv.NEXT_PUBLIC_SSO_CALLBACK_PATH,
