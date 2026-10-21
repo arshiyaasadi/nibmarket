@@ -238,20 +238,31 @@ fi
 NGINX_SRC="${PROJECT_DIR}/deploy/nginx/club.nibmarket.com.conf"
 NGINX_AVAIL="/etc/nginx/sites-available/${NGINX_DOMAIN}.conf"
 NGINX_ENABLED="/etc/nginx/sites-enabled/${NGINX_DOMAIN}.conf"
+# Unique upstream name per domain — avoids clash with legacy club.nibmarket.ir.conf
+NGINX_UPSTREAM="mlm_front_live_${NGINX_DOMAIN//./_}"
 if [[ ! -f "${NGINX_SRC}" ]]; then
   fail "nginx" "missing ${NGINX_SRC}"
 fi
+
+# Drop legacy live vhosts that redefine the same upstream / compete on :80
+for legacy in club.nibmarket.ir.conf club.nibmarket.ir; do
+  if [[ -e "/etc/nginx/sites-enabled/${legacy}" ]]; then
+    echo "--- disabling legacy nginx site: ${legacy}"
+    sudo_run rm -f "/etc/nginx/sites-enabled/${legacy}"
+  fi
+done
+sudo_run rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
 
 TMP_CONF="$(mktemp)"
 sed \
   -e "s/__LIVE_PORT__/${LIVE_PORT}/g" \
   -e "s/__PROD_PORT__/${LIVE_PORT}/g" \
   -e "s/__DOMAIN__/${NGINX_DOMAIN}/g" \
+  -e "s/__UPSTREAM__/${NGINX_UPSTREAM}/g" \
   "${NGINX_SRC}" > "${TMP_CONF}"
 sudo_run cp "${TMP_CONF}" "${NGINX_AVAIL}"
 rm -f "${TMP_CONF}"
 sudo_run ln -sfn "${NGINX_AVAIL}" "${NGINX_ENABLED}"
-sudo_run rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
 sudo_run nginx -t || fail "nginx" "nginx -t failed"
 sudo_run systemctl enable --now nginx
 sudo_run systemctl reload nginx || sudo_run systemctl restart nginx
