@@ -17,7 +17,7 @@ import { useInviteLauncher } from "@/features/network/use-invite-launcher";
 import { MarketingBadgesSection } from "@/components/molecules/MarketingBadgesSection";
 import { Modal, ModalBody } from "@/components/atoms/Modal";
 import { JALALI_MONTH_NAMES, jalaliPartsFromDate } from "@/lib/datetime/jalali";
-import { cn, formatDateRange, formatDisplayDate } from "@/lib/utils";
+import { cn, formatDateRange } from "@/lib/utils";
 import { useMarketingBadges } from "@/features/missions/queries";
 import type { CompetitionPeriod, CompetitionPool, LeaderboardEntry } from "@/types/mlm";
 
@@ -631,20 +631,8 @@ function PoolLeaderboardsSection({ isPast }: { isPast: boolean }) {
 function HonorsSection() {
   const t = useTranslations("leaderboard");
   const { data: badgeItems = [] } = useMarketingBadges();
-  const unlockMap = useMemo(() => {
-    const map: Record<string, { unlocked: boolean; achievedAtLabel?: string | null }> = {};
-    for (const b of badgeItems) {
-      const state = {
-        unlocked: b.unlocked,
-        achievedAtLabel: b.achievedAt ? formatDisplayDate(b.achievedAt) : null,
-      };
-      map[b.missionCode] = state;
-      map[b.code] = state;
-    }
-    return map;
-  }, [badgeItems]);
 
-  return <MarketingBadgesSection title={t("honorsTitle")} unlockByMissionCode={unlockMap} />;
+  return <MarketingBadgesSection title={t("honorsTitle")} items={badgeItems} />;
 }
 
 // ── Page Root ─────────────────────────────────────────────────────────────────

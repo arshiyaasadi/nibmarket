@@ -2,11 +2,10 @@ import type { AdminMissionListItem } from "@/types/admin";
 import type { MissionDef } from "@/types/mlm";
 
 /**
- * TEMP (mlm-15): Marketing missions from PDF «تسک های mlm» (14 Mehr).
- * Backend has not seeded these yet — FE merges missing rows for user + admin display.
- * Remove this overlay when club-be ships the real seed (user will ask).
+ * Catalog seed for landing / local UI-dev only.
+ * Club BE owns live mission sections — keep preview OFF in api mode.
  */
-export const MEHR_MISSIONS_PREVIEW_ENABLED = true;
+export const MEHR_MISSIONS_PREVIEW_ENABLED = false;
 
 export const MEHR_PREVIEW_ID_PREFIX = "mehr-preview-";
 

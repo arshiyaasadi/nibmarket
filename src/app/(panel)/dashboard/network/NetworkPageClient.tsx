@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { useTranslations } from "next-intl";
@@ -117,22 +117,8 @@ function InviteCard({ onVipInvite }: { onVipInvite: () => void }) {
 function MarketingBadgesPromo() {
   const t = useTranslations("network");
   const { data: badgeItems = [] } = useMarketingBadges();
-  const unlockMap = useMemo(() => {
-    const map: Record<string, { unlocked: boolean; achievedAtLabel?: string | null }> = {};
-    for (const b of badgeItems) {
-      const state = {
-        unlocked: b.unlocked,
-        achievedAtLabel: b.achievedAt ? formatDisplayDate(b.achievedAt) : null,
-      };
-      map[b.missionCode] = state;
-      map[b.code] = state;
-    }
-    return map;
-  }, [badgeItems]);
 
-  return (
-    <MarketingBadgesSection title={t("badgesPromoTitle")} unlockByMissionCode={unlockMap} compact />
-  );
+  return <MarketingBadgesSection title={t("badgesPromoTitle")} items={badgeItems} compact />;
 }
 
 // ── Info Banner ───────────────────────────────────────────────────────────────

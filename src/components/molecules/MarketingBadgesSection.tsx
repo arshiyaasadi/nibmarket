@@ -2,29 +2,17 @@
 
 import { useMemo, useState } from "react";
 import { Info } from "lucide-react";
-import { cn } from "@/lib/utils";
-import {
-  MARKETING_BADGES,
-  type MarketingBadgeCode,
-  type MarketingBadgeDef,
-} from "@/resources/data/marketing-badges";
+import { cn, formatDisplayDate } from "@/lib/utils";
+import { getMarketingBadgeByCode, type MarketingBadgeDef } from "@/resources/data/marketing-badges";
 import { MarketingBadgeDetailModal } from "@/components/molecules/MarketingBadgeDetailModal";
-
-export type MarketingBadgeUnlockState = {
-  unlocked: boolean;
-  achievedAtLabel?: string | null;
-  imageSrc?: string | null;
-};
+import type { MarketingBadgeItem } from "@/types/mlm";
 
 export type MarketingBadgesSectionProps = {
-  /** Section heading */
   title: string;
-  /** Optional subtitle under title */
   subtitle?: string;
-  /** Map of badge code / missionCode → unlock state */
-  unlockByMissionCode?: Record<string, MarketingBadgeUnlockState>;
+  /** Live badges from GET /missions/sections/badges */
+  items: MarketingBadgeItem[];
   className?: string;
-  /** denser grid for compact placements */
   compact?: boolean;
 };
 
@@ -32,29 +20,42 @@ function pn(n: number) {
   return n.toLocaleString("fa-IR");
 }
 
-function resolveUnlock(
-  badge: MarketingBadgeDef,
-  unlockByMissionCode?: Record<string, MarketingBadgeUnlockState>,
-): MarketingBadgeUnlockState {
-  return (
-    unlockByMissionCode?.[badge.missionCode] ??
-    unlockByMissionCode?.[badge.code] ?? { unlocked: false }
-  );
+function letterFor(code: string, title: string): string {
+  const known = getMarketingBadgeByCode(code);
+  if (known?.letter) return known.letter;
+  const trimmed = title.trim();
+  return trimmed ? trimmed.slice(0, 1) : "?";
+}
+
+function toDetailBadge(item: MarketingBadgeItem): MarketingBadgeDef {
+  const known = getMarketingBadgeByCode(item.code);
+  return {
+    code: item.code,
+    letter: letterFor(item.code, item.title),
+    title: item.title || known?.title || item.code,
+    description: item.description || known?.description || "",
+    conditions: known?.conditions?.length
+      ? known.conditions
+      : item.description
+        ? [item.description]
+        : [],
+    reward: item.reward,
+    missionCode: item.missionCode || known?.missionCode || item.code,
+    imageSrc: item.imageUrl ?? known?.imageSrc ?? null,
+  };
 }
 
 export function MarketingBadgesSection({
   title,
   subtitle,
-  unlockByMissionCode,
+  items,
   className,
   compact = false,
 }: MarketingBadgesSectionProps) {
-  const [active, setActive] = useState<MarketingBadgeDef | null>(null);
+  const [active, setActive] = useState<MarketingBadgeItem | null>(null);
 
-  const activeUnlock = useMemo(
-    () => (active ? resolveUnlock(active, unlockByMissionCode) : null),
-    [active, unlockByMissionCode],
-  );
+  const activeDetail = useMemo(() => (active ? toDetailBadge(active) : null), [active]);
+  const activeAchievedLabel = active?.achievedAt ? formatDisplayDate(active.achievedAt) : null;
 
   return (
     <>
@@ -69,99 +70,81 @@ export function MarketingBadgesSection({
           {subtitle ? <p className="text-muted mt-0.5 text-xs">{subtitle}</p> : null}
         </div>
 
-        <ul className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-          {MARKETING_BADGES.map((badge, index) => {
-            const state = resolveUnlock(badge, unlockByMissionCode);
-            const imageSrc = state.imageSrc ?? badge.imageSrc;
-            const isLastOddMobile =
-              index === MARKETING_BADGES.length - 1 && MARKETING_BADGES.length % 2 === 1;
+        {items.length === 0 ? (
+          <p className="text-muted py-4 text-center text-xs">نشانی برای نمایش نیست</p>
+        ) : (
+          <ul className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+            {items.map((item, index) => {
+              const detail = toDetailBadge(item);
+              const imageSrc = detail.imageSrc;
+              const unlocked = item.unlocked;
+              const isLastOddMobile = index === items.length - 1 && items.length % 2 === 1;
 
-            return (
-              <li
-                key={badge.code}
-                className={cn(
-                  "border-border bg-background relative flex flex-col items-center gap-2 rounded-2xl border px-3 py-4 text-center transition",
-                  compact && "py-3",
-                  state.unlocked
-                    ? "border-yellow-500/40 shadow-[0_0_24px_-12px_rgba(234,179,8,0.45)]"
-                    : "opacity-45 grayscale-[0.4]",
-                  // Mobile 2-col: center last badge when odd; desktop: all in one row
-                  isLastOddMobile &&
-                    "col-span-2 mx-auto w-full max-w-[calc((100%-0.75rem)/2)] lg:col-span-1 lg:mx-0 lg:max-w-none",
-                )}
-              >
-                <button
-                  type="button"
-                  onClick={() => setActive(badge)}
-                  className="text-muted hover:text-primary absolute end-2 top-2 inline-flex size-8 items-center justify-center rounded-full transition"
-                  aria-label={`جزئیات ${badge.title}`}
+              return (
+                <li
+                  key={item.code}
+                  className={cn(
+                    "border-border bg-background relative flex flex-col items-center gap-2 rounded-2xl border px-3 py-4 text-center transition",
+                    compact && "py-3",
+                    unlocked
+                      ? "border-yellow-500/40 shadow-[0_0_24px_-12px_rgba(234,179,8,0.45)]"
+                      : "opacity-45 grayscale-[0.4]",
+                    isLastOddMobile &&
+                      "col-span-2 mx-auto w-full max-w-[calc((100%-0.75rem)/2)] lg:col-span-1 lg:mx-0 lg:max-w-none",
+                  )}
                 >
-                  <Info className="size-5" strokeWidth={2.25} />
-                </button>
-
-                {imageSrc ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={imageSrc}
-                    alt=""
-                    className={cn(
-                      "size-14 rounded-2xl object-cover",
-                      !state.unlocked && "opacity-40 grayscale",
-                    )}
-                  />
-                ) : (
-                  <div
-                    className={cn(
-                      "flex size-14 items-center justify-center rounded-2xl border text-xl font-black",
-                      state.unlocked
-                        ? "border-yellow-500/45 bg-yellow-500/12 text-yellow-600 dark:text-yellow-400"
-                        : "border-border bg-surface-2 text-muted",
-                    )}
-                    aria-hidden
+                  <button
+                    type="button"
+                    onClick={() => setActive(item)}
+                    className="text-muted hover:text-primary absolute end-2 top-2 inline-flex size-8 items-center justify-center rounded-full transition"
+                    aria-label={`جزئیات ${detail.title}`}
                   >
-                    {badge.letter}
-                  </div>
-                )}
+                    <Info className="size-5" strokeWidth={2.25} />
+                  </button>
 
-                <p className="text-foreground text-sm leading-tight font-bold">{badge.title}</p>
-                <p className="text-primary text-sm font-black tabular-nums">
-                  {pn(badge.reward)}
-                  <span className="text-muted ms-0.5 text-[10px] font-medium">تنوین</span>
-                </p>
-              </li>
-            );
-          })}
-        </ul>
+                  {imageSrc ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={imageSrc}
+                      alt=""
+                      className={cn(
+                        "size-14 rounded-2xl object-cover",
+                        !unlocked && "opacity-40 grayscale",
+                      )}
+                    />
+                  ) : (
+                    <div
+                      className={cn(
+                        "flex size-14 items-center justify-center rounded-2xl border text-xl font-black",
+                        unlocked
+                          ? "border-yellow-500/45 bg-yellow-500/12 text-yellow-600 dark:text-yellow-400"
+                          : "border-border bg-surface-2 text-muted",
+                      )}
+                      aria-hidden
+                    >
+                      {detail.letter}
+                    </div>
+                  )}
+
+                  <p className="text-foreground text-sm leading-tight font-bold">{detail.title}</p>
+                  <p className="text-primary text-sm font-black tabular-nums">
+                    {pn(detail.reward)}
+                    <span className="text-muted ms-0.5 text-[10px] font-medium">تنوین</span>
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </section>
 
       <MarketingBadgeDetailModal
-        badge={active}
+        badge={activeDetail}
         open={active != null}
         onClose={() => setActive(null)}
-        unlocked={activeUnlock?.unlocked}
-        achievedAtLabel={activeUnlock?.achievedAtLabel}
+        unlocked={active?.unlocked}
+        achievedAtLabel={activeAchievedLabel}
       />
     </>
   );
 }
-
-/** Helper to build unlock map from completed mission codes */
-export function buildBadgeUnlockMap(
-  completed: Array<{
-    missionCode: string;
-    achievedAtLabel?: string | null;
-    imageSrc?: string | null;
-  }>,
-): Record<string, MarketingBadgeUnlockState> {
-  const map: Record<string, MarketingBadgeUnlockState> = {};
-  for (const row of completed) {
-    map[row.missionCode] = {
-      unlocked: true,
-      achievedAtLabel: row.achievedAtLabel,
-      imageSrc: row.imageSrc,
-    };
-  }
-  return map;
-}
-
-export type { MarketingBadgeCode };

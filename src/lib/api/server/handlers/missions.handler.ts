@@ -54,7 +54,7 @@ export const missionsSectionPromotionHandler = createSectionHandler("promotion")
 export const missionsSectionOnboardingHandler = createSectionHandler("onboarding");
 export const missionsSectionMarketingHandler = createSectionHandler("marketing");
 
-/** Mock badges from static defs + completed mission codes until BE ships. */
+/** UI-dev / mock-mode badges — api mode proxies GET /missions/sections/badges to club BE. */
 export async function missionsSectionBadgesHandler(req: Request): Promise<Response> {
   const userId = getCurrentUserId(req);
   if (!userId) return unauthorized();

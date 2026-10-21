@@ -78,18 +78,6 @@ export function MissionsContent() {
   const accordionGroups = groups.filter(
     (g) => g.meta.layout !== "promotion" && g.meta.layout !== "badges",
   );
-  const badgeUnlockMap = useMemo(() => {
-    const map: Record<string, { unlocked: boolean; achievedAtLabel?: string | null }> = {};
-    for (const b of badgeItems) {
-      const state = {
-        unlocked: b.unlocked,
-        achievedAtLabel: b.achievedAt ? formatDisplayDate(b.achievedAt) : null,
-      };
-      map[b.missionCode] = state;
-      map[b.code] = state;
-    }
-    return map;
-  }, [badgeItems]);
   const showBoostBanner = missionsHaveAnyBoost(missions);
   const activityItems = activityPages?.pages.flatMap((p) => p.items) ?? [];
 
@@ -136,7 +124,7 @@ export function MissionsContent() {
               );
             })}
 
-            <MarketingBadgesSection title="نشان بازاریابی" unlockByMissionCode={badgeUnlockMap} />
+            <MarketingBadgesSection title="نشان بازاریابی" items={badgeItems} />
           </>
         )}
       </div>

@@ -74,7 +74,7 @@ export const ENDPOINTS = {
   },
   /**
    * Missions (auth). Prefer SECTIONS.* for panel UI.
-   * Section + badges routes may be BFF LOCAL_ONLY until club BE ships them.
+   * Section + badges proxy to club BE in API mode.
    */
   MISSIONS: {
     LIST: "/missions/list",
