@@ -1,8 +1,8 @@
 # nibmarket (production / live)
 
-لایو پایدار است. نمای کلی دو زون: [deploy.md](./deploy.md).
+Live is stable. Two-zone overview: [deploy.md](./deploy.md).
 
-Public HTTPS روی **ArvanCloud CDN**. این هاست فقط **HTTP origin** است.
+Public HTTPS terminates at **ArvanCloud CDN**. This host is the **HTTP origin** only.
 
 ## Identity
 
@@ -17,7 +17,7 @@ Public HTTPS روی **ArvanCloud CDN**. این هاست فقط **HTTP origin** �
 | Public URL | https://club.nibmarket.com |
 | Backend API | `http://club-srv.nibmarket.com` (`/api/v2`) |
 | Panel / auth | `panel.nibmarket.com` / `auth.nibmarket.com` |
-| SSO callback origin | همیشه `https://club.nibmarket.com` (`NEXT_PUBLIC_PUBLIC_ORIGIN`) |
+| SSO callback origin | always `https://club.nibmarket.com` (`NEXT_PUBLIC_PUBLIC_ORIGIN`) |
 
 ## Traffic
 
@@ -28,9 +28,9 @@ User → ArvanCloud (HTTPS)
      → BFF → http://club-srv.nibmarket.com
 ```
 
-**Do not** run certbot for `club.nibmarket.com` on this host — آن `return 301 https://…` را برمی‌گرداند و CDN لوپ می‌کند.
+**Do not** run certbot for `club.nibmarket.com` on this host — it re-adds `return 301 https://…` and the CDN loops.
 
-رقابت‌کنندهٔ nginx (مثلاً `club.nibmarket.ir`) در دیپلوی disable می‌شود تا فقط همین origin بماند.
+Competing nginx vhosts (e.g. `club.nibmarket.ir`) are disabled during deploy so only this origin remains.
 
 ## Deploy
 
@@ -39,30 +39,30 @@ yarn sync:live
 yarn sync:live --force
 yarn sync:live:status
 yarn sync:live:follow
-# SKIP_NGINX=1 yarn sync:live   # فقط وقتی نباید nginx عوض شود
-# yarn sync:live:ui             # UI-mock موقت روی لایو (غیرپیش‌فرض)
+# SKIP_NGINX=1 yarn sync:live   # only when host nginx must not change
+# yarn sync:live:ui             # temporary UI-mock on live (not default)
 ```
 
-جریان پیش‌فرض (`SKIP_NGINX=0`):
+Default flow (`SKIP_NGINX=0`):
 
 1. rsync → `/opt/MLM_Front`
-2. Patch `.env.live` (real API، پاک کردن UI-mock، `BACKEND_API_BASE_URL=http://club-srv…`, bake origin)
-3. Build/start `mlm_front_live` روی `:3000`
-4. بازنویسی nginx به‌عنوان sole HTTP origin (پاک کردن بلوک‌های leftover certbot)
+2. Patch `.env.live` (real API, clear UI-mock, `BACKEND_API_BASE_URL=http://club-srv…`, bake origin)
+3. Build/start `mlm_front_live` on `:3000`
+4. Rewrite nginx as sole HTTP origin (wipe leftover certbot SSL blocks)
 5. Smoke: `Host: club.nibmarket.com` → `http://127.0.0.1/build-info.json` → **200**
 
 Stages: `docker` → `network` → `env` → `base_image` → `build_live` → `nginx` → `done`  
 Worker: `scripts/remote-deploy.sh` · template: `deploy/nginx/club.nibmarket.com.conf`
 
-## SSO / لندینگ
+## SSO / landing
 
-ورود از هوم (`landing-v2`) مثل legacy:
+Home entry (`landing-v2`) matches legacy:
 
 `panel.nibmarket.com/login/?callbackUrl=https://club.nibmarket.com/login/sso/?returnUrl=/dashboard`
 
-نه لینک خالی به `/login` یا `/login/sso` بدون پنل.
+Not a bare link to `/login` or `/login/sso` without the panel hop.
 
-لاگ‌گیری از سرور (بدون ریموت برای ایجنت): [`scripts/live-logs-prompt.md`](../../scripts/live-logs-prompt.md)
+Server log collection (paste for agent): [`scripts/live-logs-prompt.md`](../../scripts/live-logs-prompt.md)
 
 ## Related
 

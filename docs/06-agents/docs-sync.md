@@ -5,9 +5,10 @@ Keeps zone docs and architecture notes aligned with the nested **novin-club** re
 ## Mission
 
 1. After code / deploy / env changes, update `docs/**` so they match what runs.
-2. Enforce the **two-zone** model: **دو** (nibdev) + **لایو** (nibmarket) — both are production-ready deploy targets.
+2. Enforce the **two-zone** model: **dev** (nibdev) + **live** (nibmarket) — both are production-ready deploy targets.
 3. Club API paths stay on **`/api/v2`**.
 4. Live BE stays **`http://club-srv.nibmarket.com`**; live origin nginx stays **HTTP-only** (no certbot).
+5. Write docs and code comments in **English only** (no Persian in `docs/**` or source comments).
 
 ## Owns
 

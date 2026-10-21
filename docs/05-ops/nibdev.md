@@ -1,14 +1,14 @@
-# nibdev (development / دو)
+# nibdev (development / dig)
 
-زون دو پایدار است. نمای کلی دو زون: [deploy.md](./deploy.md).
+Dev zone is stable. Two-zone overview: [deploy.md](./deploy.md).
 
-Staging با برند **nibdev**.
+Staging / test zone under the **nibdev** brand.
 
 ## Identity
 
 | Key | Value |
 |-----|--------|
-| Zone | `nibdev` (dev / دو) |
+| Zone | `nibdev` (dev / dig) |
 | `APP_ENV` | `development` |
 | Host / SSH | `pod1.nibdev.com` / alias `nibdev` |
 | Project dir | `/opt/MLM_Front` |
@@ -21,27 +21,27 @@ Staging با برند **nibdev**.
 | Club API | https://api-club.nibdev.com (`/api/v2`) |
 | Panel SSO | https://panel.nibdev.com |
 | Account auth | https://auth.nibdev.com |
-| SSO callback | `https://club.nibdev.com/login/sso/` (origin از request) |
+| SSO callback | `https://club.nibdev.com/login/sso/` (origin from request) |
 
 ## Blue / green
 
-دقیقاً **دو** کانتینر اپ. پراکسی سوم نداریم.
+Exactly **two** app containers. No third proxy.
 
 | Role | Container | Host publish |
 |------|-----------|--------------|
-| **Active** (public) | `mlm_front_dev_blue` **یا** `_green` | `:3000` → container `3000` |
-| **Standby** (قبلی) | اسلات دیگر | `127.0.0.1:2999` → container `3000` (فقط localhost) |
+| **Active** (public) | `mlm_front_dev_blue` **or** `_green` | `:3000` → container `3000` |
+| **Standby** (previous) | the other slot | `127.0.0.1:2999` → container `3000` (localhost only) |
 
 State: `/opt/MLM_Front/.cd-state/slot-state` (`ACTIVE=blue|green`).
 
 ### Deploy flow
 
-1. Build در اسلات **غیرفعال** روی `127.0.0.1:2999`
+1. Build into the **inactive** slot on `127.0.0.1:2999`
 2. Health-check
-3. Swap: بیلد جدید → `:3000`، قبلی → `127.0.0.1:2999`
+3. Swap: new build → `:3000`, previous → `127.0.0.1:2999`
 4. Prune dangling images
 
-Cold start (بدون active): اسلات پیش‌فرض (`blue`) مستقیم روی `:3000`. Standby از دیپلوی بعدی.
+Cold start (no active yet): default slot (`blue`) builds directly on `:3000`. Standby appears on the next successful deploy.
 
 ### CLI
 
@@ -49,25 +49,25 @@ Cold start (بدون active): اسلات پیش‌فرض (`blue`) مستقیم �
 yarn sync:dev                 # rsync + blue/green (real API)
 yarn sync:dev --status
 yarn sync:dev --follow
-yarn sync:dev --rollback      # سوییچ فوری بدون rebuild
+yarn sync:dev --rollback      # instant swap, no rebuild
 yarn sync:dev --force
 yarn sync:dev:rollback
 ```
 
-روی سرور:
+On the server:
 
 ```bash
 bash scripts/remote-deploy-dev.sh --status
 bash scripts/remote-deploy-dev.sh --rollback
 ```
 
-## Real API (پیش‌فرض)
+## Real API (default)
 
-همیشه `API_SERVICE_MODE=api` و UI-mock خاموش (`FORCE_UI_DEV_MODE=0`، …). BFF فقط روت‌های session-cookie (+ geo ادمین) را محلی نگه می‌دارد؛ بقیه `/api/v2` به `api-club.nibdev.com`.
+Always `API_SERVICE_MODE=api` with UI-mock cleared (`FORCE_UI_DEV_MODE=0`, …). BFF keeps only session-cookie routes (+ admin geo fixture) local; all other `/api/v2` calls proxy to `api-club.nibdev.com`.
 
-### فلگ تست: نگه داشتن session روی 401
+### Test flag: keep session on 401
 
-`NEXT_PUBLIC_KEEP_SESSION_ON_401=1` — 401 نشست را پاک / به session-expired نمی‌فرستد (`src/config/feature-flags.ts`).
+`NEXT_PUBLIC_KEEP_SESSION_ON_401=1` — a 401 does **not** clear the session or redirect to session-expired (`src/config/feature-flags.ts`).
 
 ## Stack
 
@@ -75,9 +75,9 @@ bash scripts/remote-deploy-dev.sh --rollback
 |---------|-----|---------|--------|
 | `docker-compose.dev.yml` | `.env` | `mlm-dev` | `app_blue` / `app_green` |
 
-نیاز به Docker network خارجی `nginx`.
+Requires external Docker network `nginx`.
 
-## Env روی سرور
+## Env on server
 
 ```bash
 cp .env.example .env
@@ -87,18 +87,18 @@ NEXT_PUBLIC_APP_ENV=development
 API_SERVICE_MODE=api
 AUTH_SECRET=<long-random>
 APP_PORT=3000
-# اختیاری تست: NEXT_PUBLIC_KEEP_SESSION_ON_401=1
+# Optional test: NEXT_PUBLIC_KEEP_SESSION_ON_401=1
 ```
 
-فلگ‌های `NEXT_PUBLIC_*` در **بیلد ایمیج** بیک می‌شوند؛ عوض کردن زون = rebuild.
+`NEXT_PUBLIC_*` flags are baked at **image build**; changing zone requires rebuild.
 
-`yarn sync:dev` این‌ها را روی `.env` سرور پچ می‌کند:
+`yarn sync:dev` patches server `.env` with:
 
 - `BACKEND_API_BASE_URL=https://api-club.nibdev.com`
 - `NEXT_PUBLIC_AUTH_BASE_URL=https://auth.nibdev.com`
 - `NEXT_PUBLIC_PANEL_BASE_URL=https://panel.nibdev.com`
-- (origin فرانت از request؛ `NEXT_PUBLIC_PUBLIC_ORIGIN` عمداً ست نمی‌شود)
+- (front origin from request; `NEXT_PUBLIC_PUBLIC_ORIGIN` is intentionally not set)
 
 ## Related
 
-- [deploy.md](./deploy.md) · لایو: [nibmarket.md](./nibmarket.md) · [env.md](./env.md)
+- [deploy.md](./deploy.md) · live: [nibmarket.md](./nibmarket.md) · [env.md](./env.md)

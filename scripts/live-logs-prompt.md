@@ -1,8 +1,8 @@
-# پرامپت جمع‌آوری لاگ لایو (بدون ریموت برای ایجنت)
+# Live log collection prompt (no remote for the agent)
 
-این متن را روی سرور یا در ترمینال خودت اجرا کن، خروجی را کپی کن و در چت بفرست تا تحلیل شود.
+Run this on the live server (or your own SSH session), copy the output, and paste it in chat for analysis.
 
-## دستور یک‌جا (کپی/پیست روی سرور لایو)
+## One-shot command (copy/paste on live)
 
 ```bash
 echo "===== HOST / TIME ====="
@@ -12,8 +12,8 @@ echo "===== CLUB CONTAINERS ====="
 docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}' 2>/dev/null | head -40
 echo
 echo "===== COMPOSE (club) ====="
-# مسیر پروژه را اگر فرق دارد عوض کن
-cd /opt/novin-club 2>/dev/null || cd ~/novin-club 2>/dev/null || true
+# Change project path if different on this host
+cd /opt/novin-club 2>/dev/null || cd /opt/MLM_Front 2>/dev/null || cd ~/novin-club 2>/dev/null || true
 pwd
 docker compose -f docker-compose.live.yml ps 2>/dev/null || docker-compose -f docker-compose.live.yml ps 2>/dev/null
 echo
@@ -25,7 +25,7 @@ docker compose -f docker-compose.live.yml exec -T web printenv 2>/dev/null \
 echo
 echo "===== APP LOGS (last 200) ====="
 docker compose -f docker-compose.live.yml logs --tail=200 web 2>/dev/null \
-  || docker logs --tail=200 "$(docker ps -qf name=web)" 2>/dev/null
+  || docker logs --tail=200 "$(docker ps -qf name=mlm_front_live)" 2>/dev/null
 echo
 echo "===== NGINX ERROR / ACCESS (last 80) ====="
 sudo tail -n 80 /var/log/nginx/error.log 2>/dev/null
@@ -45,19 +45,19 @@ echo
 echo "===== DONE ====="
 ```
 
-## اگر فقط لاگ اپ لازم است
+## App logs only
 
 ```bash
 docker compose -f docker-compose.live.yml logs --tail=300 -t web
 ```
 
-## پرامپت کوتاه برای چت (همین را با خروجی بفرست)
+## Short chat prompt (paste with the output)
 
 ```
-لاگ لایو کلاب را می‌فرستم. لطفاً تحلیل کن:
-- مسیر SSO (panel → /login/sso → session)
-- تماس BFF با http://club-srv.nibmarket.com
-- خطاهای 401/502/redirect loop
-خروجی دستورات زیر:
-<اینجا paste خروجی>
+Live club logs — please analyze:
+- SSO path (panel → /login/sso → session)
+- BFF calls to http://club-srv.nibmarket.com
+- 401 / 502 / redirect-loop errors
+Command output:
+<paste output here>
 ```

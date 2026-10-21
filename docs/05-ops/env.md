@@ -1,20 +1,20 @@
 # Environment Variables
 
 Zone URLs: [`src/config/env-presets.ts`](../../src/config/env-presets.ts).  
-Deploy هر دو زون: [deploy.md](./deploy.md) · map: [`../README.md`](../README.md).
+Deploy for both zones: [deploy.md](./deploy.md) · map: [`../README.md`](../README.md).
 
-`.env` فقط **zone**، **secrets**، و overrideهای اختیاری.
+`.env` holds **zone**, **secrets**, and optional overrides only.
 
 | Zone | `APP_ENV` | Backend / panel / auth | Front (public) |
 |------|-----------|------------------------|----------------|
-| **دو** (nibdev) | `development` | `https://api-club.nibdev.com` / `panel.nibdev.com` / `auth.nibdev.com` | از request — معمولاً `club.nibdev.com` — [nibdev.md](./nibdev.md) |
-| **لایو** (nibmarket) | `production` | `http://club-srv.nibmarket.com` / `panel.nibmarket.com` / `auth.nibmarket.com` | ثابت SSO: `https://club.nibmarket.com` — [nibmarket.md](./nibmarket.md) |
+| **dev** (nibdev) | `development` | `https://api-club.nibdev.com` / `panel.nibdev.com` / `auth.nibdev.com` | From request — typically `club.nibdev.com` — [nibdev.md](./nibdev.md) |
+| **live** (nibmarket) | `production` | `http://club-srv.nibmarket.com` / `panel.nibmarket.com` / `auth.nibmarket.com` | Fixed SSO origin: `https://club.nibmarket.com` — [nibmarket.md](./nibmarket.md) |
 
-ثابت‌های مشترک (`BACKEND_API_VERSION=v2`، SSO cookie، callback path) در همان preset.
+Shared constants (`BACKEND_API_VERSION=v2`, SSO cookie, callback path) live in the same preset.
 
-**لایو:** callback و لینک دعوت از `https://club.nibmarket.com` می‌آید (`getPublicClubOrigin()` / `NEXT_PUBLIC_PUBLIC_ORIGIN`)، حتی اگر اپ را از `club-docker:3000` باز کنی. هرگز SSO را به club BE نزن.
+**Live:** callback and invite links use `https://club.nibmarket.com` (`getPublicClubOrigin()` / `NEXT_PUBLIC_PUBLIC_ORIGIN`), even if you open the app via `club-docker:3000`. Never point SSO at the club backend.
 
-هر var غیرخالی در `.env` / `.env.live` preset را override می‌کند.
+Any non-empty var in `.env` / `.env.live` overrides the preset.
 
 ---
 
@@ -22,11 +22,11 @@ Deploy هر دو زون: [deploy.md](./deploy.md) · map: [`../README.md`](../RE
 
 | File | Use |
 |------|-----|
-| `.env.example` | قالب دو / لوکال — `APP_ENV=development` |
-| `.env.live.example` | قالب لایو — `APP_ENV=production` |
-| `.env` | runtime دو / لوکال (gitignored) |
-| `.env.live` | runtime لایو (gitignored) |
-| `.env.local` | override لوکال Next |
+| `.env.example` | Dev / local template — `APP_ENV=development` |
+| `.env.live.example` | Live template — `APP_ENV=production` |
+| `.env` | Dev / local runtime (gitignored) |
+| `.env.live` | Live runtime (gitignored) |
+| `.env.local` | Local Next.js overrides |
 
 ```bash
 cp .env.example .env
@@ -34,7 +34,7 @@ cp .env.example .env
 cp .env.live.example .env.live
 ```
 
-دیپلوی خودکار پچ auth/SSO/backend را با `scripts/lib/patch-auth-env.sh` می‌زند.
+Deploy automatically patches auth/SSO/backend via `scripts/lib/patch-auth-env.sh`.
 
 ---
 
@@ -43,10 +43,10 @@ cp .env.live.example .env.live
 | File | Scope | Content |
 |------|-------|---------|
 | `src/config/env-presets.ts` | shared | Zone backend / panel / auth + constants |
-| `src/config/public-origin.ts` | client + server | Front origin (لایو bake / دو request) |
+| `src/config/public-origin.ts` | client + server | Front origin (live bake / dev request) |
 | `src/config/env.server.ts` | server-only | `APP_ENV`, auth, backend, SSO check |
 | `src/config/env.client.ts` | client + server | `NEXT_PUBLIC_*` |
-| `src/config/env.ts` | client-safe re-export | برای کامپوننت‌ها |
+| `src/config/env.ts` | client-safe re-export | For components |
 
 ---
 
@@ -61,14 +61,14 @@ AUTH_SECRET=dev_only_auth_secret_for_nibclub_please_change
 
 | Variable | Required | Notes |
 |----------|----------|-------|
-| `APP_ENV` | yes | `development` یا `production` |
-| `NEXT_PUBLIC_APP_ENV` | yes | باید با `APP_ENV` یکی باشد |
-| `API_SERVICE_MODE` | yes | `mock` یا `api` |
-| `UI_DEV_MODE` / `NEXT_PUBLIC_UI_DEV_MODE` | no | mock UI لوکال (در `NODE_ENV=production` نادیده) |
+| `APP_ENV` | yes | `development` or `production` |
+| `NEXT_PUBLIC_APP_ENV` | yes | Must match `APP_ENV` |
+| `API_SERVICE_MODE` | yes | `mock` or `api` |
+| `UI_DEV_MODE` / `NEXT_PUBLIC_UI_DEV_MODE` | no | Local UI mocks (ignored when `NODE_ENV=production`) |
 | `AUTH_SECRET` | yes | ≥ 32 chars |
-| `APP_PORT` | no | پیش‌فرض `3000` (دو و لایو) |
-| `NEXT_PUBLIC_PUBLIC_ORIGIN` | لایو yes (دیپلوی ست می‌کند) | `https://club.nibmarket.com` |
-| `BACKEND_API_BASE_URL` | لایو: HTTP club-srv | دو: https api-club |
+| `APP_PORT` | no | Default `3000` (dev and live) |
+| `NEXT_PUBLIC_PUBLIC_ORIGIN` | live yes (set by deploy) | `https://club.nibmarket.com` |
+| `BACKEND_API_BASE_URL` | live: HTTP club-srv | dev: https api-club |
 
 ### Optional overrides
 
@@ -86,10 +86,10 @@ NEXT_PUBLIC_PUBLIC_ORIGIN=
 
 | Value | Behavior |
 |-------|----------|
-| `mock` | BFF + fixture حافظه |
-| `api` | پروکسی `/api/v2/*` به club BE |
+| `mock` | BFF + in-memory fixtures |
+| `api` | Proxy `/api/v2/*` to club BE |
 
-لوکال بدون بک‌اند:
+Local without backend:
 
 ```env
 UI_DEV_MODE=1
@@ -102,15 +102,15 @@ NEXT_PUBLIC_UI_DEV_MODE=1
 
 | Zone | Compose | Env | Container | Port | Command |
 |------|---------|-----|-----------|------|---------|
-| **دو** | `docker-compose.dev.yml` | `.env` | `mlm_front_dev_blue` / `_green` (active `:3000`, standby `127.0.0.1:2999`) | 3000 | `yarn sync:dev` / `--rollback` |
-| **لایو** | `docker-compose.live.yml` | `.env.live` | `mlm_front_live` | 3000 | `yarn sync:live` |
+| **dev** | `docker-compose.dev.yml` | `.env` | `mlm_front_dev_blue` / `_green` (active `:3000`, standby `127.0.0.1:2999`) | 3000 | `yarn sync:dev` / `--rollback` |
+| **live** | `docker-compose.live.yml` | `.env.live` | `mlm_front_live` | 3000 | `yarn sync:live` |
 
-Club API همیشه **`/api/v2`**. پنل/auth نیب مسیرهای `/api/v1` خودشان را دارند.
+Club API is always **`/api/v2`**. External panel/auth hosts keep their own `/api/v1` paths.
 
 ### Build-time vs runtime
 
-- Server vars: از env file در runtime
-- `NEXT_PUBLIC_APP_ENV` / لایو `NEXT_PUBLIC_PUBLIC_ORIGIN`: در **بیلد** ایمیج
+- Server vars: from env file at runtime
+- `NEXT_PUBLIC_APP_ENV` / live `NEXT_PUBLIC_PUBLIC_ORIGIN`: baked at **image build**
 
 ```bash
 # live
@@ -122,18 +122,18 @@ docker compose -p mlm-dev -f docker-compose.dev.yml --env-file .env up -d --buil
 ### Continuous deploy
 
 ```bash
-yarn sync:dev               # دو — blue/green
-yarn sync:live              # لایو — rsync + detached remote
+yarn sync:dev               # dig — blue/green
+yarn sync:live              # live — rsync + detached remote
 yarn sync:live:status
 yarn sync:live:follow
 yarn sync:live --force
 ```
 
-- لایو worker: `scripts/remote-deploy.sh` — nginx HTTP `:80`→`:3000` (بدون certbot؛ CDN = HTTPS)
-- دو worker: `scripts/remote-deploy-dev.sh`
-- Template لایو: `deploy/nginx/club.nibmarket.com.conf`
+- Live worker: `scripts/remote-deploy.sh` — nginx HTTP `:80`→`:3000` (no certbot; CDN = HTTPS)
+- Dev worker: `scripts/remote-deploy-dev.sh`
+- Live template: `deploy/nginx/club.nibmarket.com.conf`
 
-جزئیات: [deploy.md](./deploy.md) · [nibdev.md](./nibdev.md) · [nibmarket.md](./nibmarket.md)
+Details: [deploy.md](./deploy.md) · [nibdev.md](./nibdev.md) · [nibmarket.md](./nibmarket.md)
 
 ---
 
@@ -147,6 +147,6 @@ import { getBrowserOrigin, getRequestOrigin } from "@/config/public-origin";
 
 ## Security
 
-- هرگز `AUTH_SECRET` / `SUPER_ADMIN_*` را زیر `NEXT_PUBLIC_` نگذار
-- لایو: secret قوی
-- `env.server.ts` فقط در context سرور
+- Never put `AUTH_SECRET` / `SUPER_ADMIN_*` under `NEXT_PUBLIC_`
+- Use strong secrets on live
+- Import `env.server.ts` only in server context
