@@ -15,7 +15,7 @@ Public HTTPS is terminated by **ArvanCloud CDN**. This host is the **HTTP origin
 | App | `mlm_front_live` → **`:3000`** |
 | Origin nginx | **`:80` only** → `127.0.0.1:3000` (no certbot / no 301→HTTPS) |
 | Public URL | https://club.nibmarket.com (CDN → this origin `:80`) |
-| Backend API | https://club-srv.nibmarket.com (`/api/v2`) |
+| Backend API | `http://club-srv.nibmarket.com` (`/api/v2`) |
 | SSO callback origin | always `https://club.nibmarket.com` |
 
 ## Traffic
@@ -24,7 +24,7 @@ Public HTTPS is terminated by **ArvanCloud CDN**. This host is the **HTTP origin
 User → ArvanCloud (HTTPS)
      → club-docker :80  (nginx HTTP origin, no SSL redirect)
      → 127.0.0.1:3000   (Next.js)
-     → BFF → club-srv.nibmarket.com
+     → BFF → http://club-srv.nibmarket.com
 ```
 
 **Do not** run certbot on this host for `club.nibmarket.com` — that re-adds `return 301 https://…` and the CDN loops (301 to the same HTTPS URL).

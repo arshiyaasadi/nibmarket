@@ -49,7 +49,8 @@ export const ENV_PRESETS: Record<AppEnv, EnvPreset> = {
   },
   production: {
     ...SHARED,
-    backendApiBaseUrl: "https://club-srv.nibmarket.com",
+    // Live club BE is HTTP on the internal network (CDN/public TLS is separate).
+    backendApiBaseUrl: "http://club-srv.nibmarket.com",
     authBaseUrl: "https://auth.nibmarket.com",
     ...panelUrls("https://panel.nibmarket.com"),
   },

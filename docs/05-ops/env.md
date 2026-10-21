@@ -10,7 +10,7 @@ See also the docs map: [`../README.md`](../README.md).
 | Zone | `APP_ENV` | Backend / panel / auth | Front (public) |
 |------|-----------|------------------------|----------------|
 | **dev** (nibdev) | `development` | `api-club.nibdev.com` / `panel.nibdev.com` / `auth.nibdev.com` | Host from request — typically `club.nibdev.com` — [nibdev.md](./nibdev.md) |
-| **live** (nibmarket) | `production` | `club-srv.nibmarket.com` / `panel.nibmarket.com` / `auth.nibmarket.com` | Public origin fixed: `https://club.nibmarket.com` (SSO) — app on docker `:3000` — [nibmarket.md](./nibmarket.md) |
+| **live** (nibmarket) | `production` | `http://club-srv.nibmarket.com` / `panel.nibmarket.com` / `auth.nibmarket.com` | Public origin: `https://club.nibmarket.com` (SSO) — app `:3000` — [nibmarket.md](./nibmarket.md) |
 
 Shared constants (`BACKEND_API_VERSION=v2`, SSO cookie, callback path) are in the same preset.
 

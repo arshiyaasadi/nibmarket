@@ -2,6 +2,26 @@
   'use strict';
 
   var COIN_PRICE = 523; // تومان
+  var CLUB_ORIGIN = 'https://club.nibmarket.com';
+  var PANEL_LOGIN = 'https://panel.nibmarket.com/login/';
+  /**
+   * Legacy SSO entry (same as startAuthEntry / getPanelLoginUrl):
+   * panel login → callback to club /login/sso/ with returnUrl — never bare /login or /login/sso.
+   */
+  function getPanelSsoUrl(returnPath) {
+    var returnUrl = returnPath || '/dashboard';
+    var callback =
+      CLUB_ORIGIN +
+      '/login/sso/?returnUrl=' +
+      encodeURIComponent(returnUrl) +
+      '&redirect=' +
+      encodeURIComponent(returnUrl);
+    return PANEL_LOGIN + '?callbackUrl=' + encodeURIComponent(callback);
+  }
+  function startAuthEntry(returnPath) {
+    window.location.href = getPanelSsoUrl(returnPath);
+  }
+
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var fa = function (n) { return Math.round(n).toLocaleString('fa-IR'); };
@@ -307,17 +327,26 @@
       .then(function (res) {
         if (!res.ok) throw new Error('lead_failed');
         msg.textContent = 'ثبت شد. در حال ورود به کلاب تنوین…';
-        window.location.href =
-          'https://club.nibmarket.com/login?returnUrl=' + encodeURIComponent('/dashboard');
+        startAuthEntry('/dashboard');
       })
       .catch(function () {
         msg.textContent = 'ثبت موقت نشد؛ مستقیم وارد کلاب می‌شوید…';
-        window.location.href =
-          'https://club.nibmarket.com/login?returnUrl=' + encodeURIComponent('/dashboard');
+        startAuthEntry('/dashboard');
       })
       .finally(function () {
         if (joinBtn) joinBtn.disabled = false;
       });
+  });
+
+  /* ---------- Auth CTAs → panel SSO (legacy startAuthEntry) ---------- */
+  $$('[data-auth-entry]').forEach(function (el) {
+    var href = getPanelSsoUrl(el.getAttribute('data-return') || '/dashboard');
+    if (el.tagName === 'A') el.setAttribute('href', href);
+    el.addEventListener('click', function (e) {
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+      e.preventDefault();
+      startAuthEntry(el.getAttribute('data-return') || '/dashboard');
+    });
   });
 
   /* ---------- Nav: scroll state, active link, mobile menu ---------- */

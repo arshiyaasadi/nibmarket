@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
-import { buildSessionExpiredUrl, resolveReturnUrl } from "@/config/auth-redirect";
+import { redirectToPanelLogin, resolveReturnUrl } from "@/config/auth-redirect";
 import { completeSsoSession } from "@/lib/auth-exchange";
 import { applyAuthSession } from "@/lib/auth/apply-session";
 import {
@@ -67,7 +67,8 @@ export function SsoCallbackClient() {
         router.refresh();
       } catch {
         if (cancelled) return;
-        router.replace(buildSessionExpiredUrl(returnUrl));
+        // No NIB cookies yet (direct hit) or incomplete callback → start panel SSO (legacy).
+        redirectToPanelLogin(returnUrl);
       }
     }
 

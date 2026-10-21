@@ -36,7 +36,7 @@ patch_zone_auth_env() {
     upsert_env_var "${file}" "APP_ENV" "production"
     upsert_env_var "${file}" "NEXT_PUBLIC_APP_ENV" "production"
     upsert_env_var "${file}" "NEXT_PUBLIC_PUBLIC_ORIGIN" "https://club.nibmarket.com"
-    upsert_env_var "${file}" "BACKEND_API_BASE_URL" "https://club-srv.nibmarket.com"
+    upsert_env_var "${file}" "BACKEND_API_BASE_URL" "http://club-srv.nibmarket.com"
     upsert_env_var "${file}" "NEXT_PUBLIC_AUTH_BASE_URL" "https://auth.nibmarket.com"
     upsert_env_var "${file}" "NEXT_PUBLIC_PANEL_BASE_URL" "https://panel.nibmarket.com"
     upsert_env_var "${file}" "NEXT_PUBLIC_PANEL_PROFILE_URL" "https://panel.nibmarket.com/profile/"
