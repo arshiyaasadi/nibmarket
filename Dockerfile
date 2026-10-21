@@ -4,15 +4,15 @@
 # Base image: prefer a Hub mirror. Override at build time if needed:
 #   NODE_BASE_IMAGE=node:22-bookworm-slim docker compose ... build
 #
+# Do NOT `apt-get install ca-certificates` here — live IR hosts time out on
+# deb.debian.org during build. Official node bookworm-slim already ships CAs.
+#
 # Production uses Next.js `output: "standalone"` so we never run a second
 # `yarn install --production` (that step re-fetches the registry and hangs on slow nets).
 ARG NODE_BASE_IMAGE=mirror.gcr.io/library/node:22-bookworm-slim
 
 FROM ${NODE_BASE_IMAGE} AS base
 WORKDIR /app
-RUN apt-get update -y \
-  && apt-get install -y --no-install-recommends ca-certificates \
-  && rm -rf /var/lib/apt/lists/*
 RUN corepack enable
 
 FROM base AS deps
