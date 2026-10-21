@@ -21,7 +21,14 @@ Live production zone for the Novin club panel. **One** Docker stack + host nginx
 |---------|----------|-----------|-----------|---------|
 | `docker-compose.live.yml` | `.env.live` | `mlm_front_live` | **3000** | Real API + auth |
 
-nginx listens on **80/443** and reverse-proxies `club.nibmarket.com` → `127.0.0.1:3000`.
+nginx on the docker host listens on **80/443** (`default_server`) and reverse-proxies to `127.0.0.1:3000`.
+
+| Public Host | Role |
+|-------------|------|
+| `club.nibmarket.com` | Public front (HTTPS via certbot) |
+| `club-docker.nibmarket.com` | Same app (SSH host name; also in `server_name` so it is not Ubuntu 404) |
+
+Deploy disables every other `sites-enabled` entry so only this vhost answers.
 
 ## Deploy (live only)
 

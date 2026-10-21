@@ -238,20 +238,26 @@ fi
 NGINX_SRC="${PROJECT_DIR}/deploy/nginx/club.nibmarket.com.conf"
 NGINX_AVAIL="/etc/nginx/sites-available/${NGINX_DOMAIN}.conf"
 NGINX_ENABLED="/etc/nginx/sites-enabled/${NGINX_DOMAIN}.conf"
-# Unique upstream name per domain — avoids clash with legacy club.nibmarket.ir.conf
+# Unique upstream — avoids clash with any leftover vhost
 NGINX_UPSTREAM="mlm_front_live_${NGINX_DOMAIN//./_}"
+# Also answer on the docker host name so http://club-docker… is not Ubuntu 404
+NGINX_EXTRA_NAMES="${NGINX_EXTRA_SERVER_NAMES:-club-docker.nibmarket.com}"
 if [[ ! -f "${NGINX_SRC}" ]]; then
   fail "nginx" "missing ${NGINX_SRC}"
 fi
 
-# Drop legacy live vhosts that redefine the same upstream / compete on :80
-for legacy in club.nibmarket.ir.conf club.nibmarket.ir; do
-  if [[ -e "/etc/nginx/sites-enabled/${legacy}" ]]; then
-    echo "--- disabling legacy nginx site: ${legacy}"
-    sudo_run rm -f "/etc/nginx/sites-enabled/${legacy}"
-  fi
-done
-sudo_run rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
+# Sole live vhost: remove every other sites-enabled entry (legacy .ir, default, …)
+echo "--- nginx: enabling only ${NGINX_DOMAIN}.conf (proxy → :${LIVE_PORT})"
+if [[ -d /etc/nginx/sites-enabled ]]; then
+  for enabled in /etc/nginx/sites-enabled/*; do
+    [[ -e "${enabled}" ]] || continue
+    base="$(basename "${enabled}")"
+    if [[ "${base}" != "${NGINX_DOMAIN}.conf" ]]; then
+      echo "--- disabling competing site: ${base}"
+      sudo_run rm -f "${enabled}"
+    fi
+  done
+fi
 
 TMP_CONF="$(mktemp)"
 sed \
@@ -259,6 +265,7 @@ sed \
   -e "s/__PROD_PORT__/${LIVE_PORT}/g" \
   -e "s/__DOMAIN__/${NGINX_DOMAIN}/g" \
   -e "s/__UPSTREAM__/${NGINX_UPSTREAM}/g" \
+  -e "s/__EXTRA_SERVER_NAMES__/${NGINX_EXTRA_NAMES}/g" \
   "${NGINX_SRC}" > "${TMP_CONF}"
 sudo_run cp "${TMP_CONF}" "${NGINX_AVAIL}"
 rm -f "${TMP_CONF}"
@@ -266,6 +273,14 @@ sudo_run ln -sfn "${NGINX_AVAIL}" "${NGINX_ENABLED}"
 sudo_run nginx -t || fail "nginx" "nginx -t failed"
 sudo_run systemctl enable --now nginx
 sudo_run systemctl reload nginx || sudo_run systemctl restart nginx
+
+# Smoke: app must answer on :LIVE_PORT; nginx must proxy Host=NGINX_DOMAIN
+if ! curl -sf -o /dev/null --max-time 5 "http://127.0.0.1:${LIVE_PORT}/build-info.json"; then
+  echo "Warning: app not answering on 127.0.0.1:${LIVE_PORT}/build-info.json yet"
+fi
+if ! curl -sf -o /dev/null --max-time 5 -H "Host: ${NGINX_DOMAIN}" "http://127.0.0.1/build-info.json"; then
+  echo "Warning: nginx proxy for Host=${NGINX_DOMAIN} did not return build-info (check upstream)"
+fi
 
 write_status "ssl" "running" "Ensuring HTTPS for ${NGINX_DOMAIN}"
 if command -v certbot >/dev/null 2>&1 || sudo_run apt-get install -y certbot python3-certbot-nginx; then
@@ -277,7 +292,10 @@ if command -v certbot >/dev/null 2>&1 || sudo_run apt-get install -y certbot pyt
       sudo_run certbot --nginx -d "${NGINX_DOMAIN}" --non-interactive --agree-tos --register-unsafely-without-email --redirect \
         || echo "Warning: certbot failed — HTTP proxy is up on :80; run certbot manually for HTTPS"
     else
-      sudo_run certbot renew --quiet || true
+      # Re-deploy existing cert onto the freshly written HTTP vhost (certbot mutates the file)
+      sudo_run certbot install --cert-name "${NGINX_DOMAIN}" --nginx --non-interactive --reinstall \
+        || sudo_run certbot --nginx -d "${NGINX_DOMAIN}" --non-interactive --agree-tos --register-unsafely-without-email --redirect \
+        || echo "Warning: certbot reinstall failed — HTTP proxy still up"
       sudo_run nginx -t && sudo_run systemctl reload nginx || true
     fi
   fi
@@ -289,4 +307,5 @@ compose_run -p "${COMPOSE_PROJECT}" -f "${COMPOSE_FILE}" ps || true
 
 write_status "done" "done" "Deploy finished. live :${LIVE_PORT} | https://${NGINX_DOMAIN}"
 echo "======== remote-deploy done ========"
-echo ">>> live :${LIVE_PORT} | nginx ${NGINX_DOMAIN} | container mlm_front_live"
+echo ">>> live :${LIVE_PORT} | nginx ${NGINX_DOMAIN} (+ ${NGINX_EXTRA_NAMES}) | container mlm_front_live"
+echo ">>> public: https://${NGINX_DOMAIN}  |  direct app: http://127.0.0.1:${LIVE_PORT}"
