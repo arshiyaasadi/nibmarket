@@ -15,9 +15,11 @@
 #   yarn sync:live --force           # kill stuck remote deploy and restart
 #   yarn sync:live --ui-mock         # live host with in-memory mocks (UI review)
 #   LIVE_UI_MOCK=1 yarn sync:live    # same as --ui-mock
+#   SKIP_NGINX=0 yarn sync:live      # optional: configure nginx on docker host (default skip)
 #   LIVE_SSH_HOST=<ip> yarn sync:live
 #
-# Ports on live host: live stack :3000 (same as dig)
+# Ports on live host: app on :3000 only. Public HTTPS is on the edge host
+# (club.nibmarket.com → this machine :3000). Deploy does not touch nginx by default.
 #
 set -euo pipefail
 
@@ -29,6 +31,7 @@ PROJECT_DIR="${LIVE_PROJECT_DIR:-/opt/MLM_Front}"
 LIVE_PORT="${LIVE_PORT:-${PROD_PORT:-3000}}"
 NGINX_DOMAIN="${NGINX_DOMAIN:-club.nibmarket.com}"
 LIVE_UI_MOCK="${LIVE_UI_MOCK:-0}"
+SKIP_NGINX="${SKIP_NGINX:-1}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -226,7 +229,8 @@ if [[ "${RSYNC_ONLY}" -eq 1 ]]; then
 fi
 
 echo ">>> Starting DETACHED remote deploy (survives closed terminal)"
-echo "    live :${LIVE_PORT} | nginx ${NGINX_DOMAIN} | LIVE_UI_MOCK=${LIVE_UI_MOCK}"
+echo "    live :${LIVE_PORT} | SKIP_NGINX=${SKIP_NGINX} | LIVE_UI_MOCK=${LIVE_UI_MOCK}"
+echo "    public edge: https://${NGINX_DOMAIN} → this host :${LIVE_PORT}"
 
 remote \
   SUDO_PASS="${SSH_PASS}" \
@@ -237,6 +241,7 @@ remote \
   NGINX_DOMAIN="${NGINX_DOMAIN}" \
   CERTBOT_EMAIL="${CERTBOT_EMAIL:-}" \
   LIVE_UI_MOCK="${LIVE_UI_MOCK}" \
+  SKIP_NGINX="${SKIP_NGINX}" \
   'bash -s' <<'REMOTE_EOF'
 set -euo pipefail
 cd "${PROJECT_DIR}"
@@ -259,6 +264,7 @@ nohup env \
   NGINX_DOMAIN="${NGINX_DOMAIN}" \
   CERTBOT_EMAIL="${CERTBOT_EMAIL:-}" \
   LIVE_UI_MOCK="${LIVE_UI_MOCK:-0}" \
+  SKIP_NGINX="${SKIP_NGINX:-1}" \
   bash "${PROJECT_DIR}/scripts/remote-deploy.sh" \
   >/dev/null 2>&1 &
 

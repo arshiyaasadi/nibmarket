@@ -42,7 +42,7 @@ export function resolveReturnUrl(fallback?: string | null): string {
 
 /**
  * Start NIB Market SSO (panel.nibdev.com / panel.nibmarket.com).
- * Callback URL is this club panel (`window.location.origin` + `/login/sso/`), not the backend API.
+ * Callback URL is the public club origin + `/login/sso/` (live: club.nibmarket.com), not the backend API.
  */
 export function redirectToPanelLogin(
   returnUrl?: string,

@@ -1,5 +1,5 @@
 import { env } from "@/config/env";
-import { getBrowserOrigin } from "@/config/public-origin";
+import { getPublicClubOrigin } from "@/config/public-origin";
 
 function trimTrailingSlash(value: string): string {
   return value.replace(/\/+$/, "");
@@ -27,7 +27,7 @@ export type SsoCallbackParams = {
 export function getSsoCallbackUrl(params?: SsoCallbackParams): string {
   const path = getSsoCallbackPath();
   const normalizedPath = path.endsWith("/") ? path : `${path}/`;
-  const origin = getBrowserOrigin();
+  const origin = getPublicClubOrigin();
   const base = origin ? `${origin}${normalizedPath}` : normalizedPath;
 
   const search = new URLSearchParams();

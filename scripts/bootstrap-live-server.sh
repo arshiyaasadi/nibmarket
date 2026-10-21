@@ -399,10 +399,11 @@ echo "=== [6/6] Live deploy (:3000) ==="
 export GIT_SHA="${SYNCED}"
 export BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 export NEXT_PUBLIC_GIT_SHA="${SYNCED}"
-export LIVE_PORT=3000 NGINX_DOMAIN=club.nibmarket.com
+export LIVE_PORT=3000 NGINX_DOMAIN=club.nibmarket.com SKIP_NGINX=1
 chmod +x "${PROJECT_DIR}/scripts/remote-deploy.sh" 2>/dev/null || true
 # Prefer the detachable remote-deploy path (same as yarn sync:live)
 SUDO_PASS="${SUDO_PASS}" PROJECT_DIR="${PROJECT_DIR}" GIT_SHA="${SYNCED}" BUILD_TIME="${BUILD_TIME}" \
+  SKIP_NGINX=1 \
   bash "${PROJECT_DIR}/scripts/remote-deploy.sh"
 
 echo "=== CD timer (poll git every 2m — works behind WireGuard) ==="
@@ -424,7 +425,7 @@ else
 fi
 
 echo ">>> Remote bootstrap + deploy finished."
-echo ">>> live → host :3000 (club.nibmarket.com) | container mlm_front_live"
+echo ">>> live → host :3000 | edge https://club.nibmarket.com → :3000 | container mlm_front_live"
 echo ">>> CD: systemctl status mlm-cd.timer"
 REMOTE_EOF
 }

@@ -10,11 +10,11 @@ See also the docs map: [`../README.md`](../README.md).
 | Zone | `APP_ENV` | Backend / panel / auth | Front (public) |
 |------|-----------|------------------------|----------------|
 | **dev** (nibdev) | `development` | `api-club.nibdev.com` / `panel.nibdev.com` / `auth.nibdev.com` | Host from request — typically `club.nibdev.com` — [nibdev.md](./nibdev.md) |
-| **live** (nibmarket) | `production` | `club-srv.nibmarket.com` / `panel.nibmarket.com` / `auth.nibmarket.com` | Host from request — typically `club.nibmarket.com` — [nibmarket.md](./nibmarket.md) |
+| **live** (nibmarket) | `production` | `club-srv.nibmarket.com` / `panel.nibmarket.com` / `auth.nibmarket.com` | Public origin fixed: `https://club.nibmarket.com` (SSO) — app on docker `:3000` — [nibmarket.md](./nibmarket.md) |
 
 Shared constants (`BACKEND_API_VERSION=v2`, SSO cookie, callback path) are in the same preset.
 
-**Important:** Club front origin is **not** an env var. SSO callback and invite links use `window.location.origin` / request `Host` (+ `X-Forwarded-*`). Never point SSO at the club backend.
+**Important:** In **production**, SSO callback and invite links use `https://club.nibmarket.com` (`getPublicClubOrigin()`), even if you open the app via `club-docker:3000`. Override with `NEXT_PUBLIC_PUBLIC_ORIGIN` only if needed. Never point SSO at the club backend.
 
 Any non-empty optional var in `.env` overrides the preset.
 
@@ -127,8 +127,8 @@ yarn sync:live:follow
 yarn sync:live --force
 ```
 
-Remote worker: `scripts/remote-deploy.sh`  
-nginx: `deploy/nginx/club.nibmarket.com.conf` → host `:3000`
+Remote worker: `scripts/remote-deploy.sh` (`SKIP_NGINX=1` by default)  
+Optional host nginx template: `deploy/nginx/club.nibmarket.com.conf` (only if `SKIP_NGINX=0`)
 
 Dev: `yarn sync:dev` → `scripts/remote-deploy-dev.sh`
 

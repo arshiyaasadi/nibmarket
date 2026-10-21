@@ -1,6 +1,6 @@
 # nibmarket (production / live zone)
 
-Live production zone for the Novin club panel. **One** Docker stack + host nginx for **club.nibmarket.com**.
+Live production zone for the Novin club panel. App runs on the **docker host** at **`:3000`**. Public HTTPS is terminated on a **separate edge** host.
 
 ## Identity
 
@@ -8,27 +8,30 @@ Live production zone for the Novin club panel. **One** Docker stack + host nginx
 |-----|--------|
 | Zone name | `nibmarket` (live) |
 | `APP_ENV` | `production` |
-| Live host (SSH) | `club-docker.nibmarket.com` / alias `nibmarket-live` |
+| Live host (SSH / Docker) | `club-docker.nibmarket.com` / alias `nibmarket-live` |
 | Project dir | `/opt/MLM_Front` |
-| Public front | https://club.nibmarket.com (origin from request — not env) |
+| App listen | **`:3000`** (`mlm_front_live`) |
+| Public front (edge) | https://club.nibmarket.com → proxies to docker host `:3000` |
 | Backend API | https://club-srv.nibmarket.com (`/api/v2`) |
 | Panel (legacy SSO) | https://panel.nibmarket.com |
 | Account auth | https://auth.nibmarket.com |
+| SSO callback origin | always `https://club.nibmarket.com` (not `club-docker:3000`) |
 
-## Stack on the live host
+## Traffic
+
+```
+User → club.nibmarket.com (edge :80/:443)
+     → club-docker.nibmarket.com:3000  (this deploy)
+     → BFF → club-srv.nibmarket.com
+```
+
+`yarn sync:live` **does not** configure nginx/certbot on the docker host (`SKIP_NGINX=1` by default). Optional: `SKIP_NGINX=0 yarn sync:live` if you intentionally want host nginx.
+
+## Stack on the docker host
 
 | Compose | Env file | Container | Host port | Purpose |
 |---------|----------|-----------|-----------|---------|
 | `docker-compose.live.yml` | `.env.live` | `mlm_front_live` | **3000** | Real API + auth |
-
-nginx on the docker host listens on **80/443** (`default_server`) and reverse-proxies to `127.0.0.1:3000`.
-
-| Public Host | Role |
-|-------------|------|
-| `club.nibmarket.com` | Public front (HTTPS via certbot) |
-| `club-docker.nibmarket.com` | Same app (SSH host name; also in `server_name` so it is not Ubuntu 404) |
-
-Deploy disables every other `sites-enabled` entry so only this vhost answers.
 
 ## Deploy (live only)
 
@@ -36,35 +39,26 @@ WireGuard must be ON so the host resolves.
 
 ```bash
 yarn sync:live
-```
-
-What happens:
-
-1. **rsync** local tree → `/opt/MLM_Front`
-2. Patches `.env.live` auth/SSO/backend URLs (`club-srv` / `auth` / `panel`) — **not** front domain
-3. Clears UI-mock flags unless `--ui-mock` / `LIVE_UI_MOCK=1` (default = real API)
-4. Builds **live only** (stops legacy containers if present)
-5. Starts **`scripts/remote-deploy.sh` detached**
-
-```bash
 yarn sync:live:status
 yarn sync:live:follow
 yarn sync:live --force
 ```
 
-### UI-mock demo on live
+What happens:
 
-Same host/URL, but BFF uses in-memory mocks (`FORCE_UI_DEV_MODE` + `API_SERVICE_MODE=mock`):
+1. **rsync** local tree → `/opt/MLM_Front`
+2. Patches `.env.live` (auth / panel / `club-srv`, clears UI-mock)
+3. Builds and starts **`mlm_front_live` on :3000**
+4. Skips nginx/ssl on this host
+
+Stages (default): `docker` → `network` → `env` → `base_image` → `build_live` → `done`
+
+### UI-mock demo on live
 
 ```bash
 yarn sync:live:ui
-# or: yarn sync:live --ui-mock --force
 yarn sync:live:follow
 ```
-
-WireGuard must be ON. To return to real API later, deploy without `--ui-mock` and clear mock flags in `/opt/MLM_Front/.env.live` (or re-run a normal `yarn sync:live --force` after setting `FORCE_UI_DEV_MODE=0`).
-
-Stages: `docker` → `network` → `env` → `base_image` → `build_live` → `nginx` → `ssl` → `done`
 
 ## Dev / nibdev deploy
 

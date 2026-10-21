@@ -22,6 +22,9 @@ LOCK_FILE="${STATE_DIR}/deploy.lock"
 LIVE_PORT="${LIVE_PORT:-${PROD_PORT:-3000}}"
 NGINX_DOMAIN="${NGINX_DOMAIN:-club.nibmarket.com}"
 CERTBOT_EMAIL="${CERTBOT_EMAIL:-}"
+# Edge (club.nibmarket.com :80/:443) lives on another host and proxies here :3000.
+# Default: do NOT touch nginx/certbot on the docker host.
+SKIP_NGINX="${SKIP_NGINX:-1}"
 COMPOSE_FILE="docker-compose.live.yml"
 COMPOSE_PROJECT="mlm-live"
 ENV_FILE=".env.live"
@@ -228,6 +231,24 @@ export APP_PORT="${LIVE_PORT}"
 compose_run -p "${COMPOSE_PROJECT}" -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" up -d --build --remove-orphans \
   || fail "build_live" "docker compose live build/up failed — see ${LOG_FILE}"
 
+# Smoke: app must answer on host :LIVE_PORT (edge proxies here)
+if curl -sf -o /dev/null --max-time 8 "http://127.0.0.1:${LIVE_PORT}/build-info.json"; then
+  echo "--- app OK on 127.0.0.1:${LIVE_PORT}/build-info.json"
+else
+  echo "Warning: app not answering on 127.0.0.1:${LIVE_PORT}/build-info.json yet"
+fi
+
+if [[ "${SKIP_NGINX}" == "1" ]]; then
+  echo "--- SKIP_NGINX=1 → not touching host nginx/certbot (edge handles ${NGINX_DOMAIN} → :${LIVE_PORT})"
+  compose_run -p "${COMPOSE_PROJECT}" -f "${COMPOSE_FILE}" ps || true
+  write_status "done" "done" "Deploy finished. live :${LIVE_PORT} (edge: https://${NGINX_DOMAIN})"
+  echo "======== remote-deploy done ========"
+  echo ">>> live container :${LIVE_PORT} | SKIP_NGINX=1"
+  echo ">>> edge should proxy https://${NGINX_DOMAIN} → this host :${LIVE_PORT}"
+  echo ">>> direct check: http://127.0.0.1:${LIVE_PORT}/build-info.json"
+  exit 0
+fi
+
 write_status "nginx" "running" "Configuring nginx for ${NGINX_DOMAIN}"
 if ! command -v nginx >/dev/null 2>&1; then
   sudo_run apt-get update -y
@@ -238,15 +259,12 @@ fi
 NGINX_SRC="${PROJECT_DIR}/deploy/nginx/club.nibmarket.com.conf"
 NGINX_AVAIL="/etc/nginx/sites-available/${NGINX_DOMAIN}.conf"
 NGINX_ENABLED="/etc/nginx/sites-enabled/${NGINX_DOMAIN}.conf"
-# Unique upstream — avoids clash with any leftover vhost
 NGINX_UPSTREAM="mlm_front_live_${NGINX_DOMAIN//./_}"
-# Also answer on the docker host name so http://club-docker… is not Ubuntu 404
 NGINX_EXTRA_NAMES="${NGINX_EXTRA_SERVER_NAMES:-club-docker.nibmarket.com}"
 if [[ ! -f "${NGINX_SRC}" ]]; then
   fail "nginx" "missing ${NGINX_SRC}"
 fi
 
-# Sole live vhost: remove every other sites-enabled entry (legacy .ir, default, …)
 echo "--- nginx: enabling only ${NGINX_DOMAIN}.conf (proxy → :${LIVE_PORT})"
 if [[ -d /etc/nginx/sites-enabled ]]; then
   for enabled in /etc/nginx/sites-enabled/*; do
@@ -274,14 +292,6 @@ sudo_run nginx -t || fail "nginx" "nginx -t failed"
 sudo_run systemctl enable --now nginx
 sudo_run systemctl reload nginx || sudo_run systemctl restart nginx
 
-# Smoke: app must answer on :LIVE_PORT; nginx must proxy Host=NGINX_DOMAIN
-if ! curl -sf -o /dev/null --max-time 5 "http://127.0.0.1:${LIVE_PORT}/build-info.json"; then
-  echo "Warning: app not answering on 127.0.0.1:${LIVE_PORT}/build-info.json yet"
-fi
-if ! curl -sf -o /dev/null --max-time 5 -H "Host: ${NGINX_DOMAIN}" "http://127.0.0.1/build-info.json"; then
-  echo "Warning: nginx proxy for Host=${NGINX_DOMAIN} did not return build-info (check upstream)"
-fi
-
 write_status "ssl" "running" "Ensuring HTTPS for ${NGINX_DOMAIN}"
 if command -v certbot >/dev/null 2>&1 || sudo_run apt-get install -y certbot python3-certbot-nginx; then
   if [[ -n "${CERTBOT_EMAIL}" ]]; then
@@ -292,7 +302,6 @@ if command -v certbot >/dev/null 2>&1 || sudo_run apt-get install -y certbot pyt
       sudo_run certbot --nginx -d "${NGINX_DOMAIN}" --non-interactive --agree-tos --register-unsafely-without-email --redirect \
         || echo "Warning: certbot failed — HTTP proxy is up on :80; run certbot manually for HTTPS"
     else
-      # Re-deploy existing cert onto the freshly written HTTP vhost (certbot mutates the file)
       sudo_run certbot install --cert-name "${NGINX_DOMAIN}" --nginx --non-interactive --reinstall \
         || sudo_run certbot --nginx -d "${NGINX_DOMAIN}" --non-interactive --agree-tos --register-unsafely-without-email --redirect \
         || echo "Warning: certbot reinstall failed — HTTP proxy still up"
@@ -307,5 +316,4 @@ compose_run -p "${COMPOSE_PROJECT}" -f "${COMPOSE_FILE}" ps || true
 
 write_status "done" "done" "Deploy finished. live :${LIVE_PORT} | https://${NGINX_DOMAIN}"
 echo "======== remote-deploy done ========"
-echo ">>> live :${LIVE_PORT} | nginx ${NGINX_DOMAIN} (+ ${NGINX_EXTRA_NAMES}) | container mlm_front_live"
-echo ">>> public: https://${NGINX_DOMAIN}  |  direct app: http://127.0.0.1:${LIVE_PORT}"
+echo ">>> live :${LIVE_PORT} | nginx ${NGINX_DOMAIN} | container mlm_front_live"
