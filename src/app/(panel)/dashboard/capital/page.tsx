@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { RulesGuidelineTabs } from "@/components/molecules/RulesGuidelineTabs";
+import { DepositRulesContent } from "./DepositRulesContent";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("pages");
-  return { title: t("capital.title") };
+  const t = await getTranslations("depositRules");
+  return { title: t("title") };
 }
 
 export default async function Page() {
-  const tCommon = await getTranslations("common");
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-center rounded-lg border p-12 text-sm text-gray-400">
-        {tCommon("comingSoon")}
-      </div>
+    <div className="gap-org flex flex-col">
+      <RulesGuidelineTabs active="deposit" />
+      <DepositRulesContent />
     </div>
   );
 }
