@@ -1,18 +1,7 @@
-import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
-import { RulesGuidelineTabs } from "@/components/molecules/RulesGuidelineTabs";
-import { DepositRulesContent } from "./DepositRulesContent";
+import { redirect } from "next/navigation";
+import { guidelinesHref } from "@/features/guidelines";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("depositRules");
-  return { title: t("title") };
-}
-
-export default async function Page() {
-  return (
-    <div className="gap-org flex flex-col">
-      <RulesGuidelineTabs active="deposit" />
-      <DepositRulesContent />
-    </div>
-  );
+/** Legacy capital/deposit-rules URL → unified guidelines page. */
+export default function Page() {
+  redirect(guidelinesHref("deposit"));
 }

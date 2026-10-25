@@ -2,26 +2,6 @@
   'use strict';
 
   var COIN_PRICE = 523; // تومان
-  var CLUB_ORIGIN = 'https://club.nibmarket.com';
-  var PANEL_LOGIN = 'https://panel.nibmarket.com/login/';
-  /**
-   * Legacy SSO entry (same as startAuthEntry / getPanelLoginUrl):
-   * panel login → callback to club /login/sso/ with returnUrl — never bare /login or /login/sso.
-   */
-  function getPanelSsoUrl(returnPath) {
-    var returnUrl = returnPath || '/dashboard';
-    var callback =
-      CLUB_ORIGIN +
-      '/login/sso/?returnUrl=' +
-      encodeURIComponent(returnUrl) +
-      '&redirect=' +
-      encodeURIComponent(returnUrl);
-    return PANEL_LOGIN + '?callbackUrl=' + encodeURIComponent(callback);
-  }
-  function startAuthEntry(returnPath) {
-    window.location.href = getPanelSsoUrl(returnPath);
-  }
-
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var fa = function (n) { return Math.round(n).toLocaleString('fa-IR'); };
@@ -31,6 +11,93 @@
       .replace(/[٠-٩]/g, function (d) { return d.charCodeAt(0) - 1632; })
       .replace(/[^\d.]/g, '');
   };
+
+  /**
+   * Panel SSO entry (same contract as startAuthEntry / getPanelLoginUrl):
+   * panel login → callback to club /login/sso/?returnUrl=… — never bare /login.
+   */
+  function resolveClubOrigin() {
+    var host = (location.hostname || '').toLowerCase();
+    if (host === 'club.nibmarket.com' || host === 'club-docker.nibmarket.com') {
+      return 'https://club.nibmarket.com';
+    }
+    if (host === 'club.nibdev.com' || host === 'localhost' || host === '127.0.0.1') {
+      return location.origin;
+    }
+    return location.origin || 'https://club.nibmarket.com';
+  }
+  function resolvePanelLogin() {
+    var host = (location.hostname || '').toLowerCase();
+    if (host.indexOf('nibdev') !== -1 || host === 'localhost' || host === '127.0.0.1') {
+      return 'https://panel.nibdev.com/login/';
+    }
+    return 'https://panel.nibmarket.com/login/';
+  }
+  function getPanelSsoUrl(returnPath) {
+    var returnUrl = returnPath || '/dashboard';
+    // Path stays literal inside callback; encodeURIComponent once for panel's callbackUrl.
+    var callback =
+      resolveClubOrigin() +
+      '/login/sso/?returnUrl=' +
+      returnUrl +
+      '&redirect=' +
+      returnUrl;
+    return resolvePanelLogin() + '?callbackUrl=' + encodeURIComponent(callback);
+  }
+  function startAuthEntry(returnPath) {
+    window.location.href = getPanelSsoUrl(returnPath);
+  }
+
+  /* ---------- Auth CTAs + join form first (must work even if later UI throws) ---------- */
+  $$('[data-auth-entry]').forEach(function (el) {
+    var href = getPanelSsoUrl(el.getAttribute('data-return') || '/dashboard');
+    if (el.tagName === 'A') el.setAttribute('href', href);
+    el.addEventListener('click', function (e) {
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+      e.preventDefault();
+      startAuthEntry(el.getAttribute('data-return') || '/dashboard');
+    });
+  });
+
+  (function wireJoinForm() {
+    var form = $('#joinForm');
+    var mob = $('#mob');
+    var joinBtn = form && form.querySelector('button[type="submit"]');
+    var msg = $('#joinMsg');
+    if (!form || !mob) return;
+
+    mob.addEventListener('input', function () { mob.classList.remove('is-bad'); });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var v = toEn(mob.value);
+      if (!/^09\d{9}$/.test(v)) {
+        mob.classList.add('is-bad');
+        if (msg) msg.textContent = 'لطفاً شماره موبایل معتبر (مثل ۰۹۱۲۳۴۵۶۷۸۹) وارد کنید.';
+        mob.focus();
+        return;
+      }
+      if (joinBtn) joinBtn.disabled = true;
+      if (msg) msg.textContent = 'در حال ثبت…';
+      fetch('/api/v2/leads/registration-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ mobile: v, source: 'landing_join' }),
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error('lead_failed');
+          if (msg) msg.textContent = 'ثبت شد. در حال ورود به کلاب تنوین…';
+          startAuthEntry('/dashboard');
+        })
+        .catch(function () {
+          if (msg) msg.textContent = 'ثبت موقت نشد؛ مستقیم وارد کلاب می‌شوید…';
+          startAuthEntry('/dashboard');
+        })
+        .finally(function () {
+          if (joinBtn) joinBtn.disabled = false;
+        });
+    });
+  })();
 
   /* ---------- Data ---------- */
   var funds = [
@@ -300,53 +367,6 @@
       try { document.execCommand('copy'); } catch (e) {}
       document.body.removeChild(ta); done();
     }
-  });
-
-  /* ---------- Join form → club BFF lead + entry to club ---------- */
-  var mob = $('#mob');
-  var joinBtn = $('#joinForm button[type="submit"]');
-  mob.addEventListener('input', function () { mob.classList.remove('is-bad'); });
-  $('#joinForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var v = toEn(mob.value);
-    var msg = $('#joinMsg');
-    if (!/^09\d{9}$/.test(v)) {
-      mob.classList.add('is-bad');
-      msg.textContent = 'لطفاً شماره موبایل معتبر (مثل ۰۹۱۲۳۴۵۶۷۸۹) وارد کنید.';
-      mob.focus();
-      return;
-    }
-    if (joinBtn) joinBtn.disabled = true;
-    msg.textContent = 'در حال ثبت…';
-    fetch('/api/v2/leads/registration-link', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify({ mobile: v, source: 'landing_join' }),
-    })
-      .then(function (res) {
-        if (!res.ok) throw new Error('lead_failed');
-        msg.textContent = 'ثبت شد. در حال ورود به کلاب تنوین…';
-        startAuthEntry('/dashboard');
-      })
-      .catch(function () {
-        msg.textContent = 'ثبت موقت نشد؛ مستقیم وارد کلاب می‌شوید…';
-        startAuthEntry('/dashboard');
-      })
-      .finally(function () {
-        if (joinBtn) joinBtn.disabled = false;
-      });
-  });
-
-  /* ---------- Auth CTAs → panel SSO (legacy startAuthEntry) ---------- */
-  $$('[data-auth-entry]').forEach(function (el) {
-    var href = getPanelSsoUrl(el.getAttribute('data-return') || '/dashboard');
-    if (el.tagName === 'A') el.setAttribute('href', href);
-    el.addEventListener('click', function (e) {
-      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
-      e.preventDefault();
-      startAuthEntry(el.getAttribute('data-return') || '/dashboard');
-    });
   });
 
   /* ---------- Nav: scroll state, active link, mobile menu ---------- */

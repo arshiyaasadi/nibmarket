@@ -13,7 +13,7 @@ import { InviteModal } from "@/components/organisms/network/InviteModal";
 import { VipInviteButton } from "@/components/molecules/VipInviteButton";
 import { NetworkTreeWidget } from "@/components/organisms/network/NetworkTreeWidget";
 import { MarketingBadgesSection } from "@/components/molecules/MarketingBadgesSection";
-import { ROUTES } from "@/config/routes";
+import { guidelinesHref } from "@/features/guidelines";
 import type { InviteStatus } from "@/types/mlm";
 import { cn, formatDisplayDate } from "@/lib/utils";
 import { normalizeSearchInput } from "@/lib/normalization/digits";
@@ -132,7 +132,7 @@ function InfoBanner() {
       <p className="text-foreground flex-1 text-sm">
         {t("infoBannerText")}{" "}
         <button
-          onClick={() => router.push(ROUTES.RULES)}
+          onClick={() => router.push(guidelinesHref("network"))}
           className="text-primary font-semibold underline underline-offset-2 transition hover:opacity-80"
         >
           {t("infoBannerLink")}

@@ -55,7 +55,7 @@ function guidelineIcon(key: string) {
   const cls = "size-5 shrink-0 transition-transform duration-300 group-hover:scale-110";
   if (key === "home") return <Home aria-hidden="true" className={cls} />;
   if (key === "courses") return <GraduationCap aria-hidden="true" className={cls} />;
-  if (key === "rules-network") return <ScrollText aria-hidden="true" className={cls} />;
+  if (key === "rules") return <ScrollText aria-hidden="true" className={cls} />;
   return <Landmark aria-hidden="true" className={cls} />;
 }
 
@@ -110,8 +110,7 @@ export function PanelSidebar({ open, onClose }: PanelSidebarProps) {
   const guidelineNav: NavChild[] = [
     { key: "home", label: t("home"), href: ROUTES.HOME },
     { key: "courses", label: t("courses"), href: ROUTES.COURSES },
-    { key: "rules-network", label: t("rulesNetwork"), href: ROUTES.RULES },
-    { key: "rules-deposit", label: t("rulesDeposit"), href: ROUTES.CAPITAL },
+    { key: "rules", label: t("rules"), href: ROUTES.RULES },
   ];
 
   const isActive = (href: string) => {

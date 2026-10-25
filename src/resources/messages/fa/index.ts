@@ -9,7 +9,6 @@ import network from "./network.json";
 import leaderboard from "./leaderboard.json";
 import pages from "./pages.json";
 import subsetDeposits from "./subsetDeposits.json";
-import depositRules from "./depositRules.json";
 import admin from "./admin.json";
 import tour from "./tour.json";
 import invite from "./invite.json";
@@ -27,7 +26,6 @@ const messages = {
   leaderboard,
   pages,
   subsetDeposits,
-  depositRules,
   admin,
   tour,
   invite,

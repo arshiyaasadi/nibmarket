@@ -12,6 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import { ROUTES } from "@/config/routes";
+import { guidelinesHref } from "@/features/guidelines";
 import { useSubsetDeposits } from "@/features/subset-deposits/queries";
 import { cn } from "@/lib/utils";
 
@@ -47,7 +48,7 @@ export function SubsetDepositsWidget({
           </div>
           {showRulesLink && (
             <Link
-              href={ROUTES.CAPITAL}
+              href={guidelinesHref("deposit")}
               className="border-border bg-background text-primary hover:border-primary/30 hover:bg-primary/5 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors"
             >
               <ScrollText size={11} />
