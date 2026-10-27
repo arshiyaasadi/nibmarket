@@ -29,6 +29,11 @@ services:
     env_file:
       - path: .env.live
         required: false
+    environment:
+      DEPLOY_STATUS_PATH: /app/deploy-status
+    volumes:
+      # Host deploy status (written by remote-deploy.sh) so /api/ping can show it.
+      - ./.cd-state/deploy-status:/app/deploy-status:ro
     restart: unless-stopped
     networks:
       - nginx

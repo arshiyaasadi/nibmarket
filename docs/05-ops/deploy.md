@@ -42,6 +42,7 @@ yarn sync:live
 yarn sync:live --force
 yarn sync:live:status
 yarn sync:live:follow
+yarn logs:live                # pull deploy + container snapshot to logs/live/
 # SKIP_NGINX=1 yarn sync:live   # only when host nginx must not change
 ```
 

@@ -13,6 +13,11 @@ ARG NODE_BASE_IMAGE=mirror.gcr.io/library/node:22-bookworm-slim
 
 FROM ${NODE_BASE_IMAGE} AS base
 WORKDIR /app
+# Node 22 Corepack calls registry.npmjs.org/yarn/latest before the first
+# `yarn` command. On the live host that HEAD times out (~300s) and the image
+# build dies before install. 0 = use the Yarn version already in the image.
+ENV COREPACK_DEFAULT_TO_LATEST=0 \
+    COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 RUN corepack enable
 
 FROM base AS deps
@@ -60,7 +65,13 @@ RUN node -e "const fs=require('fs');const p=require('./package.json');fs.mkdirSy
 RUN yarn build
 
 FROM base AS production
-ENV NODE_ENV=production
+ARG GIT_SHA=unknown
+ARG NEXT_PUBLIC_GIT_SHA=unknown
+ARG BUILD_TIME=
+ENV NODE_ENV=production \
+  GIT_SHA=$GIT_SHA \
+  NEXT_PUBLIC_GIT_SHA=$NEXT_PUBLIC_GIT_SHA \
+  BUILD_TIME=$BUILD_TIME
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 --ingroup nodejs --no-create-home nextjs
 

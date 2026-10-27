@@ -205,6 +205,7 @@ rsync -az --delete \
   --exclude '.cd-state/' \
   --exclude '.cd-git-credentials' \
   --exclude 'terminals/' \
+  --exclude 'logs/' \
   --exclude '.DS_Store' \
   --exclude '*.log' \
   --exclude 'tsconfig.tsbuildinfo' \

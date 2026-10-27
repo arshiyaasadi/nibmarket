@@ -39,6 +39,7 @@ yarn sync:live
 yarn sync:live --force
 yarn sync:live:status
 yarn sync:live:follow
+yarn logs:live                # save server snapshot under logs/live/
 # SKIP_NGINX=1 yarn sync:live   # only when host nginx must not change
 # yarn sync:live:ui             # temporary UI-mock on live (not default)
 ```

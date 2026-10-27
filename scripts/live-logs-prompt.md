@@ -1,6 +1,14 @@
 # Live log collection prompt (no remote for the agent)
 
-Run this on the live server (or your own SSH session), copy the output, and paste it in chat for analysis.
+From the laptop (WireGuard on), prefer:
+
+```bash
+yarn logs:live
+```
+
+That writes `logs/live/<timestamp>.txt` (deploy status, deploy log, container logs, origin checks). Paste that file in chat.
+
+The block below is the same snapshot run by hand on the server.
 
 ## One-shot command (copy/paste on live)
 
@@ -18,13 +26,13 @@ pwd
 docker compose -f docker-compose.live.yml ps 2>/dev/null || docker-compose -f docker-compose.live.yml ps 2>/dev/null
 echo
 echo "===== APP ENV (redacted) ====="
-docker compose -f docker-compose.live.yml exec -T web printenv 2>/dev/null \
+docker compose -f docker-compose.live.yml exec -T app printenv 2>/dev/null \
   | egrep '^(APP_ENV|NODE_ENV|BACKEND_|PANEL_|AUTH_|SSO_|NEXT_PUBLIC_|PUBLIC_)' \
   | sed -E 's/(TOKEN|SECRET|PASSWORD|KEY)=.*/\1=***/i' \
   || true
 echo
 echo "===== APP LOGS (last 200) ====="
-docker compose -f docker-compose.live.yml logs --tail=200 web 2>/dev/null \
+docker compose -f docker-compose.live.yml logs --tail=200 app 2>/dev/null \
   || docker logs --tail=200 "$(docker ps -qf name=mlm_front_live)" 2>/dev/null
 echo
 echo "===== NGINX ERROR / ACCESS (last 80) ====="
@@ -48,7 +56,7 @@ echo "===== DONE ====="
 ## App logs only
 
 ```bash
-docker compose -f docker-compose.live.yml logs --tail=300 -t web
+docker compose -f docker-compose.live.yml logs --tail=300 -t app
 ```
 
 ## Short chat prompt (paste with the output)

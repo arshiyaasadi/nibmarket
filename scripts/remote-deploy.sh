@@ -65,6 +65,7 @@ NGINX_DOMAIN=${NGINX_DOMAIN}
 UPDATED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 STARTED_AT=${STARTED_AT:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}
 EOF
+  chmod a+r "${STATUS_FILE}" 2>/dev/null || true
 }
 
 fail() {
