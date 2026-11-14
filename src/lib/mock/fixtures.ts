@@ -39,10 +39,10 @@ export const MOCK_INVITED: InvitedPerson[] = [
   },
   {
     id: "11",
-    firstName: "امير ",
-    lastName: "زارع كاريزي",
-    fullName: "امير  زارع كاريزي",
-    mobile: "",
+    firstName: "",
+    lastName: "",
+    fullName: "",
+    mobile: "09121112233",
     status: "active",
     joinDate: "2023-01-29T14:12:03.8186700",
     level: 1,
@@ -168,6 +168,7 @@ export function buildMockNetworkTree(): NetworkTreeNode {
   const toNode = (p: InvitedPerson, children: NetworkTreeNode[] = []): NetworkTreeNode => ({
     id: p.id,
     fullName: p.fullName,
+    mobile: p.mobile || null,
     level: p.level ?? 1,
     isSelf: false,
     children,

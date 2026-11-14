@@ -1,4 +1,5 @@
 import type { NetworkSubset, NetworkTreeNode } from "@/types/mlm";
+import { displayPersonName } from "@/lib/person-name";
 
 /** Max nodes rendered in the org chart (performance + readability). */
 export const NETWORK_TREE_MAX_NODES = 80;
@@ -29,7 +30,13 @@ export function buildNetworkTreeFromSubsets(rows: NetworkSubset[]): NetworkTreeN
   for (const row of rows) {
     nodeMap.set(row.id, {
       id: row.id,
-      fullName: row.fullName,
+      fullName: displayPersonName({
+        firstName: row.firstName,
+        lastName: row.lastName,
+        fullName: row.fullName,
+        fallback: "",
+      }),
+      mobile: row.mobile ?? null,
       level: row.level,
       isSelf: false,
       children: [],

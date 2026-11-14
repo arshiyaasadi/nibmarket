@@ -18,6 +18,7 @@
   "treeCollapse": "بستن نمایش کامل",
   "treeSelfLabel": "شما",
   "treeLevel": "سطح {level}",
+  "treeUnverifiedLabel": "احراز هویت نشده",
   "treeZoomIn": "بزرگ‌نمایی",
   "treeZoomOut": "کوچک‌نمایی",
   "treeEmpty": "زیرمجموعه‌ای یافت نشد",

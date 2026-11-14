@@ -287,6 +287,8 @@ export interface NetworkSubset {
   firstName: string;
   lastName: string;
   fullName: string;
+  /** Present when BE sends it — used on tree when name is missing (unverified). */
+  mobile?: string | null;
   level: number;
   joinDate: string;
   subMembersCount: number;
@@ -297,6 +299,8 @@ export interface NetworkSubset {
 export interface NetworkTreeNode {
   id: string;
   fullName: string;
+  /** Fallback label when fullName is empty (unverified / no Sejam name). */
+  mobile?: string | null;
   level: number;
   isSelf: boolean;
   children?: NetworkTreeNode[];
