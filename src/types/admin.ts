@@ -139,7 +139,7 @@ export interface AdminUsersSyncResponse {
   message?: string;
 }
 
-/** GET /admin/users/geo — one member pinned on the density map */
+/** GET /admin/users/geo — one member pinned on the density map (legacy fixture until postal→geo lands) */
 export interface AdminUserGeoPoint {
   id: string;
   fullName: string;
@@ -149,12 +149,40 @@ export interface AdminUserGeoPoint {
   lat: number;
   lng: number;
   status: AdminUserStatus;
+  /** Present when point is derived from a postal code */
+  postalCode?: string | null;
 }
 
-/** GET /admin/users/geo — response */
+/** GET /admin/users/geo — response (fixture/legacy density points) */
 export interface AdminUserGeoResponse {
   points: AdminUserGeoPoint[];
   total: number;
+}
+
+/**
+ * GET /admin/users/postal-codes — full list of user postal codes for density map.
+ * Response items are **postal code strings only** (one per user with a usable address).
+ * FE sums `postalCodes.length` for total locations and later maps Iran postal → province/city/approx latlng.
+ */
+export interface AdminUsersPostalCodesResponse {
+  postalCodes: string[];
+}
+
+/**
+ * GET /admin/users/geo/lookup?mobile= — find one user by mobile for map pin / search card.
+ * `user` is null when no match.
+ */
+export interface AdminUserGeoLookupUser {
+  id: string;
+  fullName: string;
+  mobile: string;
+  /** Primary / default Sejam address postal code when available */
+  postalCode: string | null;
+  status: AdminUserStatus;
+}
+
+export interface AdminUserGeoLookupResponse {
+  user: AdminUserGeoLookupUser | null;
 }
 
 /** GET /admin/users — paginated response */

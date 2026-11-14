@@ -42,7 +42,11 @@ import {
   listAdminSedimentDeposits,
 } from "@/lib/mock/admin-sediment";
 import { handleAdminLogin } from "@/lib/api/server/dev-admin-auth";
-import { getAdminUserGeoPoints } from "@/lib/mock/user-geo";
+import {
+  getAdminUserGeoPoints,
+  getAdminUsersPostalCodes,
+  lookupAdminUserGeoByMobile,
+} from "@/lib/mock/user-geo";
 import { isMockDevelopmentMode } from "@/config/api-service";
 
 function unauthorized(msg = "Unauthorized") {
@@ -135,6 +139,21 @@ export async function adminUsersGeoHandler(_req: Request): Promise<Response> {
     if (!cookieStore.get("nib_token")?.value) return unauthorized();
   }
   return NextResponse.json(getAdminUserGeoPoints());
+}
+
+/** GET /admin/users/postal-codes — postal code strings only for density totals / later geo decode. */
+export async function adminUsersPostalCodesHandler(_req: Request): Promise<Response> {
+  const auth = await requireAdmin();
+  if (!auth) return unauthorized();
+  return NextResponse.json(getAdminUsersPostalCodes());
+}
+
+/** GET /admin/users/geo/lookup?mobile= — pin/search one user by mobile. */
+export async function adminUsersGeoLookupHandler(req: Request): Promise<Response> {
+  const auth = await requireAdmin();
+  if (!auth) return unauthorized();
+  const mobile = new URL(req.url).searchParams.get("mobile") ?? "";
+  return NextResponse.json(lookupAdminUserGeoByMobile(mobile));
 }
 
 export async function adminUserDetailHandler(_req: Request, userId: string): Promise<Response> {

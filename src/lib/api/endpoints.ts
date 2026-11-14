@@ -111,9 +111,14 @@ export const ENDPOINTS = {
       LIST: "/admin/users",
       /** GET — verified / unverified identity counts for admin users summary card */
       KYC_SUMMARY: "/admin/users/kyc-summary",
+      /** GET — full list of user postal codes (strings only) for density map */
+      POSTAL_CODES: "/admin/users/postal-codes",
       /** @deprecated FE no longer calls — kept for BE/proxy compatibility */
       DEMOGRAPHICS: "/admin/users/demographics",
+      /** Legacy fixture density points — stays BFF-local until postal→geo is live */
       GEO: "/admin/users/geo",
+      /** GET — lookup one user by mobile for map search/pin (`?mobile=`) */
+      GEO_LOOKUP: "/admin/users/geo/lookup",
       /** POST — refresh users from Nibmarket (empty body) */
       SYNC: "/admin/users/sync",
       DETAIL: (userId: string) => `/admin/users/${userId}` as const,

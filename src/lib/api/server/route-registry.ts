@@ -22,7 +22,9 @@ import {
   adminUsersSyncHandler,
   adminUsersDemographicsHandler,
   adminUsersKycSummaryHandler,
+  adminUsersPostalCodesHandler,
   adminUsersGeoHandler,
+  adminUsersGeoLookupHandler,
   adminUserDetailHandler,
   adminUserStatusHandler,
   adminUserRoleHandler,
@@ -201,8 +203,10 @@ const CUSTOM_ROUTES: Record<string, RouteHandler> = {
   "GET:/admin/users": adminUsersHandler,
   "POST:/admin/users/sync": adminUsersSyncHandler,
   "GET:/admin/users/kyc-summary": adminUsersKycSummaryHandler,
+  "GET:/admin/users/postal-codes": adminUsersPostalCodesHandler,
   "GET:/admin/users/demographics": adminUsersDemographicsHandler,
   "GET:/admin/users/geo": adminUsersGeoHandler,
+  "GET:/admin/users/geo/lookup": adminUsersGeoLookupHandler,
   "GET:/admin/twin/overview": adminTwinOverviewHandler,
   "GET:/admin/twin/allocations": adminTwinAllocationsHandler,
   "GET:/admin/pool/overview": adminPoolOverviewHandler,
@@ -237,6 +241,7 @@ export function resolveHandler(method: string, segments: string[]): RouteHandler
     "geo",
     "messages",
     "kyc-summary",
+    "postal-codes",
     "sync",
   ]);
   if (
