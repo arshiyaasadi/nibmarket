@@ -12,8 +12,9 @@ English documentation map for the **novin-club** frontend (Tanvin / Nib Club pan
 | API **DTO shapes** | [`src/types/mlm.ts`](../src/types/mlm.ts), [`src/types/admin.ts`](../src/types/admin.ts) (JSDoc on types) |
 | Pending **club BE** work | [`../../novin-club-work/backend-inbox.md`](../../novin-club-work/backend-inbox.md) |
 | Mission seed codes | [`03-data/missions-catalog.json`](./03-data/missions-catalog.json) |
+| Admin Twin / treasury BE share packet | [`admin-twin-token-api.md`](./admin-twin-token-api.md) |
 
-Do **not** maintain a separate markdown API contract. When BE needs a new field or endpoint, update types/endpoints in code and append/update the inbox packet in the same change.
+Do **not** recreate general markdown API contracts. Exception: the Twin treasury share file above (packet **K**) is maintained for club BE handoff — keep it aligned with types + inbox when Twin APIs change.
 
 ## Doc folders
 
