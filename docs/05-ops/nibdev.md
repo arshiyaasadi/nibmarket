@@ -46,13 +46,17 @@ Cold start (no active yet): default slot (`blue`) builds directly on `:3000`. St
 ### CLI
 
 ```bash
-yarn sync:dev                 # rsync + blue/green (real API)
+yarn sync:dev                 # rsync + blue/green (real API) — Era A fallback
 yarn sync:dev --status
-yarn sync:dev --follow
+yarn sync:dev --follow        # tails log only; does NOT start a deploy
 yarn sync:dev --rollback      # instant swap, no rebuild
 yarn sync:dev --force
 yarn sync:dev:rollback
+yarn logs:dev                 # snapshot → logs/dev/<timestamp>.txt (gitignored)
 ```
+
+**Push-only CD:** `git push novin develop` deploys only if `mlm-cd-dev.timer` is enabled on the host.  
+Check / enable: [release-history.md](./release-history.md) · store plan `docs/club-auto-cd-azure-plan.md`.
 
 On the server:
 

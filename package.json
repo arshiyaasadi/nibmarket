@@ -27,6 +27,7 @@
     "sync:live:files": "bash scripts/sync-live.sh --rsync-only",
     "sync:live:status": "bash scripts/sync-live.sh --status",
     "sync:live:follow": "bash scripts/sync-live.sh --follow",
+    "logs:dev": "bash scripts/pull-dev-logs.sh",
     "logs:live": "bash scripts/pull-live-logs.sh",
     "cd:force": "bash scripts/server-cd.sh --force"
   },

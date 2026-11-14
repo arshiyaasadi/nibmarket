@@ -41,11 +41,13 @@ Env / presets: [env.md](./env.md) · Live log collection (paste for agent): [`sc
 ## Dev (nibdev) — summary
 
 ```bash
-yarn sync:dev                 # rsync + blue/green (real API)
+yarn sync:dev                 # rsync + blue/green (real API) — Era A fallback
 yarn sync:dev --status
-yarn sync:dev --follow
+yarn sync:dev --follow        # tails only; does not start deploy
 yarn sync:dev --rollback      # instant swap, no rebuild
 yarn sync:dev --force
+yarn logs:dev                 # pull dig snapshot → logs/dev/*.txt
+yarn logs:live                # pull live snapshot → logs/live/*.txt
 ```
 
 | | |

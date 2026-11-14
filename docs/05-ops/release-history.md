@@ -67,6 +67,22 @@ sudo systemctl enable --now mlm-cd-dev.timer
 systemctl status mlm-cd-dev.timer
 ```
 
+### Verify push-only CD is actually polling (on host)
+
+```bash
+systemctl is-enabled mlm-cd-dev.timer
+systemctl is-active mlm-cd-dev.timer
+systemctl list-timers mlm-cd-dev.timer --no-pager
+journalctl -u mlm-cd-dev.service -n 40 --no-pager
+cat /opt/MLM_Front/.cd-state/last-deployed-sha-dev
+git -C /opt/MLM_Front rev-parse HEAD
+git -C /opt/MLM_Front branch --show-current
+```
+
+From laptop (WireGuard ON): `yarn logs:dev` — same facts land in `logs/dev/<timestamp>.txt`.
+
+**Symptom:** `git push novin develop` succeeded but dig still shows old `GIT_SHA` in deploy-status, and `yarn sync:dev --follow` says no deploy running → timer is **not** enabled (or fetch credentials failed). Either enable the timer (above) or run Era A `yarn sync:dev` once.
+
 ## Fallback
 
 If timers or Azure fetch fail: use Era A (`yarn sync:dev` / `yarn sync:live`) — do not delete those scripts.
