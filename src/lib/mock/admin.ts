@@ -11,36 +11,33 @@ import type {
   AdminUserProfileResponse,
   AdminUsersDemographicsResponse,
   AdminUsersKycSummaryResponse,
-  AdminTwinAllocationSource,
-  AdminTwinAllocationsResponse,
   AdminTwinOverviewResponse,
+  AdminTwinSourceCatalogItem,
   AdminTwinSourcesResponse,
   AdminTwinSupplyAdjustmentRequest,
   AdminTwinSupplyAdjustmentRow,
   AdminTwinSupplyAdjustmentsResponse,
+  AdminTwinTransactionRow,
+  AdminTwinTransactionsResponse,
 } from "@/types/admin";
 import type { MockUserRecord } from "@/lib/mock/fixtures";
 import type { NetworkSubset } from "@/types/mlm";
 import { normalizeSearchInput } from "@/lib/normalization/digits";
 import { getTokenPriceHistory } from "@/lib/token-price/history";
 
-const ALLOCATION_SOURCES: AdminTwinAllocationSource[] = [
-  "mission_reward",
-  "commission_reward",
-  "registration",
-  "adjustment",
-  "mint",
-  "pool_deposit",
+/** Mock Twin source catalog — BE owns the real list (missions + goals + system). */
+const TWIN_SOURCE_CATALOG: AdminTwinSourceCatalogItem[] = [
+  { code: "mission_daily_login", label: "مأموریت ورود روزانه", kind: "mission" },
+  { code: "mission_kyc", label: "مأموریت احراز هویت", kind: "mission" },
+  { code: "mission_invite", label: "مأموریت دعوت", kind: "mission" },
+  { code: "goal_deposit", label: "هدف واریز", kind: "goal" },
+  { code: "goal_network", label: "هدف شبکه", kind: "goal" },
+  { code: "commission_reward", label: "کمیسیون شبکه", kind: "commission" },
+  { code: "registration", label: "ثبت‌نام", kind: "registration" },
+  { code: "pool_deposit", label: "استخر", kind: "pool" },
+  { code: "treasury_inflow", label: "ورودی خزانه", kind: "treasury" },
+  { code: "system_adjustment", label: "تعدیل سیستمی", kind: "system" },
 ];
-
-const ALLOCATION_SOURCE_LABELS: Record<AdminTwinAllocationSource, string> = {
-  mission_reward: "پاداش مأموریت",
-  commission_reward: "کمیسیون شبکه",
-  registration: "ثبت‌نام",
-  adjustment: "تعدیل سیستمی",
-  mint: "صدور",
-  pool_deposit: "استخر",
-};
 
 function resolveHasSejamIdentity(user: MockUserRecord): boolean {
   if (typeof user.hasSejamIdentity === "boolean") return user.hasSejamIdentity;
@@ -379,12 +376,12 @@ export async function listNetworkClosure() {
   return { data: [], total: 0, page: 0, pageSize: 50, pageCount: 0 };
 }
 
-function resolveAllocationSource(userId: string): AdminTwinAllocationSource {
+function resolveTwinSourceCode(seed: string): string {
   let hash = 0;
-  for (let i = 0; i < userId.length; i += 1) {
-    hash = (hash + userId.charCodeAt(i)) % ALLOCATION_SOURCES.length;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash + seed.charCodeAt(i)) % TWIN_SOURCE_CATALOG.length;
   }
-  return ALLOCATION_SOURCES[hash];
+  return TWIN_SOURCE_CATALOG[hash].code;
 }
 
 /** Mock treasury (unallocated). Adjusted by supply-adjustments. */
@@ -392,36 +389,86 @@ let mockUnallocatedTokens = 50_000;
 
 const mockSupplyAdjustments: AdminTwinSupplyAdjustmentRow[] = [];
 
-function buildSourceBreakdown(
-  users: { id: string; balance: number }[],
-): AdminTwinOverviewResponse["sourceBreakdown"] {
-  const sums = new Map<AdminTwinAllocationSource, number>();
-  for (const source of ALLOCATION_SOURCES) sums.set(source, 0);
+function parseOptionalInt(value: string | undefined | null): number | null {
+  if (value == null || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
 
+/** Deterministic mock ledger rows from users with balance. */
+function buildMockTwinTransactions(): AdminTwinTransactionRow[] {
+  const users = [...getMockUsers().values()].filter((user) => user.balance > 0);
+  const rows: AdminTwinTransactionRow[] = [];
   for (const user of users) {
-    if (user.balance <= 0) continue;
-    const source = resolveAllocationSource(user.id);
-    sums.set(source, (sums.get(source) ?? 0) + user.balance);
+    const source = resolveTwinSourceCode(user.id);
+    const amount = Math.max(1, Math.round(user.balance * 0.35));
+    rows.push({
+      id: `tx-${user.id}-1`,
+      userId: user.id,
+      fullName: `${user.firstName} ${user.lastName}`.trim(),
+      mobile: user.mobile,
+      amount,
+      source,
+      createdAt: user.createdAt,
+      note: null,
+    });
+    if (user.balance > 50) {
+      const source2 = resolveTwinSourceCode(`${user.id}-b`);
+      rows.push({
+        id: `tx-${user.id}-2`,
+        userId: user.id,
+        fullName: `${user.firstName} ${user.lastName}`.trim(),
+        mobile: user.mobile,
+        amount: Math.max(1, Math.round(user.balance * 0.15)),
+        source: source2,
+        createdAt: user.createdAt,
+        note: null,
+      });
+    }
   }
+  return rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
 
-  return ALLOCATION_SOURCES.map((source) => ({
-    source,
-    totalTokens: sums.get(source) ?? 0,
-  }));
+function filterTwinTransactionsByPeriod(
+  rows: AdminTwinTransactionRow[],
+  year: number | null,
+  month: number | null,
+): AdminTwinTransactionRow[] {
+  if (year == null && month == null) return rows;
+  // Mock: period filter accepted but does not shrink data (no Jalali stamps on fixtures).
+  // Real BE must filter by Jalali year/month of createdAt.
+  void year;
+  void month;
+  return rows;
+}
+
+function buildSourceBreakdownFromTx(
+  rows: AdminTwinTransactionRow[],
+): AdminTwinOverviewResponse["sourceBreakdown"] {
+  const sums = new Map<string, number>();
+  for (const item of TWIN_SOURCE_CATALOG) sums.set(item.code, 0);
+  for (const row of rows) {
+    sums.set(row.source, (sums.get(row.source) ?? 0) + row.amount);
+  }
+  return TWIN_SOURCE_CATALOG.map((item) => ({
+    source: item.code,
+    totalTokens: sums.get(item.code) ?? 0,
+  })).filter((item) => item.totalTokens > 0);
 }
 
 export async function listAdminTwinSources(): Promise<AdminTwinSourcesResponse> {
   await ensureMockStore();
-  return {
-    items: ALLOCATION_SOURCES.map((code) => ({
-      code,
-      label: ALLOCATION_SOURCE_LABELS[code],
-    })),
-  };
+  return { items: TWIN_SOURCE_CATALOG.map((item) => ({ ...item })) };
 }
 
-export async function getAdminTwinOverview(): Promise<AdminTwinOverviewResponse> {
+export async function getAdminTwinOverview(params?: {
+  year?: string | null;
+  month?: string | null;
+}): Promise<AdminTwinOverviewResponse> {
   await ensureMockStore();
+  const year = parseOptionalInt(params?.year ?? null);
+  const month = parseOptionalInt(params?.month ?? null);
+
   const users = [...getMockUsers().values()];
   let allocatedTokens = 0;
   let totalFrozen = 0;
@@ -440,6 +487,8 @@ export async function getAdminTwinOverview(): Promise<AdminTwinOverviewResponse>
   const change = previous === 0 ? 0 : ((latest - previous) / previous) * 100;
   const totalTokens = allocatedTokens + mockUnallocatedTokens;
 
+  const txRows = filterTwinTransactionsByPeriod(buildMockTwinTransactions(), year, month);
+
   return {
     tokenPriceRial: latest,
     tokenPriceChangePercent24h: Number(change.toFixed(2)),
@@ -450,55 +499,33 @@ export async function getAdminTwinOverview(): Promise<AdminTwinOverviewResponse>
     frozenPercent:
       allocatedTokens > 0 ? Number(((totalFrozen / allocatedTokens) * 100).toFixed(1)) : 0,
     totalAvailableTokens: totalAvailable,
-    sourceBreakdown: buildSourceBreakdown(users),
+    period: { year, month },
+    sourceBreakdown: buildSourceBreakdownFromTx(txRows),
   };
 }
 
-export async function listAdminTwinAllocations(params: {
+export async function listAdminTwinTransactions(params: {
   page: number;
   pageSize: number;
   search: string;
   source?: string;
-}): Promise<AdminTwinAllocationsResponse> {
+  year?: string | null;
+  month?: string | null;
+}): Promise<AdminTwinTransactionsResponse> {
   await ensureMockStore();
-  let users = [...getMockUsers().values()].filter((user) => user.balance > 0);
+  const year = parseOptionalInt(params.year ?? null);
+  const month = parseOptionalInt(params.month ?? null);
+  let rows = filterTwinTransactionsByPeriod(buildMockTwinTransactions(), year, month);
 
   if (params.search) {
     const q = normalizeSearchInput(params.search);
-    users = users.filter(
-      (user) =>
-        user.mobile.includes(q) ||
-        user.firstName.includes(q) ||
-        user.lastName.includes(q) ||
-        user.referralCode.includes(q),
+    rows = rows.filter(
+      (row) => row.mobile.includes(q) || row.fullName.includes(q) || row.userId.includes(q),
     );
   }
 
-  let rows = users
-    .map((user) => {
-      const wallet = buildWalletSummary(user.balance);
-      const frozenPercent =
-        wallet.totalTokens > 0
-          ? Number(((wallet.frozenTokens / wallet.totalTokens) * 100).toFixed(1))
-          : 0;
-
-      return {
-        id: `alloc-${user.id}`,
-        userId: user.id,
-        fullName: `${user.firstName} ${user.lastName}`.trim(),
-        mobile: user.mobile,
-        totalTokens: wallet.totalTokens,
-        availableTokens: wallet.availableTokens,
-        frozenTokens: wallet.frozenTokens,
-        frozenPercent,
-        primarySource: resolveAllocationSource(user.id),
-        lastAllocationAt: user.createdAt,
-      };
-    })
-    .sort((a, b) => b.totalTokens - a.totalTokens);
-
   if (params.source && params.source.length > 0) {
-    rows = rows.filter((row) => row.primarySource === params.source);
+    rows = rows.filter((row) => row.source === params.source);
   }
 
   const total = rows.length;

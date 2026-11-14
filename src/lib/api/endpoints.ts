@@ -157,9 +157,10 @@ export const ENDPOINTS = {
     },
     TWIN: {
       OVERVIEW: "/admin/twin/overview",
-      ALLOCATIONS: "/admin/twin/allocations",
-      /** Catalog of allocation source codes + labels for filter dropdown */
+      /** BE-owned catalog: missions, goals, and all Twin tx source types */
       SOURCES: "/admin/twin/sources",
+      /** Paginated Twin ledger (mobile + source + optional Jalali period) */
+      TRANSACTIONS: "/admin/twin/transactions",
       /** POST create + GET list — treasury mint / unallocated balance adjustments */
       SUPPLY_ADJUSTMENTS: "/admin/twin/supply-adjustments",
     },

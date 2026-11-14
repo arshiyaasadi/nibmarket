@@ -1,44 +1,66 @@
-# Admin «توکن تنوین» — API contract for club BE
+# Admin «توکن تنوین» — API contract (club BE)
 
-**Version:** 2026-11-14 (develop)  
-**Base path:** `/api/v2`  
-**Auth:** admin / manager  
+**Version:** 2026-11-14b (develop)  
+**Base:** `/api/v2` · **Auth:** admin / manager  
 
-Share this file with club backend. FE mock BFF implements the same shapes; API mode proxies these routes.
+FE mock BFF matches these shapes. Repo copy: `novin-club/docs/admin-twin-token-api.md`.  
+Inbox: `novin-club-work/backend-inbox.md` packet **K**.
 
-Related: `novin-club-work/backend-inbox.md` packet **K** · types `novin-club/src/types/admin.ts` · paths `ENDPOINTS.ADMIN.TWIN.*`
-
----
-
-## Business summary (what the admin product does)
-
-Display name in UI: **تنوین**. Internal route/API id remains `twin`.
-
-| Admin surface | Route | Job |
-|---------------|-------|-----|
-| Overview | `/admin/twin` | Instant price, composition pie (allocated / frozen / unallocated), source bar chart, user allocations table (search + source filter). Shortcut / low-treasury alert → treasury. |
-| Treasury | `/admin/twin/treasury` | Same composition pie + **add-only** supply form + **ورودی‌های خزانه** (inflows log). |
-| Price detail | `/admin/twin/price` | Coming soon shell only — **no BE** yet. |
-
-**Sidebar:** «توکن تنوین» branch → «نمای کلی» + «خزانه».
-
-### Domain rules
-
-1. **Supply split:** `totalTokens = allocatedTokens + unallocatedTokens`.
-2. **Allocated** = tokens held by users (includes frozen).
-3. **Unallocated** = treasury / not yet assigned to users.
-4. **Frozen** ⊆ allocated (transfer/sale lock). `totalAvailableTokens = allocated − frozen`.
-5. **Treasury can only increase.** Admin POST adds positive tokens to unallocated. No decrease / burn / negative adjustment via this API.
-6. **Allocation sources** are a BE-owned catalog (`GET /sources`). FE does not hardcode the filter list.
-7. **Low-treasury alert (FE-only today):** when `unallocatedTokens / totalTokens < 15%`, overview shows an alert shortcut to `/admin/twin/treasury`. Otherwise shows «مدیریت خزانه». Optional later: BE threshold or `treasuryAlert` flag on overview.
+Internal id: `twin`. UI brand: **تنوین**.
 
 ---
 
-## Endpoints
+## Surfaces
 
-### 1) `GET /admin/twin/overview` — extend
+| Route | Uses |
+|-------|------|
+| `/admin/twin` | Price, composition pie (current stock), period filter (Jalali year/month), source bar chart, transactions table |
+| `/admin/twin/treasury` | Composition pie + **add-only** treasury inflows |
+| `/admin/twin/price` | Coming soon — **no BE** |
 
-Dashboard totals for overview + treasury composition card.
+---
+
+## Endpoints FE uses
+
+### 1) `GET /admin/twin/sources`
+
+**Single catalog** for every Twin transaction source the admin UI needs: **all missions, goals**, and any other BE-defined source types (commission, registration, pool, treasury, system, …).
+
+FE uses this for:
+
+- Transaction filter dropdown  
+- Labels on the source bar chart and table  
+
+Do **not** hardcode codes on FE.
+
+```json
+{
+  "items": [
+    { "code": "mission_daily_login", "label": "مأموریت ورود روزانه", "kind": "mission" },
+    { "code": "goal_deposit", "label": "هدف واریز", "kind": "goal" },
+    { "code": "commission_reward", "label": "کمیسیون شبکه", "kind": "commission" }
+  ]
+}
+```
+
+| Field | Rule |
+|-------|------|
+| `code` | Stable string (snake_case recommended) |
+| `label` | FA display |
+| `kind` | Optional: `mission` \| `goal` \| `commission` \| `registration` \| `pool` \| `treasury` \| `system` \| `other` |
+
+---
+
+### 2) `GET /admin/twin/overview`
+
+Current **stock** + period-scoped **source breakdown** for charts.
+
+**Query (Jalali, optional):**
+
+| Param | Meaning |
+|-------|---------|
+| `year` | Jalali year; omit with `month` for **all-time** breakdown |
+| `month` | `1`–`12`; omit for whole year when `year` set |
 
 ```json
 {
@@ -50,80 +72,53 @@ Dashboard totals for overview + treasury composition card.
   "totalFrozenTokens": 1093,
   "frozenPercent": 8.0,
   "totalAvailableTokens": 12577,
+  "period": { "year": null, "month": null },
   "sourceBreakdown": [
-    { "source": "pool_deposit", "totalTokens": 4200 },
-    { "source": "mission_reward", "totalTokens": 3100 }
+    { "source": "mission_daily_login", "totalTokens": 3100 },
+    { "source": "goal_deposit", "totalTokens": 1800 }
   ]
 }
 ```
 
 | Field | Rule |
 |-------|------|
-| `totalTokens` | `allocatedTokens + unallocatedTokens` |
-| `allocatedTokens` | Sum of user-held tokens (**includes** frozen) |
-| `unallocatedTokens` | Treasury / not assigned to users |
-| `totalFrozenTokens` | Subset of allocated |
-| `frozenPercent` | `frozen / allocated * 100` (0 if allocated = 0) |
-| `totalAvailableTokens` | Allocated minus frozen |
-| `sourceBreakdown[].source` | Code from the sources catalog |
-| `sourceBreakdown[].totalTokens` | Sum attributed to that source |
+| Stock fields | **Always current** balances (`allocated + unallocated = total`; frozen ⊆ allocated) |
+| `period` | Echo of applied Jalali filter; both null = all-time breakdown |
+| `sourceBreakdown[].source` | Must be a `code` from `/sources` |
+| `sourceBreakdown[].totalTokens` | Sum of **transactions** in the period (not wallet stock) |
 
-**Pie mapping (FE):** liquid allocated = `allocated − frozen`; segments = liquid / frozen / unallocated (zeros omitted).
+**FE charts:**
 
----
-
-### 2) `GET /admin/twin/sources` — new
-
-Catalog for the allocations **source filter** (and labels on charts/tables).
-
-```json
-{
-  "items": [
-    { "code": "mission_reward", "label": "پاداش مأموریت" },
-    { "code": "commission_reward", "label": "کمیسیون شبکه" },
-    { "code": "registration", "label": "ثبت‌نام" },
-    { "code": "adjustment", "label": "تعدیل سیستمی" },
-    { "code": "mint", "label": "صدور" },
-    { "code": "pool_deposit", "label": "استخر" }
-  ]
-}
-```
-
-| Field | Rule |
-|-------|------|
-| `items[].code` | Stable snake_case; same space as `sourceBreakdown` / allocations `source` query |
-| `items[].label` | FA display string for admin UI |
-
-Known codes today: `mission_reward` \| `commission_reward` \| `registration` \| `adjustment` \| `mint` \| `pool_deposit`.
-
-Adding a code here shows it in the filter; overview bars still need ledger attribution for that source.
+- Composition pie → stock fields (not period-scaled)  
+- Source bar → `sourceBreakdown` + labels from `/sources`  
 
 ---
 
-### 3) `GET /admin/twin/allocations` — extend query
+### 3) `GET /admin/twin/transactions`
 
-User holdings / allocation ledger (paginated).
+Paginated **Twin ledger** (not “user allocations”).
 
-| Query | Meaning |
+**Query:**
+
+| Param | Meaning |
 |-------|---------|
-| `page`, `pageSize` | Pagination (0-based page) |
-| `search` | Prefer **mobile** match (name optional) |
-| `source` | Optional exact source `code` from `/sources` |
+| `page`, `pageSize` | 0-based pagination |
+| `search` | Prefer **mobile** match |
+| `source` | Exact catalog `code` |
+| `year`, `month` | Optional Jalali period (same as overview); omit = all time |
 
 ```json
 {
   "data": [
     {
-      "id": "row-uuid",
+      "id": "tx-uuid",
       "userId": "user-uuid",
       "fullName": "…",
       "mobile": "09…",
-      "totalTokens": 1200,
-      "availableTokens": 1000,
-      "frozenTokens": 200,
-      "frozenPercent": 16.7,
-      "primarySource": "mission_reward",
-      "lastAllocationAt": "2026-11-14T12:00:00.000Z"
+      "amount": 120,
+      "source": "mission_daily_login",
+      "createdAt": "2026-11-14T12:00:00.000Z",
+      "note": null
     }
   ],
   "total": 1,
@@ -133,121 +128,50 @@ User holdings / allocation ledger (paginated).
 }
 ```
 
----
+FE row action: navigate to `/admin/users/{userId}`.
 
-### 4) `GET /admin/twin/supply-adjustments` — new (ورودی‌های خزانه)
-
-Internal **inflows** log (not a general change log — amounts are always positive inflows).
-
-Query: `page`, `pageSize`
-
-```json
-{
-  "data": [
-    {
-      "id": "uuid",
-      "amount": 1000,
-      "approxValueRial": 25524000,
-      "effectiveDate": "1403/08/24",
-      "createdAt": "2026-11-14T15:30:00.000Z",
-      "createdByName": "علی رضایی",
-      "createdByUserId": "admin-uuid",
-      "note": "optional"
-    }
-  ],
-  "total": 1,
-  "page": 0,
-  "pageSize": 10,
-  "pageCount": 1
-}
-```
-
-| Field | Rule |
-|-------|------|
-| `amount` | Always **> 0** (inflow) |
-| `approxValueRial` | Snapshot `amount * tokenPriceRial` at write time |
-| `effectiveDate` | Jalali `YYYY/MM/DD` or ISO date — FE sends Jalali |
-| `createdByName` | Required for admin audit UI |
+**Removed:** `GET /admin/twin/allocations` (old holdings list).
 
 ---
 
-### 5) `POST /admin/twin/supply-adjustments` — new (**add only**)
+### 4) `GET /admin/twin/supply-adjustments`
 
-Increase **unallocated** treasury balance. **Negative amounts are not allowed.**
+Treasury **inflows** log («ورودی‌های خزانه»). Query: `page`, `pageSize`.
 
-Request:
-
-```json
-{
-  "amount": 1000,
-  "effectiveDate": "1403/08/24",
-  "note": "optional"
-}
-```
-
-| Rule | Detail |
-|------|--------|
-| `amount` | Must be a **positive** number (`> 0`). Reject `≤ 0` → `400` |
-| `effectiveDate` | Required |
-| Effect | `unallocatedTokens += amount` (and `totalTokens` rises accordingly) |
-| Snapshot | Persist `approxValueRial = amount * tokenPriceRial` and actor `createdByName` |
-
-Response:
-
-```json
-{
-  "ok": true,
-  "entry": { /* same as inflows log row */ },
-  "overview": { /* full overview DTO after change */ }
-}
-```
-
-> Earlier drafts allowed negative adjustments + `409 INSUFFICIENT_UNALLOCATED`. **That path is cancelled.** Treasury UI/API is add-only.
+Row: `id`, `amount` (> 0), `approxValueRial`, `effectiveDate`, `createdAt`, `createdByName`, `createdByUserId?`, `note?`.
 
 ---
 
-## FE ↔ BE map
+### 5) `POST /admin/twin/supply-adjustments`
 
-| FE | Consumes |
-|----|----------|
-| Overview price card | `overview.tokenPriceRial`, `tokenPriceChangePercent24h` |
-| Composition pie + stats | `allocatedTokens`, `unallocatedTokens`, `totalFrozenTokens` |
-| Treasury share % + alert | FE: `unallocated / total * 100`; alert if `< 15` (`TWIN_TREASURY_LOW_SHARE_PERCENT`) |
-| Source bar chart | `overview.sourceBreakdown` + labels from `/sources` (or i18n fallback) |
-| Allocations filter | `GET /sources` → options; `GET /allocations?source=` |
-| Treasury form | `POST /supply-adjustments` (`amount > 0`) |
-| ورودی‌های خزانه table | `GET /supply-adjustments` |
+**Add-only** to unallocated (`amount` must be `> 0`). Reject `≤ 0` with `400`.
+
+Request: `{ "amount": 1000, "effectiveDate": "1403/08/24", "note?": "…" }`  
+Response: `{ "ok": true, "entry": {…}, "overview": {…} }` (overview may omit period or use all-time).
 
 ---
 
-## Not needed / out of scope for this page
+## Out of scope
 
 | Item | Note |
 |------|------|
-| Decrease / negative supply adjustment | Product: treasury **add only** |
-| Separate price-history API | `/admin/twin/price` is FE coming-soon only |
-| Standalone totalTokens-only card | Overview still returns `totalTokens`; UI leads with allocated / unallocated |
-| BE low-treasury threshold field | Optional later; FE threshold is enough for now |
-| Changing allocations row identity | Keep current row DTO |
+| Price history API | `/admin/twin/price` is FE shell only |
+| Dig auto CD / unrelated deploy | See deploy docs |
+| Hardcoded FE source enums | Forbidden — catalog only |
+| Negative treasury adjustments | Not allowed |
 
 ---
 
-## Acceptance (club BE)
+## Acceptance
 
-- [ ] Overview returns allocated / unallocated / frozen + `sourceBreakdown` with invariants above
-- [ ] `GET /admin/twin/sources` returns catalog; codes align with breakdown + allocations filter
-- [ ] Allocations support `search` (mobile) + `source`
-- [ ] `POST /supply-adjustments` accepts **only** `amount > 0`; persists inflow + `createdByName` + `approxValueRial`
-- [ ] `GET /supply-adjustments` lists inflows for «ورودی‌های خزانه»
-
----
+- [ ] `/sources` returns full mission + goal (+ other) catalog  
+- [ ] `/overview?year=&month=` scopes `sourceBreakdown`; stock always current  
+- [ ] `/transactions` filters by mobile, source, optional period; rows include `userId`  
+- [ ] Supply POST add-only; inflows list works  
+- [ ] FE sends period query params even before BE period filter is live  
 
 ## FE pointers
 
-- Types: `AdminTwinOverviewResponse`, `AdminTwinSourcesResponse`, `AdminTwinSupplyAdjustment*`
-- Paths: `ENDPOINTS.ADMIN.TWIN.OVERVIEW` \| `SOURCES` \| `ALLOCATIONS` \| `SUPPLY_ADJUSTMENTS`
-- Routes: `ROUTES.ADMIN.TWIN` \| `TWIN_TREASURY` \| `TWIN_PRICE`
-- Alert helper: `novin-club/src/lib/admin/twin-treasury.ts`
-- UI: `TwinPageContent`, `TreasuryPageContent`, `TwinCompositionCard`
-- Inbox: `novin-club-work/backend-inbox.md` packet **K**
-- Repo copy (develop): `novin-club/docs/admin-twin-token-api.md`
+- `ENDPOINTS.ADMIN.TWIN.OVERVIEW` \| `SOURCES` \| `TRANSACTIONS` \| `SUPPLY_ADJUSTMENTS`  
+- Types: `AdminTwinOverviewResponse`, `AdminTwinSourcesResponse`, `AdminTwinTransaction*`  
+- Period UI: Jalali year/month selects on Twin overview (empty = all time)  

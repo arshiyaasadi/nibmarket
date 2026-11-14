@@ -11,8 +11,8 @@ import {
   getAdminMissionJobsHealth,
   getAdminMissionsOverview,
   listAdminMissionCompletions,
-  listAdminTwinAllocations,
   listAdminTwinSources,
+  listAdminTwinTransactions,
   listAdminTwinSupplyAdjustments,
   createAdminTwinSupplyAdjustment,
   listAdminMissions,
@@ -167,10 +167,16 @@ export async function adminUserDetailHandler(_req: Request, userId: string): Pro
   return NextResponse.json(profile);
 }
 
-export async function adminTwinOverviewHandler(_req: Request): Promise<Response> {
+export async function adminTwinOverviewHandler(req: Request): Promise<Response> {
   const auth = await requireAdmin();
   if (!auth) return unauthorized();
-  return NextResponse.json(await getAdminTwinOverview());
+  const url = new URL(req.url);
+  return NextResponse.json(
+    await getAdminTwinOverview({
+      year: url.searchParams.get("year"),
+      month: url.searchParams.get("month"),
+    }),
+  );
 }
 
 export async function adminTwinSourcesHandler(_req: Request): Promise<Response> {
@@ -179,7 +185,7 @@ export async function adminTwinSourcesHandler(_req: Request): Promise<Response> 
   return NextResponse.json(await listAdminTwinSources());
 }
 
-export async function adminTwinAllocationsHandler(req: Request): Promise<Response> {
+export async function adminTwinTransactionsHandler(req: Request): Promise<Response> {
   const auth = await requireAdmin();
   if (!auth) return unauthorized();
 
@@ -188,8 +194,12 @@ export async function adminTwinAllocationsHandler(req: Request): Promise<Respons
   const pageSize = parseInt(url.searchParams.get("pageSize") ?? "20");
   const search = url.searchParams.get("search") ?? "";
   const source = url.searchParams.get("source") ?? "";
+  const year = url.searchParams.get("year");
+  const month = url.searchParams.get("month");
 
-  return NextResponse.json(await listAdminTwinAllocations({ page, pageSize, search, source }));
+  return NextResponse.json(
+    await listAdminTwinTransactions({ page, pageSize, search, source, year, month }),
+  );
 }
 
 export async function adminTwinSupplyAdjustmentsListHandler(req: Request): Promise<Response> {

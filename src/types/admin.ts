@@ -281,14 +281,20 @@ export interface UpdateAdminUserRoleResponse {
   ok: true;
 }
 
-export type AdminTwinAllocationSource =
-  "mission_reward" | "commission_reward" | "registration" | "adjustment" | "mint" | "pool_deposit";
+/**
+ * Twin / تنوین source codes are BE-owned (missions, goals, system, pool, …).
+ * FE must not hardcode the catalog — use GET /admin/twin/sources.
+ */
+export type AdminTwinSourceCode = string;
 
-/** GET /admin/twin/sources — catalog item for filter + labels */
+/** GET /admin/twin/sources — catalog item (filter + chart labels) */
 export interface AdminTwinSourceCatalogItem {
-  code: AdminTwinAllocationSource;
-  /** Display label (FA); FE may fall back to i18n if omitted */
+  code: AdminTwinSourceCode;
+  /** FA display label */
   label: string;
+  /** Optional grouping hint */
+  kind?:
+    "mission" | "goal" | "commission" | "registration" | "pool" | "treasury" | "system" | "other";
 }
 
 /** GET /admin/twin/sources */
@@ -296,59 +302,77 @@ export interface AdminTwinSourcesResponse {
   items: AdminTwinSourceCatalogItem[];
 }
 
-/** One bar in the twin source breakdown chart */
+/** One bar in the twin source breakdown chart (period-scoped) */
 export interface AdminTwinSourceBreakdownItem {
-  source: AdminTwinAllocationSource;
-  /** Sum of tokens attributed to this allocation source */
+  source: AdminTwinSourceCode;
+  /** Sum of transaction tokens for this source in the requested period (or all time) */
   totalTokens: number;
 }
 
 /**
  * GET /admin/twin/overview
+ * Query (optional Jalali): `year`, `month` — omit both for all-time `sourceBreakdown`.
+ * Stock fields (allocated / unallocated / frozen) are always **current** balances.
  * Invariant: `allocatedTokens + unallocatedTokens === totalTokens`
- * and `totalFrozenTokens` is a subset of `allocatedTokens`.
+ * and `totalFrozenTokens` ⊆ `allocatedTokens`.
  */
 export interface AdminTwinOverviewResponse {
   tokenPriceRial: number;
   tokenPriceChangePercent24h: number;
-  /** Total supply (allocated + unallocated) */
+  /** Total supply (allocated + unallocated) — current */
   totalTokens: number;
-  /** Tokens held by users (includes frozen) */
+  /** Tokens held by users (includes frozen) — current */
   allocatedTokens: number;
-  /** Treasury / not yet assigned to users */
+  /** Treasury / not yet assigned to users — current */
   unallocatedTokens: number;
-  /** Frozen portion of allocated (transfer/sale lock) */
+  /** Frozen portion of allocated — current */
   totalFrozenTokens: number;
   /** frozen / allocated * 100 (0 when allocated is 0) */
   frozenPercent: number;
-  /** Allocated minus frozen (spendable by users) */
+  /** Allocated minus frozen — current */
   totalAvailableTokens: number;
-  /** Sum of tokens per allocation source (for bar chart) */
+  /**
+   * Echo of applied period. `year`/`month` null means all-time breakdown.
+   * Jalali calendar.
+   */
+  period: { year: number | null; month: number | null };
+  /** Transaction sums by source for the period (bar chart) */
   sourceBreakdown: AdminTwinSourceBreakdownItem[];
 }
 
-/** GET /admin/twin/allocations — row (user holdings / allocation ledger view) */
-export interface AdminTwinAllocationRow {
+/** GET /admin/twin/transactions — single ledger row */
+export interface AdminTwinTransactionRow {
   id: string;
   userId: string;
   fullName: string;
   mobile: string;
-  totalTokens: number;
-  availableTokens: number;
-  frozenTokens: number;
-  frozenPercent: number;
-  primarySource: AdminTwinAllocationSource;
-  lastAllocationAt: string;
+  /** Token amount credited (or signed delta if BE uses negatives later) */
+  amount: number;
+  /** Catalog `code` from GET /admin/twin/sources */
+  source: AdminTwinSourceCode;
+  createdAt: string;
+  note?: string | null;
 }
 
-/** GET /admin/twin/allocations — paginated; query: page, pageSize, search (mobile), source */
-export interface AdminTwinAllocationsResponse {
-  data: AdminTwinAllocationRow[];
+/**
+ * GET /admin/twin/transactions
+ * Query: page, pageSize, search (mobile), source (catalog code),
+ * optional Jalali `year` / `month` (omit = all time).
+ */
+export interface AdminTwinTransactionsResponse {
+  data: AdminTwinTransactionRow[];
   total: number;
   page: number;
   pageSize: number;
   pageCount: number;
 }
+
+/** @deprecated Use AdminTwinTransactionRow — kept briefly for grep/migration */
+export type AdminTwinAllocationRow = AdminTwinTransactionRow;
+/** @deprecated Use AdminTwinTransactionsResponse */
+export type AdminTwinAllocationsResponse = AdminTwinTransactionsResponse;
+/** @deprecated Sources are free-form strings from the catalog */
+export type AdminTwinAllocationSource = AdminTwinSourceCode;
 
 /**
  * POST /admin/twin/supply-adjustments — add to unallocated treasury balance.
