@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { type ColumnDef, type PaginationState } from "@tanstack/react-table";
 import { Coins } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { ENDPOINTS } from "@/lib/api/endpoints";
-import { ROUTES } from "@/config/routes";
 import { Button } from "@/components/atoms/Button";
 import { TwinCompositionCard } from "@/components/organisms/admin/twin/TwinCompositionCard";
 import { JalaliDatePicker } from "@/components/molecules/JalaliDatePicker";
@@ -139,17 +137,9 @@ export default function TreasuryPageContent() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-foreground text-xl font-bold">{t("treasuryTitle")}</h1>
-          <p className="text-muted mt-1 text-xs">{t("treasurySubtitle")}</p>
-        </div>
-        <Link
-          href={ROUTES.ADMIN.TWIN}
-          className="border-border text-muted hover:text-foreground inline-flex items-center justify-center rounded-xl border px-3 py-2 text-xs font-medium transition-colors"
-        >
-          {t("backToTwin")}
-        </Link>
+      <div>
+        <h1 className="text-foreground text-xl font-bold">{t("treasuryTitle")}</h1>
+        <p className="text-muted mt-1 text-xs">{t("treasurySubtitle")}</p>
       </div>
 
       <TwinCompositionCard overview={overview} isLoading={overviewLoading} />
