@@ -10,6 +10,7 @@ import type {
   AdminUserModuleAccess,
   AdminUserProfileResponse,
   AdminUsersDemographicsResponse,
+  AdminUsersKycSummaryResponse,
   AdminTwinAllocationSource,
   AdminTwinAllocationsResponse,
   AdminTwinOverviewResponse,
@@ -223,6 +224,19 @@ export async function getAdminStats() {
 export async function getAdminUsersDemographics(): Promise<AdminUsersDemographicsResponse> {
   await ensureMockStore();
   return MOCK_ADMIN_DEMOGRAPHICS;
+}
+
+/** GET /admin/users/kyc-summary — identity verification counts. */
+export async function getAdminUsersKycSummary(): Promise<AdminUsersKycSummaryResponse> {
+  await ensureMockStore();
+  const users = [...getMockUsers().values()];
+  const verifiedCount = users.filter((u) => resolveHasSejamIdentity(u)).length;
+  const totalUsers = users.length;
+  return {
+    totalUsers,
+    verifiedCount,
+    unverifiedCount: totalUsers - verifiedCount,
+  };
 }
 
 export async function listAdminUsers(params: {

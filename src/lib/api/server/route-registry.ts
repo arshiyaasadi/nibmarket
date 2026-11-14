@@ -21,6 +21,7 @@ import {
   adminUsersHandler,
   adminUsersSyncHandler,
   adminUsersDemographicsHandler,
+  adminUsersKycSummaryHandler,
   adminUsersGeoHandler,
   adminUserDetailHandler,
   adminUserStatusHandler,
@@ -199,6 +200,7 @@ const CUSTOM_ROUTES: Record<string, RouteHandler> = {
   "GET:/admin/stats": adminStatsHandler,
   "GET:/admin/users": adminUsersHandler,
   "POST:/admin/users/sync": adminUsersSyncHandler,
+  "GET:/admin/users/kyc-summary": adminUsersKycSummaryHandler,
   "GET:/admin/users/demographics": adminUsersDemographicsHandler,
   "GET:/admin/users/geo": adminUsersGeoHandler,
   "GET:/admin/twin/overview": adminTwinOverviewHandler,
@@ -230,7 +232,13 @@ export function resolveHandler(method: string, segments: string[]): RouteHandler
   if (CUSTOM_ROUTES[key]) return CUSTOM_ROUTES[key];
 
   // Admin dynamic routes
-  const RESERVED_ADMIN_USER_SEGMENTS = new Set(["demographics", "geo", "messages"]);
+  const RESERVED_ADMIN_USER_SEGMENTS = new Set([
+    "demographics",
+    "geo",
+    "messages",
+    "kyc-summary",
+    "sync",
+  ]);
   if (
     method === "GET" &&
     segments[0] === "admin" &&

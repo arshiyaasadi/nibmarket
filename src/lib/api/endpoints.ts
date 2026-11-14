@@ -109,6 +109,9 @@ export const ENDPOINTS = {
     STATS: "/admin/stats",
     USERS: {
       LIST: "/admin/users",
+      /** GET — verified / unverified identity counts for admin users summary card */
+      KYC_SUMMARY: "/admin/users/kyc-summary",
+      /** @deprecated FE no longer calls — kept for BE/proxy compatibility */
       DEMOGRAPHICS: "/admin/users/demographics",
       GEO: "/admin/users/geo",
       /** POST — refresh users from Nibmarket (empty body) */

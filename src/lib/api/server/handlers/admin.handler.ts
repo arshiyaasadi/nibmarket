@@ -7,6 +7,7 @@ import {
   getAdminTwinOverview,
   getAdminUserProfile,
   getAdminUsersDemographics,
+  getAdminUsersKycSummary,
   getAdminMissionJobsHealth,
   getAdminMissionsOverview,
   listAdminMissionCompletions,
@@ -115,6 +116,13 @@ export async function adminUsersDemographicsHandler(_req: Request): Promise<Resp
   const auth = await requireAdmin();
   if (!auth) return unauthorized();
   return NextResponse.json(await getAdminUsersDemographics());
+}
+
+/** GET /admin/users/kyc-summary — verified / unverified identity counts. */
+export async function adminUsersKycSummaryHandler(_req: Request): Promise<Response> {
+  const auth = await requireAdmin();
+  if (!auth) return unauthorized();
+  return NextResponse.json(await getAdminUsersKycSummary());
 }
 
 /**

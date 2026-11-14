@@ -20,6 +20,7 @@ import { ApiException } from "@/types/api";
 import type {
   AdminUserKycStatus,
   AdminUserListItem,
+  AdminUsersKycSummaryResponse,
   AdminUsersListResponse,
   AdminUsersSyncResponse,
   AdminUserStatus,
@@ -64,6 +65,13 @@ export default function UsersPageContent() {
     setPagination((p) => (p.pageIndex === 0 ? p : { ...p, pageIndex: 0 }));
   }
 
+  const { data: kycSummary, isLoading: kycSummaryLoading } = useQuery<AdminUsersKycSummaryResponse>(
+    {
+      queryKey: ["admin", "users", "kyc-summary"],
+      queryFn: () => apiClient.get(ENDPOINTS.ADMIN.USERS.KYC_SUMMARY),
+    },
+  );
+
   const { data, isLoading } = useQuery<AdminUsersListResponse>({
     queryKey: ["admin", "users", pagination, search, statusFilter, sejamFilter],
     queryFn: () =>
@@ -71,22 +79,6 @@ export default function UsersPageContent() {
         `${ENDPOINTS.ADMIN.USERS.LIST}?page=${pagination.pageIndex}&pageSize=${pagination.pageSize}&search=${encodeURIComponent(search)}&status=${statusFilter}&hasSejamIdentity=${sejamFilter}`,
       ),
   });
-
-  /** Totals for KYC summary card — reuse list filter, not demographics. */
-  const { data: verifiedUsers, isLoading: verifiedCountLoading } = useQuery<AdminUsersListResponse>(
-    {
-      queryKey: ["admin", "users", "kyc-count", "verified"],
-      queryFn: () =>
-        apiClient.get(`${ENDPOINTS.ADMIN.USERS.LIST}?page=0&pageSize=1&hasSejamIdentity=true`),
-    },
-  );
-
-  const { data: unverifiedUsers, isLoading: unverifiedCountLoading } =
-    useQuery<AdminUsersListResponse>({
-      queryKey: ["admin", "users", "kyc-count", "unverified"],
-      queryFn: () =>
-        apiClient.get(`${ENDPOINTS.ADMIN.USERS.LIST}?page=0&pageSize=1&hasSejamIdentity=false`),
-    });
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: AdminUserStatus }) =>
@@ -247,9 +239,10 @@ export default function UsersPageContent() {
       )}
 
       <AdminUserKycSummaryCard
-        verifiedCount={verifiedUsers?.total}
-        unverifiedCount={unverifiedUsers?.total}
-        isLoading={verifiedCountLoading || unverifiedCountLoading}
+        totalUsers={kycSummary?.totalUsers}
+        verifiedCount={kycSummary?.verifiedCount}
+        unverifiedCount={kycSummary?.unverifiedCount}
+        isLoading={kycSummaryLoading}
       />
 
       <AdminTableToolbar

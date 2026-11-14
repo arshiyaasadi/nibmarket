@@ -166,14 +166,27 @@ export interface AdminUsersListResponse {
   pageCount: number;
 }
 
-/** GET /admin/users/demographics — age bucket */
+/**
+ * GET /admin/users/kyc-summary — identity verification counts for admin users page.
+ * Counts are based on `hasSejamIdentity` (true = verified).
+ */
+export interface AdminUsersKycSummaryResponse {
+  /** All club users */
+  totalUsers: number;
+  /** Users with hasSejamIdentity === true */
+  verifiedCount: number;
+  /** Users with hasSejamIdentity !== true */
+  unverifiedCount: number;
+}
+
+/** GET /admin/users/demographics — age bucket (legacy; FE no longer calls) */
 export interface AdminAgeDistributionItem {
   range: string;
   count: number;
   percent: number;
 }
 
-/** GET /admin/users/demographics — gender bucket */
+/** GET /admin/users/demographics — gender bucket (legacy; FE no longer calls) */
 export interface AdminGenderDistributionItem {
   gender: AdminUserGender;
   label: string;
@@ -181,7 +194,7 @@ export interface AdminGenderDistributionItem {
   percent: number;
 }
 
-/** GET /admin/users/demographics */
+/** GET /admin/users/demographics (legacy; FE no longer calls) */
 export interface AdminUsersDemographicsResponse {
   totalUsers: number;
   ageDistribution: AdminAgeDistributionItem[];
