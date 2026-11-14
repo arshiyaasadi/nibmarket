@@ -57,7 +57,10 @@ export function PanelNotificationsBell() {
       >
         <Bell size={18} />
         {unreadCount > 0 && (
-          <span className="bg-danger absolute end-1 top-1 size-1.5 rounded-full" />
+          <span
+            aria-hidden
+            className="bg-danger absolute end-1 top-1 size-2 animate-pulse rounded-full shadow-[0_0_0_2px_rgba(239,68,68,0.25)]"
+          />
         )}
       </button>
 
