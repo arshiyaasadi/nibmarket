@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { type ColumnDef, type PaginationState } from "@tanstack/react-table";
-import { Coins, Lock, Package, PackageOpen, TrendingDown, TrendingUp } from "lucide-react";
+import { Coins, Package, PackageOpen, TrendingDown, TrendingUp } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -21,7 +21,6 @@ import { apiClient } from "@/lib/api/client";
 import { ENDPOINTS } from "@/lib/api/endpoints";
 import { ROUTES } from "@/config/routes";
 import { Button } from "@/components/atoms/Button";
-import { AdminOverviewStatCard } from "@/components/molecules/AdminOverviewStatCard";
 import { AdminTableToolbar } from "@/components/molecules/AdminTableToolbar";
 import { JalaliDatePicker } from "@/components/molecules/JalaliDatePicker";
 import { DataTable } from "@/components/ui/DataTable";
@@ -291,7 +290,7 @@ export default function TwinPageContent() {
         <p className="text-muted mt-1 text-xs">{t("subtitle")}</p>
       </div>
 
-      {/* Price + allocation summary */}
+      {/* Price + one combined allocation/pie card */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
         <div className="border-border bg-surface flex flex-col gap-4 rounded-2xl border p-5 lg:col-span-4">
           {overviewLoading ? (
@@ -325,53 +324,25 @@ export default function TwinPageContent() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-5">
+        <div className="border-border bg-surface rounded-2xl border p-5 lg:col-span-8">
           {overviewLoading ? (
-            Array.from({ length: 2 }).map((_, i) => (
-              <div
-                key={i}
-                className="border-border bg-surface h-28 animate-pulse rounded-2xl border"
-              />
-            ))
+            <div className="h-44 animate-pulse rounded-xl bg-black/5 dark:bg-white/5" />
           ) : (
-            <>
-              <AdminOverviewStatCard
-                label={t("allocatedTokens")}
-                value={pn(overview?.allocatedTokens ?? 0)}
-                unit={t("tokenUnit")}
-                icon={Package}
-                iconClassName="bg-teal-500/10 text-teal-700"
-              />
-              <AdminOverviewStatCard
-                label={t("unallocatedTokens")}
-                value={pn(overview?.unallocatedTokens ?? 0)}
-                unit={t("tokenUnit")}
-                icon={PackageOpen}
-                iconClassName="bg-slate-500/10 text-slate-600"
-              />
-            </>
-          )}
-        </div>
-
-        <div className="border-border bg-surface flex flex-col gap-3 rounded-2xl border p-5 lg:col-span-3">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-foreground text-xs font-semibold">{t("pieTitle")}</p>
-            <Lock size={14} className="text-amber-600" />
-          </div>
-          {overviewLoading ? (
-            <div className="h-36 animate-pulse rounded-xl bg-black/5 dark:bg-white/5" />
-          ) : (
-            <>
-              <div className="h-36 w-full">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+              <div className="relative h-44 w-full shrink-0 sm:w-44">
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
+                  <PieChart margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
                     <Pie
                       data={pieData}
                       dataKey="value"
                       nameKey="name"
-                      innerRadius={42}
-                      outerRadius={62}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={48}
+                      outerRadius={68}
                       paddingAngle={2}
+                      stroke="transparent"
+                      isAnimationActive={false}
                     >
                       {pieData.map((entry) => (
                         <Cell
@@ -387,35 +358,106 @@ export default function TwinPageContent() {
                       ))}
                     </Pie>
                     <Tooltip
-                      formatter={(value) =>
-                        `${pn(typeof value === "number" ? value : Number(value ?? 0))} ${t("tokenUnit")}`
-                      }
+                      cursor={false}
+                      allowEscapeViewBox={{ x: true, y: true }}
+                      offset={10}
+                      wrapperStyle={{
+                        outline: "none",
+                        zIndex: 20,
+                        pointerEvents: "none",
+                        width: "auto",
+                        height: "auto",
+                      }}
+                      content={({ active, payload }) => {
+                        if (!active || !payload?.length) return null;
+                        const item = payload[0];
+                        const value =
+                          typeof item.value === "number" ? item.value : Number(item.value ?? 0);
+                        return (
+                          <div className="border-border bg-surface rounded-xl border px-3 py-2 text-xs shadow-lg">
+                            <p className="text-muted mb-0.5 text-[11px]">
+                              {String(item.name ?? "")}
+                            </p>
+                            <p className="text-foreground font-semibold tabular-nums">
+                              {pn(value)} {t("tokenUnit")}
+                            </p>
+                          </div>
+                        );
+                      }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <ul className="flex flex-col gap-1 text-[11px]">
-                <li className="flex justify-between gap-2">
-                  <span className="text-muted">{t("pieAllocated")}</span>
-                  <span className="tabular-nums">
-                    {pn(
-                      Math.max(
-                        (overview?.allocatedTokens ?? 0) - (overview?.totalFrozenTokens ?? 0),
-                        0,
-                      ),
-                    )}
-                  </span>
-                </li>
-                <li className="flex justify-between gap-2">
-                  <span className="text-muted">{t("pieFrozen")}</span>
-                  <span className="tabular-nums">{pn(overview?.totalFrozenTokens ?? 0)}</span>
-                </li>
-                <li className="flex justify-between gap-2">
-                  <span className="text-muted">{t("pieUnallocated")}</span>
-                  <span className="tabular-nums">{pn(overview?.unallocatedTokens ?? 0)}</span>
-                </li>
-              </ul>
-            </>
+
+              <div className="flex min-w-0 flex-1 flex-col gap-3">
+                <p className="text-foreground text-xs font-semibold">{t("pieTitle")}</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-muted text-xs">{t("allocatedTokens")}</p>
+                      <p className="text-foreground mt-1 text-xl font-bold tabular-nums">
+                        {pn(overview?.allocatedTokens ?? 0)}{" "}
+                        <span className="text-muted text-xs font-normal">{t("tokenUnit")}</span>
+                      </p>
+                    </div>
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-teal-500/10 text-teal-700">
+                      <Package size={18} />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-muted text-xs">{t("unallocatedTokens")}</p>
+                      <p className="text-foreground mt-1 text-xl font-bold tabular-nums">
+                        {pn(overview?.unallocatedTokens ?? 0)}{" "}
+                        <span className="text-muted text-xs font-normal">{t("tokenUnit")}</span>
+                      </p>
+                    </div>
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-500/10 text-slate-600">
+                      <PackageOpen size={18} />
+                    </div>
+                  </div>
+                </div>
+                <ul className="border-border flex flex-col gap-1.5 border-t pt-3 text-[11px]">
+                  <li className="flex items-center justify-between gap-2">
+                    <span className="text-muted flex items-center gap-2">
+                      <span
+                        className="size-2.5 rounded-full"
+                        style={{ background: PIE_COLORS.allocated }}
+                      />
+                      {t("pieAllocated")}
+                    </span>
+                    <span className="tabular-nums">
+                      {pn(
+                        Math.max(
+                          (overview?.allocatedTokens ?? 0) - (overview?.totalFrozenTokens ?? 0),
+                          0,
+                        ),
+                      )}
+                    </span>
+                  </li>
+                  <li className="flex items-center justify-between gap-2">
+                    <span className="text-muted flex items-center gap-2">
+                      <span
+                        className="size-2.5 rounded-full"
+                        style={{ background: PIE_COLORS.frozen }}
+                      />
+                      {t("pieFrozen")}
+                    </span>
+                    <span className="tabular-nums">{pn(overview?.totalFrozenTokens ?? 0)}</span>
+                  </li>
+                  <li className="flex items-center justify-between gap-2">
+                    <span className="text-muted flex items-center gap-2">
+                      <span
+                        className="size-2.5 rounded-full"
+                        style={{ background: PIE_COLORS.unallocated }}
+                      />
+                      {t("pieUnallocated")}
+                    </span>
+                    <span className="tabular-nums">{pn(overview?.unallocatedTokens ?? 0)}</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
           )}
         </div>
       </div>
