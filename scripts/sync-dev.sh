@@ -144,7 +144,18 @@ if [[ "${STATUS_ONLY}" -eq 1 ]]; then
 fi
 
 if [[ "${FOLLOW}" -eq 1 ]] && [[ "${FORCE}" -eq 0 ]] && [[ "${RSYNC_ONLY}" -eq 0 ]] && [[ "${ROLLBACK}" -eq 0 ]]; then
+  echo ">>> --follow only tails the remote log; it does NOT start a deploy."
+  echo "    Start one with:  yarn sync:dev"
+  echo "    Then follow:     yarn sync:dev --follow"
+  echo "    (git push alone deploys only if mlm-cd-dev.timer is enabled on the host.)"
+  echo ""
   print_remote_status
+  if ! remote_is_running; then
+    echo ""
+    echo ">>> No deploy is running right now — nothing new will appear in the log."
+    echo "    Run: yarn sync:dev"
+    exit 1
+  fi
   follow_log
   exit 0
 fi
