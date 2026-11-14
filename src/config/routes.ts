@@ -48,13 +48,15 @@ export const ROUTES = {
   ADMIN: {
     ROOT: "/admin",
     USERS: "/admin/users",
-    USER_MESSAGES: "/admin/users/messages",
     USER_DETAIL: (userId: string) => `/admin/users/${userId}` as const,
+    USER_MAP: "/admin/map",
+    SYSTEM_MESSAGES: "/admin/system-messages",
+    /** @deprecated use SYSTEM_MESSAGES */
+    USER_MESSAGES: "/admin/system-messages",
     TWIN: "/admin/twin",
     POOL: "/admin/pool",
     SEDIMENT: "/admin/sediment",
     REPORTS: "/admin/reports",
     NOTIFICATIONS: "/admin/notifications",
-    USER_MAP: "/admin/map",
   },
 } as const;
