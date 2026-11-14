@@ -10,9 +10,10 @@ import { SejamKycForm } from "@/components/organisms/auth/SejamKycForm";
 import { useAuthProfile } from "@/features/auth/queries";
 import { needsSejamKyc, SEJAM_KYC_MODAL_ID } from "@/features/auth/sejam-kyc";
 import { useUiSlice } from "@/store/slices/ui.slice";
+import { cn } from "@/lib/utils";
 
 /**
- * Panel Sejam KYC modal shell (banner lives under navbar via SejamKycNoticeBanner).
+ * Panel KYC modal shell. Banner is Home-only (`SejamKycNoticeBanner` in DashboardContent).
  * Auto-opens once when profile lacks hasSejamIdentity; notification / profile CTA
  * reopen via `openModal(SEJAM_KYC_MODAL_ID)`.
  */
@@ -78,8 +79,12 @@ export function SejamKycGate() {
       title={t("kycGateTitle")}
       size="md"
       closeOnBackdrop={false}
+      className={cn(
+        "text-foreground border border-white/12 bg-[#14141c]/95 shadow-2xl shadow-black/40",
+        "backdrop-blur-2xl backdrop-saturate-150",
+      )}
     >
-      <ModalBody>
+      <ModalBody className="pb-pad-mol-md">
         <SejamKycForm onSuccess={closeModal} />
       </ModalBody>
     </Modal>

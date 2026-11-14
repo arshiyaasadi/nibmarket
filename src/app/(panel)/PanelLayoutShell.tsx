@@ -5,7 +5,6 @@ import { PanelSidebar } from "@/components/organisms/layout/PanelSidebar";
 import { PanelHeader } from "@/components/organisms/layout/PanelHeader";
 import { PanelAdminTour } from "@/components/organisms/layout/PanelAdminTour";
 import { SejamKycGate } from "@/components/organisms/auth/SejamKycGate";
-import { SejamKycNoticeBanner } from "@/components/organisms/auth/SejamKycNoticeBanner";
 import { useSyncWalletStore } from "@/hooks/use-sync-wallet-store";
 
 export function PanelLayoutShell({ children }: { children: React.ReactNode }) {
@@ -26,7 +25,6 @@ export function PanelLayoutShell({ children }: { children: React.ReactNode }) {
       {/* Main: full width, small padding-start to clear collapsed icon sidebar */}
       <div className="">
         <PanelHeader onOpenMobile={() => setSidebarOpen(true)} />
-        <SejamKycNoticeBanner />
         <main className="pt-pad-mol-md px-pad-mol sm:px-mol-md lg:px-org lg:pb-pad-mol-md pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] lg:ps-[6rem]">
           {children}
         </main>

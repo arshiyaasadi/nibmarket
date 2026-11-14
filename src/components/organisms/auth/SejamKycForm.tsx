@@ -6,7 +6,7 @@ import { Alert } from "@/components/atoms/Alert";
 import { Button } from "@/components/atoms/Button";
 import { Input } from "@/components/atoms/Input";
 import { JalaliDatePicker } from "@/components/molecules/JalaliDatePicker";
-import { useVerifyKyc } from "@/features/auth/queries";
+import { useAuthProfile, useVerifyKyc } from "@/features/auth/queries";
 import { ApiException } from "@/types/api";
 import { toEnglishDigits } from "@/lib/normalization/digits";
 import { isValidIranianNationalCode, normalizeNationalCode } from "@/lib/validation/national-code";
@@ -17,12 +17,15 @@ type SejamKycFormProps = {
 
 export function SejamKycForm({ onSuccess }: SejamKycFormProps) {
   const t = useTranslations("auth");
+  const profileQuery = useAuthProfile();
   const verifyMutation = useVerifyKyc();
 
   const [nationalCode, setNationalCode] = useState("");
   const [birthDate, setBirthDate] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
+
+  const userMobile = profileQuery.data?.mobile?.trim() || "";
 
   function validate(): boolean {
     const next: Record<string, string> = {};
@@ -56,8 +59,14 @@ export function SejamKycForm({ onSuccess }: SejamKycFormProps) {
   }
 
   return (
-    <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
+    <form onSubmit={(e) => void handleSubmit(e)} className="gap-pad-mol flex flex-col">
       <p className="text-muted text-sm leading-7">{t("kycGateDescription")}</p>
+
+      {userMobile ? (
+        <p className="border-primary/20 bg-primary/10 text-foreground px-pad-atom-md py-atom-md rounded-xl border text-xs leading-6">
+          {t("kycNationalCodeHintWithMobile", { userMobile })}
+        </p>
+      ) : null}
 
       {formError && (
         <Alert variant="danger" onClose={() => setFormError(null)}>
@@ -73,7 +82,7 @@ export function SejamKycForm({ onSuccess }: SejamKycFormProps) {
         maxLength={10}
         value={nationalCode}
         error={fieldErrors.nationalCode}
-        hint={t("profileNationalIdHint")}
+        hint={userMobile ? undefined : t("kycNationalCodeHintWithMobile", { userMobile: "—" })}
         onChange={(e) => {
           setNationalCode(normalizeNationalCode(e.target.value));
           setFieldErrors((prev) => {
