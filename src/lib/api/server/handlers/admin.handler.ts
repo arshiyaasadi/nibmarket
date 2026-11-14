@@ -12,6 +12,7 @@ import {
   getAdminMissionsOverview,
   listAdminMissionCompletions,
   listAdminTwinAllocations,
+  listAdminTwinSources,
   listAdminTwinSupplyAdjustments,
   createAdminTwinSupplyAdjustment,
   listAdminMissions,
@@ -170,6 +171,12 @@ export async function adminTwinOverviewHandler(_req: Request): Promise<Response>
   const auth = await requireAdmin();
   if (!auth) return unauthorized();
   return NextResponse.json(await getAdminTwinOverview());
+}
+
+export async function adminTwinSourcesHandler(_req: Request): Promise<Response> {
+  const auth = await requireAdmin();
+  if (!auth) return unauthorized();
+  return NextResponse.json(await listAdminTwinSources());
 }
 
 export async function adminTwinAllocationsHandler(req: Request): Promise<Response> {

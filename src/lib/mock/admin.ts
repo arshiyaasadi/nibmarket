@@ -14,6 +14,7 @@ import type {
   AdminTwinAllocationSource,
   AdminTwinAllocationsResponse,
   AdminTwinOverviewResponse,
+  AdminTwinSourcesResponse,
   AdminTwinSupplyAdjustmentRequest,
   AdminTwinSupplyAdjustmentRow,
   AdminTwinSupplyAdjustmentsResponse,
@@ -31,6 +32,15 @@ const ALLOCATION_SOURCES: AdminTwinAllocationSource[] = [
   "mint",
   "pool_deposit",
 ];
+
+const ALLOCATION_SOURCE_LABELS: Record<AdminTwinAllocationSource, string> = {
+  mission_reward: "پاداش مأموریت",
+  commission_reward: "کمیسیون شبکه",
+  registration: "ثبت‌نام",
+  adjustment: "تعدیل سیستمی",
+  mint: "صدور",
+  pool_deposit: "استخر",
+};
 
 function resolveHasSejamIdentity(user: MockUserRecord): boolean {
   if (typeof user.hasSejamIdentity === "boolean") return user.hasSejamIdentity;
@@ -398,6 +408,16 @@ function buildSourceBreakdown(
     source,
     totalTokens: sums.get(source) ?? 0,
   }));
+}
+
+export async function listAdminTwinSources(): Promise<AdminTwinSourcesResponse> {
+  await ensureMockStore();
+  return {
+    items: ALLOCATION_SOURCES.map((code) => ({
+      code,
+      label: ALLOCATION_SOURCE_LABELS[code],
+    })),
+  };
 }
 
 export async function getAdminTwinOverview(): Promise<AdminTwinOverviewResponse> {

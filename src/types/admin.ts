@@ -284,6 +284,18 @@ export interface UpdateAdminUserRoleResponse {
 export type AdminTwinAllocationSource =
   "mission_reward" | "commission_reward" | "registration" | "adjustment" | "mint" | "pool_deposit";
 
+/** GET /admin/twin/sources — catalog item for filter + labels */
+export interface AdminTwinSourceCatalogItem {
+  code: AdminTwinAllocationSource;
+  /** Display label (FA); FE may fall back to i18n if omitted */
+  label: string;
+}
+
+/** GET /admin/twin/sources */
+export interface AdminTwinSourcesResponse {
+  items: AdminTwinSourceCatalogItem[];
+}
+
 /** One bar in the twin source breakdown chart */
 export interface AdminTwinSourceBreakdownItem {
   source: AdminTwinAllocationSource;

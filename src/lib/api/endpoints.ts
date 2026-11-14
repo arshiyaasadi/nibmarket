@@ -158,6 +158,8 @@ export const ENDPOINTS = {
     TWIN: {
       OVERVIEW: "/admin/twin/overview",
       ALLOCATIONS: "/admin/twin/allocations",
+      /** Catalog of allocation source codes + labels for filter dropdown */
+      SOURCES: "/admin/twin/sources",
       /** POST create + GET list — treasury mint / unallocated balance adjustments */
       SUPPLY_ADJUSTMENTS: "/admin/twin/supply-adjustments",
     },

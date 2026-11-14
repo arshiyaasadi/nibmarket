@@ -31,19 +31,11 @@ import type {
   AdminTwinAllocationsResponse,
   AdminTwinAllocationSource,
   AdminTwinOverviewResponse,
+  AdminTwinSourcesResponse,
   AdminTwinSupplyAdjustmentRequest,
   AdminTwinSupplyAdjustmentRow,
   AdminTwinSupplyAdjustmentsResponse,
 } from "@/types/admin";
-
-const SOURCE_OPTIONS: AdminTwinAllocationSource[] = [
-  "mission_reward",
-  "commission_reward",
-  "registration",
-  "adjustment",
-  "mint",
-  "pool_deposit",
-];
 
 const PIE_COLORS = {
   allocated: "#0d9488",
@@ -86,6 +78,11 @@ export default function TwinPageContent() {
     queryFn: () => apiClient.get(ENDPOINTS.ADMIN.TWIN.OVERVIEW),
   });
 
+  const { data: sourcesCatalog } = useQuery<AdminTwinSourcesResponse>({
+    queryKey: ["admin", "twin", "sources"],
+    queryFn: () => apiClient.get(ENDPOINTS.ADMIN.TWIN.SOURCES),
+  });
+
   const { data, isLoading } = useQuery<AdminTwinAllocationsResponse>({
     queryKey: ["admin", "twin", "allocations", pagination, search, sourceFilter],
     queryFn: () =>
@@ -117,7 +114,17 @@ export default function TwinPageContent() {
     },
   });
 
-  const sourceLabel = (source: AdminTwinAllocationSource) => t(`sources.${source}`);
+  const sourceLabelByCode = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const item of sourcesCatalog?.items ?? []) {
+      map.set(item.code, item.label);
+    }
+    return map;
+  }, [sourcesCatalog?.items]);
+
+  const sourceLabel = (source: AdminTwinAllocationSource | string) =>
+    sourceLabelByCode.get(source) ??
+    (t.has(`sources.${source}` as never) ? t(`sources.${source}` as never) : String(source));
 
   const pieData = useMemo(() => {
     const allocated = overview?.allocatedTokens ?? 0;
@@ -138,8 +145,8 @@ export default function TwinPageContent() {
         label: sourceLabel(item.source),
         totalTokens: item.totalTokens,
       })),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [overview?.sourceBreakdown, t],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sourceLabel closes over sourceLabelByCode + t
+    [overview?.sourceBreakdown, sourceLabelByCode, t],
   );
 
   const amountNumber = Number(amountInput.replace(/,/g, ""));
@@ -515,9 +522,9 @@ export default function TwinPageContent() {
               className="border-border bg-surface text-foreground rounded-xl border px-3 py-2 text-sm outline-none"
             >
               <option value="">{t("allSources")}</option>
-              {SOURCE_OPTIONS.map((source) => (
-                <option key={source} value={source}>
-                  {sourceLabel(source)}
+              {(sourcesCatalog?.items ?? []).map((item) => (
+                <option key={item.code} value={item.code}>
+                  {item.label || sourceLabel(item.code)}
                 </option>
               ))}
             </select>
