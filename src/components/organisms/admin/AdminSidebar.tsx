@@ -1,7 +1,7 @@
 /**
  * @level organism
  * Liquid-glass island rail — collapsed shows icons only, hover expands over the content.
- * Users nests: list + density map. System messages is its own top-level section.
+ * Branch parents use exclusive accordion: only one submenu open at a time.
  */
 "use client";
 import Link from "next/link";
@@ -22,6 +22,7 @@ import {
   MessageSquare,
   List,
   Vault,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { performLogout } from "@/lib/auth/session";
@@ -76,6 +77,18 @@ const NAV: NavEntry[] = [
   { href: "/admin/missions", labelKey: "missions", icon: Target },
 ];
 
+function branchMatchesPath(entry: NavBranch, pathname: string): boolean {
+  if (pathname === entry.href || pathname.startsWith(`${entry.href}/`)) return true;
+  return entry.children.some((c) => pathname === c.href || pathname.startsWith(`${c.href}/`));
+}
+
+function findOpenBranchForPath(pathname: string): string | null {
+  for (const entry of NAV) {
+    if (entry.kind === "branch" && branchMatchesPath(entry, pathname)) return entry.href;
+  }
+  return null;
+}
+
 /** Matches the client panel rail so both shells feel identical. */
 const COLLAPSED_W = "5.5rem";
 const EXPANDED_W = "17rem";
@@ -84,6 +97,30 @@ export function AdminSidebar() {
   const pathname = usePathname();
   const t = useTranslations("admin.nav");
   const [expanded, setExpanded] = useState(false);
+  /**
+   * Exclusive accordion override for the current pathname.
+   * When `forPath` does not match, follow the route-derived branch instead (no effect sync).
+   */
+  const [accordion, setAccordion] = useState<{ branch: string | null; forPath: string }>(() => ({
+    branch: findOpenBranchForPath(pathname),
+    forPath: pathname,
+  }));
+  const openBranch =
+    accordion.forPath === pathname ? accordion.branch : findOpenBranchForPath(pathname);
+
+  function toggleBranch(href: string) {
+    setAccordion((prev) => {
+      const current = prev.forPath === pathname ? prev.branch : findOpenBranchForPath(pathname);
+      return {
+        branch: current === href ? null : href,
+        forPath: pathname,
+      };
+    });
+  }
+
+  function setOpenBranch(branch: string | null) {
+    setAccordion({ branch, forPath: pathname });
+  }
 
   async function handleLogout() {
     await performLogout();
@@ -149,30 +186,53 @@ export function AdminSidebar() {
         <nav className="relative flex flex-1 flex-col gap-[2px] overflow-x-hidden overflow-y-auto px-2">
           {NAV.map((entry) => {
             if (entry.kind === "branch") {
-              const branchActive =
-                pathname === entry.href ||
-                pathname.startsWith(`${entry.href}/`) ||
-                entry.children.some(
-                  (c) => pathname === c.href || pathname.startsWith(`${c.href}/`),
-                );
+              const branchActive = branchMatchesPath(entry, pathname);
+              const isOpen = openBranch === entry.href;
               const Icon = entry.icon;
               return (
                 <div key={entry.href} className="flex flex-col gap-[2px]">
-                  <Link
-                    href={entry.href}
-                    title={t(entry.labelKey)}
-                    className={itemCls(branchActive && !expanded)}
-                  >
-                    <Icon
-                      size={20}
-                      className={cn(
-                        "shrink-0 transition-transform duration-300 group-hover:scale-110",
-                        branchActive ? "text-primary" : "text-current",
-                      )}
-                    />
-                    <span className={labelCls}>{t(entry.labelKey)}</span>
-                  </Link>
-                  {expanded && (
+                  {expanded ? (
+                    <button
+                      type="button"
+                      title={t(entry.labelKey)}
+                      aria-expanded={isOpen}
+                      onClick={() => toggleBranch(entry.href)}
+                      className={itemCls(branchActive && !isOpen)}
+                    >
+                      <Icon
+                        size={20}
+                        className={cn(
+                          "shrink-0 transition-transform duration-300 group-hover:scale-110",
+                          branchActive ? "text-primary" : "text-current",
+                        )}
+                      />
+                      <span className={labelCls}>{t(entry.labelKey)}</span>
+                      <ChevronDown
+                        size={14}
+                        className={cn(
+                          "ms-auto shrink-0 opacity-70 transition-transform duration-200",
+                          isOpen && "rotate-180",
+                        )}
+                      />
+                    </button>
+                  ) : (
+                    <Link
+                      href={entry.href}
+                      title={t(entry.labelKey)}
+                      className={itemCls(branchActive)}
+                      onClick={() => setOpenBranch(entry.href)}
+                    >
+                      <Icon
+                        size={20}
+                        className={cn(
+                          "shrink-0 transition-transform duration-300 group-hover:scale-110",
+                          branchActive ? "text-primary" : "text-current",
+                        )}
+                      />
+                      <span className={labelCls}>{t(entry.labelKey)}</span>
+                    </Link>
+                  )}
+                  {expanded && isOpen && (
                     <div className="mb-1 flex flex-col gap-[2px] ps-2 pe-1">
                       {entry.children.map((child) => {
                         const ChildIcon = child.icon;
@@ -207,6 +267,7 @@ export function AdminSidebar() {
                 href={entry.href}
                 title={t(entry.labelKey)}
                 className={itemCls(active)}
+                onClick={() => setOpenBranch(null)}
               >
                 <Icon
                   size={20}
