@@ -536,16 +536,12 @@ export async function createAdminTwinSupplyAdjustment(
 ) {
   await ensureMockStore();
   const amount = Number(body.amount);
-  if (!Number.isFinite(amount) || amount === 0) {
+  // Treasury can only ADD — reject zero and negative amounts.
+  if (!Number.isFinite(amount) || amount <= 0) {
     throw new Error("INVALID_AMOUNT");
   }
 
-  const next = mockUnallocatedTokens + amount;
-  if (next < 0) {
-    throw new Error("INSUFFICIENT_UNALLOCATED");
-  }
-
-  mockUnallocatedTokens = next;
+  mockUnallocatedTokens = mockUnallocatedTokens + amount;
   const overview = await getAdminTwinOverview();
   const entry: AdminTwinSupplyAdjustmentRow = {
     id: `supply-${Date.now()}`,

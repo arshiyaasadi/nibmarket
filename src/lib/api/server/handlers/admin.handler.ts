@@ -216,8 +216,8 @@ export async function adminTwinSupplyAdjustmentsCreateHandler(req: Request): Pro
 
   const amount = Number(body.amount);
   const effectiveDate = String(body.effectiveDate ?? "").trim();
-  if (!Number.isFinite(amount) || amount === 0)
-    return badRequest("amount must be a non-zero number");
+  if (!Number.isFinite(amount) || amount <= 0)
+    return badRequest("amount must be a positive number");
   if (!effectiveDate) return badRequest("effectiveDate is required");
 
   try {
@@ -228,9 +228,6 @@ export async function adminTwinSupplyAdjustmentsCreateHandler(req: Request): Pro
     return NextResponse.json(result);
   } catch (error) {
     const code = error instanceof Error ? error.message : "FAILED";
-    if (code === "INSUFFICIENT_UNALLOCATED") {
-      return NextResponse.json({ error: code }, { status: 409 });
-    }
     return badRequest(code);
   }
 }

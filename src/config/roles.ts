@@ -36,6 +36,7 @@ export const ADMIN_ROLE_GUARDS: Record<string, UserRole[]> = {
   "/admin/network": ["manager", "admin"],
   "/admin/missions": ["manager", "admin"],
   "/admin/twin": ["manager", "admin"],
+  "/admin/twin/treasury": ["manager", "admin"],
   "/admin/twin/price": ["manager", "admin"],
   "/admin/pool": ["manager", "admin"],
   "/admin/sediment": ["manager", "admin"],

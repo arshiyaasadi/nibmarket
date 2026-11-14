@@ -54,6 +54,8 @@ export const ROUTES = {
     /** @deprecated use SYSTEM_MESSAGES */
     USER_MESSAGES: "/admin/system-messages",
     TWIN: "/admin/twin",
+    /** Treasury inflows — add supply only (positive amounts) */
+    TWIN_TREASURY: "/admin/twin/treasury",
     /** Token price detail — coming soon shell */
     TWIN_PRICE: "/admin/twin/price",
     POOL: "/admin/pool",

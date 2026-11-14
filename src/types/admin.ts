@@ -351,11 +351,11 @@ export interface AdminTwinAllocationsResponse {
 }
 
 /**
- * POST /admin/twin/supply-adjustments — adjust unallocated treasury balance.
- * `amount` may be negative (reduce unallocated).
+ * POST /admin/twin/supply-adjustments — add to unallocated treasury balance.
+ * `amount` must be > 0 (treasury can only increase).
  */
 export interface AdminTwinSupplyAdjustmentRequest {
-  /** Token delta (positive or negative) */
+  /** Token inflow amount (must be > 0) */
   amount: number;
   /** ISO date `YYYY-MM-DD` or Jalali `YYYY/MM/DD` — FE sends Jalali */
   effectiveDate: string;

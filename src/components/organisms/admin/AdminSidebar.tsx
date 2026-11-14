@@ -21,6 +21,7 @@ import {
   Shield,
   MessageSquare,
   List,
+  Vault,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { performLogout } from "@/lib/auth/session";
@@ -43,6 +44,9 @@ type NavBranch = {
 
 type NavEntry = ({ kind?: "leaf" } & NavLeaf) | NavBranch;
 
+/** Overview paths that are prefixes of sibling routes — match exact only. */
+const EXACT_CHILD_HREFS = new Set<string>([ROUTES.ADMIN.USERS, ROUTES.ADMIN.TWIN]);
+
 const NAV: NavEntry[] = [
   { href: ROUTES.ADMIN.ROOT, labelKey: "dashboard", icon: LayoutDashboard, exact: true },
   {
@@ -56,7 +60,16 @@ const NAV: NavEntry[] = [
     ],
   },
   { href: ROUTES.ADMIN.SYSTEM_MESSAGES, labelKey: "systemMessages", icon: MessageSquare },
-  { href: ROUTES.ADMIN.TWIN, labelKey: "twin", icon: Coins },
+  {
+    kind: "branch",
+    href: ROUTES.ADMIN.TWIN,
+    labelKey: "twin",
+    icon: Coins,
+    children: [
+      { href: ROUTES.ADMIN.TWIN, labelKey: "twinOverview", icon: Coins },
+      { href: ROUTES.ADMIN.TWIN_TREASURY, labelKey: "twinTreasury", icon: Vault },
+    ],
+  },
   { href: ROUTES.ADMIN.POOL, labelKey: "pool", icon: Trophy },
   { href: ROUTES.ADMIN.SEDIMENT, labelKey: "sediment", icon: Layers },
   { href: "/admin/network", labelKey: "network", icon: Network },
@@ -163,12 +176,9 @@ export function AdminSidebar() {
                     <div className="mb-1 flex flex-col gap-[2px] ps-2 pe-1">
                       {entry.children.map((child) => {
                         const ChildIcon = child.icon;
-                        const childActive =
-                          child.href === ROUTES.ADMIN.USERS
-                            ? pathname === ROUTES.ADMIN.USERS
-                            : pathname === child.href ||
-                              (child.href !== ROUTES.ADMIN.USERS &&
-                                pathname.startsWith(`${child.href}/`));
+                        const childActive = EXACT_CHILD_HREFS.has(child.href)
+                          ? pathname === child.href
+                          : pathname === child.href || pathname.startsWith(`${child.href}/`);
                         return (
                           <Link
                             key={child.href}
