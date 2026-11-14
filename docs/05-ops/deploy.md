@@ -7,6 +7,19 @@ Both zones are **working**. Deploy from a laptop over WireGuard; no Azure/git pu
 | **dev / dig** | nibdev | `yarn sync:dev` | [nibdev.md](./nibdev.md) — blue/green `:3000` / `127.0.0.1:2999` |
 | **live** | nibmarket | `yarn sync:live` | [nibmarket.md](./nibmarket.md) — `:3000` + nginx origin `:80` behind CDN |
 
+## Git branch policy
+
+| Branch | Role | Release |
+|--------|------|---------|
+| **`develop`** | Day-to-day work (PRs / feature branches merge here) | After a version cut: deploy with `yarn sync:dev` → **nibdev** (`club.nibdev.com`) |
+| **`main`** | Live baseline | After `develop` is merged into `main`: deploy with `yarn sync:live` → **nibmarket** (`club.nibmarket.com`) |
+
+Notes:
+
+- Azure Pipelines stay `trigger: none` — branch merge does **not** auto-deploy; someone with WireGuard runs `yarn sync:dev` / `yarn sync:live`.
+- Feature branches should target **`develop`**, not `main`.
+- Do not push unfinished work straight to `main`.
+
 Env / presets: [env.md](./env.md) · Live log collection (paste for agent): [`scripts/live-logs-prompt.md`](../../scripts/live-logs-prompt.md)
 
 ## Shared prerequisites
