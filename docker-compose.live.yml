@@ -31,9 +31,11 @@ services:
         required: false
     environment:
       DEPLOY_STATUS_PATH: /app/deploy-status
+      LAST_DEPLOYED_SHA_PATH: /app/last-deployed-sha
     volumes:
-      # Host deploy status (written by remote-deploy.sh) so /api/ping can show it.
+      # Host deploy status + auto-CD SHA so /api/ping (ping-pong) can show pipeline state.
       - ./.cd-state/deploy-status:/app/deploy-status:ro
+      - ./.cd-state/last-deployed-sha:/app/last-deployed-sha:ro
     restart: unless-stopped
     networks:
       - nginx

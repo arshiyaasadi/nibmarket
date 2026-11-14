@@ -6,6 +6,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import {
   LogOut,
@@ -520,19 +521,125 @@ function ProfileField({
   );
 }
 
+type PingPayloadClient = {
+  ok: true;
+  now: string;
+  version: {
+    package: string | null;
+    git: string;
+    builtAt: string | null;
+    uptimeSeconds: number;
+  };
+  deploy: {
+    status: string | null;
+    stage: string | null;
+    message: string | null;
+    error: string | null;
+    gitSha: string | null;
+    buildTime: string | null;
+    updatedAt: string | null;
+    activeSlot: string | null;
+    zone: string | null;
+  } | null;
+  cd: {
+    zone: string;
+    autoCdExpected: boolean;
+    lastDeployedSha: string | null;
+    verifyHint: string;
+  };
+};
+
 function ApplicationInfoTab() {
   const t = useTranslations("auth");
+  const {
+    data: ping,
+    isLoading: pingLoading,
+    isError: pingError,
+    refetch: loadPing,
+  } = useQuery({
+    queryKey: ["ops", "ping-pong"],
+    queryFn: async (): Promise<PingPayloadClient> => {
+      const res = await fetch("/api/ping", { cache: "no-store" });
+      if (!res.ok) throw new Error("ping failed");
+      return (await res.json()) as PingPayloadClient;
+    },
+  });
+
   const environment =
     process.env.NEXT_PUBLIC_APP_ENV === "production"
       ? t("applicationEnvironmentProduction")
       : t("applicationEnvironmentDevelopment");
 
+  const liveGit = ping?.version.git ?? gitSha ?? "—";
+  const liveBuilt = ping?.version.builtAt ?? "—";
+  const packageLabel = ping?.version.package
+    ? `${ping.version.package}+${liveGit}`
+    : displayVersion;
+
   const fields = [
     { label: t("applicationName"), value: t("applicationNameValue") },
-    { label: t("applicationVersion"), value: displayVersion, dir: "ltr" as const },
+    { label: t("applicationVersion"), value: packageLabel, dir: "ltr" as const },
+    { label: t("applicationGitSha"), value: liveGit, dir: "ltr" as const },
+    { label: t("applicationBuildTime"), value: liveBuilt, dir: "ltr" as const },
     { label: t("applicationPlatform"), value: t("applicationPlatformValue") },
     { label: t("applicationEnvironment"), value: environment },
   ];
+
+  const cdFields = ping
+    ? [
+        {
+          label: t("applicationCdZone"),
+          value: ping.cd.zone,
+          dir: "ltr" as const,
+        },
+        {
+          label: t("applicationCdAuto"),
+          value: ping.cd.autoCdExpected ? t("applicationCdAutoLive") : t("applicationCdAutoDig"),
+        },
+        {
+          label: t("applicationCdLastSha"),
+          value: ping.cd.lastDeployedSha ?? "—",
+          dir: "ltr" as const,
+        },
+        ...(ping.deploy
+          ? [
+              {
+                label: t("applicationDeployStatus"),
+                value: [ping.deploy.status, ping.deploy.stage].filter(Boolean).join(" / ") || "—",
+                dir: "ltr" as const,
+              },
+              {
+                label: t("applicationDeploySha"),
+                value: ping.deploy.gitSha ?? "—",
+                dir: "ltr" as const,
+              },
+              {
+                label: t("applicationDeployBuiltAt"),
+                value: ping.deploy.buildTime ?? "—",
+                dir: "ltr" as const,
+              },
+              {
+                label: t("applicationDeployUpdatedAt"),
+                value: ping.deploy.updatedAt ?? "—",
+                dir: "ltr" as const,
+              },
+              {
+                label: t("applicationDeployMessage"),
+                value: ping.deploy.message ?? ping.deploy.error ?? "—",
+              },
+              ...(ping.deploy.activeSlot
+                ? [
+                    {
+                      label: t("applicationActiveSlot"),
+                      value: ping.deploy.activeSlot,
+                      dir: "ltr" as const,
+                    },
+                  ]
+                : []),
+            ]
+          : []),
+      ]
+    : [];
 
   return (
     <div className="flex flex-col gap-3">
@@ -551,6 +658,35 @@ function ApplicationInfoTab() {
           <ProfileField key={field.label} {...field} />
         ))}
       </dl>
+
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-foreground text-xs font-semibold">{t("applicationCdSection")}</p>
+        <button
+          type="button"
+          onClick={() => void loadPing()}
+          className="text-primary text-[11px] font-medium hover:underline"
+        >
+          {t("applicationPingRefresh")}
+        </button>
+      </div>
+
+      {pingLoading && !ping ? (
+        <p className="text-muted text-xs">{t("applicationPingLoading")}</p>
+      ) : pingError ? (
+        <p className="text-danger text-xs">{t("applicationPingError")}</p>
+      ) : (
+        <dl className="divide-border/70 border-border/60 divide-y rounded-xl border">
+          {cdFields.map((field) => (
+            <ProfileField key={field.label} {...field} />
+          ))}
+        </dl>
+      )}
+
+      {ping?.cd.verifyHint && (
+        <p className="text-muted text-[11px] leading-relaxed" dir="ltr">
+          {t("applicationCdHint")}: {ping.cd.verifyHint}
+        </p>
+      )}
 
       <div className="text-success bg-success/5 border-success/15 flex items-center gap-2 rounded-xl border px-3 py-2.5 text-xs">
         <BadgeCheck className="size-4 shrink-0" />

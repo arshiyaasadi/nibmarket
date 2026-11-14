@@ -61,8 +61,17 @@ yarn logs:live                # pull live snapshot → logs/live/*.txt
 
 **Versioning = merge develop→main + `git push novin main`.** Host polls `main` every ~2 minutes.
 
+### Verify live auto CD (ping-pong)
+
+1. Note tip: `git rev-parse --short HEAD` on `main`
+2. `git push novin main` → wait **~2 minutes**
+3. Profile → **درباره اپلیکیشن**, or `curl -sS https://club.nibmarket.com/api/ping`
+4. Compare `version.git` / `deploy.gitSha` to the tip
+5. Fallback: `yarn logs:live`
+
 ```bash
 # After push to Azure main (preferred):
+curl -sS https://club.nibmarket.com/api/ping
 yarn logs:live                # confirm SHA / deploy status
 yarn sync:live:status
 yarn sync:live:follow         # tails only

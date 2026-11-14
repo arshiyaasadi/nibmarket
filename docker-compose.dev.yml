@@ -33,6 +33,11 @@ services:
     env_file:
       - path: .env
         required: false
+    environment:
+      DEPLOY_STATUS_PATH: /app/deploy-status
+    volumes:
+      # So /api/ping (ping-pong) can show last yarn sync:dev status.
+      - ./.cd-state/deploy-status:/app/deploy-status:ro
     restart: unless-stopped
     networks:
       - nginx
@@ -46,6 +51,10 @@ services:
     env_file:
       - path: .env
         required: false
+    environment:
+      DEPLOY_STATUS_PATH: /app/deploy-status
+    volumes:
+      - ./.cd-state/deploy-status:/app/deploy-status:ro
     restart: unless-stopped
     networks:
       - nginx

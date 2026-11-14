@@ -13,11 +13,27 @@ export type DeploySnapshot = {
   nginxDomain: string | null;
   updatedAt: string | null;
   startedAt: string | null;
+  zone: string | null;
+  activeSlot: string | null;
+  composeFile: string | null;
+};
+
+export type CdPolicySnapshot = {
+  /** Runtime zone from APP_ENV / deploy status */
+  zone: "live" | "development" | "unknown";
+  /** Policy: live → mlm-cd.timer; dig → yarn sync:dev only */
+  autoCdExpected: boolean;
+  /** Host file last-deployed-sha (live) or last-deployed-sha-dev (dig), if mounted/readable */
+  lastDeployedSha: string | null;
+  /** Hint for operators testing auto CD */
+  verifyHint: string;
 };
 
 export type PingPayload = {
   ok: true;
   service: "novin-club";
+  /** Friendly name for this surface */
+  pingPong: "club-fe";
   now: string;
   version: {
     package: string | null;
@@ -26,7 +42,9 @@ export type PingPayload = {
     upSince: string;
     uptimeSeconds: number;
   };
+  /** Parsed `.cd-state/deploy-status` (mounted into the container when possible) */
   deploy: DeploySnapshot | null;
+  cd: CdPolicySnapshot;
 };
 
 type BuildInfo = {
@@ -82,10 +100,13 @@ function parseDeployStatus(text: string): DeploySnapshot {
     pid: pick("PID"),
     gitSha: pick("GIT_SHA"),
     buildTime: pick("BUILD_TIME"),
-    livePort: pick("LIVE_PORT"),
+    livePort: pick("LIVE_PORT") ?? pick("PUBLIC_PORT"),
     nginxDomain: pick("NGINX_DOMAIN"),
     updatedAt: pick("UPDATED_AT"),
     startedAt: pick("STARTED_AT"),
+    zone: pick("ZONE"),
+    activeSlot: pick("ACTIVE_SLOT"),
+    composeFile: pick("COMPOSE_FILE"),
   };
 }
 
@@ -102,6 +123,38 @@ function deployStatusFile(): string | null {
   return null;
 }
 
+function readLastDeployedSha(zone: CdPolicySnapshot["zone"]): string | null {
+  const candidates =
+    zone === "live"
+      ? [
+          process.env.LAST_DEPLOYED_SHA_PATH,
+          "/app/last-deployed-sha",
+          path.join(process.cwd(), ".cd-state", "last-deployed-sha"),
+        ]
+      : [
+          process.env.LAST_DEPLOYED_SHA_PATH,
+          "/app/last-deployed-sha-dev",
+          path.join(process.cwd(), ".cd-state", "last-deployed-sha-dev"),
+          path.join(process.cwd(), ".cd-state", "last-deployed-sha"),
+        ];
+
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    const text = readText(candidate);
+    if (text) return text.trim().split(/\s+/)[0] || null;
+  }
+  return null;
+}
+
+function resolveZone(deployZone: string | null): CdPolicySnapshot["zone"] {
+  const env = (process.env.APP_ENV || process.env.NEXT_PUBLIC_APP_ENV || "").toLowerCase();
+  if (deployZone === "production" || deployZone === "live" || env === "production") return "live";
+  if (deployZone === "development" || env === "development") return "development";
+  if (env === "production") return "live";
+  if (env) return "development";
+  return "unknown";
+}
+
 function nonEmpty(value: string | undefined | null): string | null {
   if (!value) return null;
   const trimmed = value.trim();
@@ -114,10 +167,15 @@ export function getPingPayload(now = new Date()): PingPayload {
   const upSince = new Date(now.getTime() - process.uptime() * 1000).toISOString();
   const statusFile = deployStatusFile();
   const statusText = statusFile ? readText(statusFile) : null;
+  const deploy = statusText ? parseDeployStatus(statusText) : null;
+  const zone = resolveZone(deploy?.zone ?? null);
+  const autoCdExpected = zone === "live";
+  const lastDeployedSha = readLastDeployedSha(zone);
 
   return {
     ok: true,
     service: "novin-club",
+    pingPong: "club-fe",
     now: now.toISOString(),
     version: {
       package: nonEmpty(info.version),
@@ -130,6 +188,14 @@ export function getPingPayload(now = new Date()): PingPayload {
       upSince,
       uptimeSeconds,
     },
-    deploy: statusText ? parseDeployStatus(statusText) : null,
+    deploy,
+    cd: {
+      zone,
+      autoCdExpected,
+      lastDeployedSha,
+      verifyHint: autoCdExpected
+        ? "After git push novin main, wait ~2m then refresh /api/ping — version.git should match tip. Fallback: yarn logs:live"
+        : "Dig has no auto CD — ship with yarn sync:dev, then refresh /api/ping. Fallback: yarn logs:dev",
+    },
   };
 }
