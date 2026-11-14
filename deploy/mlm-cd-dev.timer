@@ -1,5 +1,5 @@
 [Unit]
-Description=Run MLM Front nibdev CD every 2 minutes (Azure git poll)
+Description=DEPRECATED — do not enable; dig has no auto CD (use yarn sync:dev)
 
 [Timer]
 OnBootSec=2min

@@ -46,7 +46,7 @@ Cold start (no active yet): default slot (`blue`) builds directly on `:3000`. St
 ### CLI
 
 ```bash
-yarn sync:dev                 # rsync + blue/green (real API) — Era A fallback
+yarn sync:dev                 # only dig ship path (rsync + blue/green)
 yarn sync:dev --status
 yarn sync:dev --follow        # tails log only; does NOT start a deploy
 yarn sync:dev --rollback      # instant swap, no rebuild
@@ -55,8 +55,8 @@ yarn sync:dev:rollback
 yarn logs:dev                 # snapshot → logs/dev/<timestamp>.txt (gitignored)
 ```
 
-**Push-only CD:** `git push novin develop` deploys only if `mlm-cd-dev.timer` is enabled on the host.  
-Check / enable: [release-history.md](./release-history.md) · store plan `docs/club-auto-cd-azure-plan.md`.
+**No dig auto CD.** Do not enable `mlm-cd-dev.timer`. Git push to Azure `develop` does **not** update dig — always `yarn sync:dev`.  
+If a dig timer was ever installed, disable it: [release-history.md](./release-history.md). Live auto CD is separate (`main` + `mlm-cd.timer`).
 
 On the server:
 

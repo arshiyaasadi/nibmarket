@@ -1,12 +1,11 @@
 # Club FE — Azure Pipelines stub
 #
-# Shipping is NOT this pipeline. Auto release path:
-#   push branch to Azure Repos (remote `novin` / MLM_Front)
-#     → host systemd timer polls git every ~2m
-#     → develop  → scripts/server-cd-dev.sh → nibdev (club.nibdev.com)
-#     → main     → scripts/server-cd.sh     → live  (club.nibmarket.com)
+# Shipping is NOT this pipeline.
 #
-# History / fallback (laptop + WireGuard):
+# Dig / nibdev:  yarn sync:dev only (no host poll of develop)
+# Live:          git push novin main → mlm-cd.timer → server-cd.sh → remote-deploy.sh
+#
+# History / dig + live fallback (laptop + WireGuard):
 #   yarn sync:dev   / yarn sync:live
 # See docs/05-ops/release-history.md and docs/05-ops/deploy.md
 #
@@ -19,6 +18,7 @@ pool:
 
 steps:
   - script: |
-      echo "No cloud build. Push to Azure Repos; app hosts poll main/develop."
-      echo "Fallback: yarn sync:dev | yarn sync:live (WireGuard)."
-    displayName: "Point to host git-poll CD"
+      echo "No cloud build."
+      echo "Live: push main to Azure Repos; mlm-cd.timer on nibmarket host."
+      echo "Dig: yarn sync:dev only (WireGuard). Do not enable mlm-cd-dev.timer."
+    displayName: "Point to live host git-poll CD + dig manual sync"

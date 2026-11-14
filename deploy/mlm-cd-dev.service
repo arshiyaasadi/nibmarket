@@ -1,5 +1,5 @@
 [Unit]
-Description=MLM Front continuous deploy (poll develop + blue/green on nibdev)
+Description=DEPRECATED — dig has no auto CD; use yarn sync:dev instead
 After=network-online.target docker.service
 Wants=network-online.target docker.service
 

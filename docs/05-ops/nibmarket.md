@@ -34,17 +34,22 @@ Competing nginx vhosts (e.g. `club.nibmarket.ir`) are disabled during deploy so 
 
 ## Deploy
 
+**Preferred (auto CD):** merge `develop` → `main`, then `git push novin main`. Host `mlm-cd.timer` polls Azure and runs `remote-deploy.sh` (~2 min). Enable once: [release-history.md](./release-history.md).
+
 ```bash
+# After push to Azure main:
+yarn logs:live                # confirm SHA / status → logs/live/
+yarn sync:live:status
+yarn sync:live:follow         # tails only
+
+# Fallback (timer down / first bootstrap):
 yarn sync:live
 yarn sync:live --force
-yarn sync:live:status
-yarn sync:live:follow
-yarn logs:live                # save server snapshot under logs/live/
 # SKIP_NGINX=1 yarn sync:live   # only when host nginx must not change
 # yarn sync:live:ui             # temporary UI-mock on live (not default)
 ```
 
-Default flow (`SKIP_NGINX=0`):
+Fallback / bootstrap flow (`SKIP_NGINX=0`):
 
 1. rsync → `/opt/MLM_Front`
 2. Patch `.env.live` (real API, clear UI-mock, `BACKEND_API_BASE_URL=http://club-srv…`, bake origin)

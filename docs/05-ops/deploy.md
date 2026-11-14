@@ -1,39 +1,37 @@
 # Deploy (two stable zones)
 
-Both zones are **working**. Deploy from a laptop over WireGuard; no Azure/git push for day-to-day releases.
+| Zone | Brand | How to ship | Details |
+|------|-------|-------------|---------|
+| **dev / dig** | nibdev | **Manual only:** `yarn sync:dev` | [nibdev.md](./nibdev.md) — blue/green `:3000` / `127.0.0.1:2999` |
+| **live** | nibmarket | **Auto:** push `main` to Azure `novin` | [nibmarket.md](./nibmarket.md) — `:3000` + nginx origin `:80` behind CDN |
 
-| Zone | Brand | Command | Details |
-|------|-------|---------|---------|
-| **dev / dig** | nibdev | `yarn sync:dev` | [nibdev.md](./nibdev.md) — blue/green `:3000` / `127.0.0.1:2999` |
-| **live** | nibmarket | `yarn sync:live` | [nibmarket.md](./nibmarket.md) — `:3000` + nginx origin `:80` behind CDN |
+## Git branch policy
 
-## Git branch policy (auto CD via Azure Repos)
+Primary remote for **live** releases: **`novin`** (Azure DevOps `MLM_Front`).
 
-Primary remote for releases: **`novin`** (Azure DevOps `MLM_Front`). Hosts poll that remote every ~2 minutes.
+| Branch | Role | Deploy |
+|--------|------|--------|
+| **`develop`** | Day-to-day work | **No** server auto CD. Ship dig with `yarn sync:dev` (WireGuard). |
+| **`main`** | Live baseline | Push → **nibmarket** via `mlm-cd.timer` → `server-cd.sh` → `remote-deploy.sh` |
 
-| Branch | Role | Auto deploy |
-|--------|------|-------------|
-| **`develop`** | Day-to-day work | Push → **nibdev** (`club.nibdev.com`) via `mlm-cd-dev.timer` / `server-cd-dev.sh` |
-| **`main`** | Live baseline | Push → **nibmarket** (`club.nibmarket.com`) via `mlm-cd.timer` / `server-cd.sh` |
+### Workflow (preferences)
 
-Workflow:
-
-1. Feature work → merge into **`develop`** → `git push novin develop`
-2. Live cut → merge **`develop` → `main`** → `git push novin main`
-
-Fallback (WireGuard laptop): `yarn sync:dev` / `yarn sync:live` — see [release-history.md](./release-history.md).
+1. Feature work → merge into **`develop`** → push github (and Azure `novin develop` if useful for backup — dig will **not** auto-deploy).
+2. Dig preview: WireGuard ON → `yarn sync:dev` → optional `yarn sync:dev --follow` / `yarn logs:dev`.
+3. Live cut: merge **`develop` → `main`** → `git push novin main` → wait ~2m for `mlm-cd.timer` (fallback: `yarn sync:live`).
 
 Notes:
 
-- Azure Pipelines YAML stays `trigger: none` (ship path is git push + host timers, not cloud agents).
+- Azure Pipelines YAML stays `trigger: none` (live ship path is git push + **live** host timer only).
 - Feature branches target **`develop`**, not `main`.
-- First-time timer enable steps: [release-history.md](./release-history.md).
+- Dig must **not** run `mlm-cd-dev.timer` — see [release-history.md](./release-history.md) (disable if present).
+- Live timer enable (one-time): [release-history.md](./release-history.md).
 
-Env / presets: [env.md](./env.md) · Live log collection (paste for agent): [`scripts/live-logs-prompt.md`](../../scripts/live-logs-prompt.md)
+Env / presets: [env.md](./env.md) · Live log collection: [`scripts/live-logs-prompt.md`](../../scripts/live-logs-prompt.md)
 
 ## Shared prerequisites
 
-1. WireGuard on
+1. WireGuard on (for SSH / dig sync / first-time live timer install)
 2. SSH: alias `nibdev` / `nibmarket-live` (or `DEV_SSH_HOST` / `LIVE_SSH_HOST`)
 3. Server project path: `/opt/MLM_Front`
 4. External Docker network named `nginx`
@@ -41,7 +39,7 @@ Env / presets: [env.md](./env.md) · Live log collection (paste for agent): [`sc
 ## Dev (nibdev) — summary
 
 ```bash
-yarn sync:dev                 # rsync + blue/green (real API) — Era A fallback
+yarn sync:dev                 # only supported dig ship path (rsync + blue/green)
 yarn sync:dev --status
 yarn sync:dev --follow        # tails only; does not start deploy
 yarn sync:dev --rollback      # instant swap, no rebuild
@@ -61,12 +59,17 @@ yarn logs:live                # pull live snapshot → logs/live/*.txt
 
 ## Live (nibmarket) — summary
 
+**Versioning = merge develop→main + `git push novin main`.** Host polls `main` every ~2 minutes.
+
 ```bash
+# After push to Azure main (preferred):
+yarn logs:live                # confirm SHA / deploy status
+yarn sync:live:status
+yarn sync:live:follow         # tails only
+
+# Fallback if timer not enabled / stuck:
 yarn sync:live
 yarn sync:live --force
-yarn sync:live:status
-yarn sync:live:follow
-yarn logs:live                # pull deploy + container snapshot to logs/live/
 # SKIP_NGINX=1 yarn sync:live   # only when host nginx must not change
 ```
 
@@ -79,40 +82,9 @@ yarn logs:live                # pull deploy + container snapshot to logs/live/
 | BE | `http://club-srv.nibmarket.com` (internal HTTP) |
 | Panel SSO | https://panel.nibmarket.com → callback `https://club.nibmarket.com/login/sso/` |
 | Compose | `docker-compose.live.yml` + `.env.live` |
-| Worker | `scripts/remote-deploy.sh` |
-| Nginx template | `deploy/nginx/club.nibmarket.com.conf` |
+| Auto CD | `mlm-cd.timer` → `scripts/server-cd.sh` → `remote-deploy.sh` |
 
-Live smoke after nginx:  
-`Host: club.nibmarket.com` → `http://127.0.0.1/build-info.json` must be **200** (not 301).
+## Related
 
-## SSO (both zones)
-
-Correct flow (same as legacy `startAuthEntry`):
-
-```
-CTA / landing
-  → panel…/login/?callbackUrl=<club>/login/sso/?returnUrl=…
-  → back to club /login/sso/
-  → BFF session
-  → /dashboard
-```
-
-- Live static landing (`public/landing-v2`): links go to panel + `callbackUrl` (not bare `/login`).
-- Live: `NEXT_PUBLIC_PUBLIC_ORIGIN=https://club.nibmarket.com` is baked at image build.
-- Dev: origin from the request (`club.nibdev.com`).
-- Never point the callback at `club-srv` / `api-club`.
-
-## Remote stages (quick reference)
-
-| Live | Dev |
-|------|-----|
-| `docker` → `network` → `env` → `base_image` → `build_live` → `nginx` → `done` | build inactive slot on `2999` → health → swap to `:3000` → `done` |
-
-Status: `.cd-state/deploy-status` (+ dev: `.cd-state/slot-state`).
-
-## Do not change
-
-- Live: certbot on `club.nibmarket.com` → CDN redirect loop
-- Live: `BACKEND_API_BASE_URL` stays `http://club-srv…` (not https)
-- Dev: UI mock off by default (`API_SERVICE_MODE=api`)
-- Public app port in both zones: **3000**
+- [release-history.md](./release-history.md) — dig manual vs live auto, enable/disable checklists
+- Store plan: Project Agent Store `docs/club-auto-cd-azure-plan.md`

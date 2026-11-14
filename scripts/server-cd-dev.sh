@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 #
-# server-cd-dev.sh — runs ON the nibdev host (pod1.nibdev.com).
-# Polls Azure git for `develop`; on new commits runs remote-deploy-dev.sh (blue/green).
+# DEPRECATED — dig / nibdev has NO server-side auto CD.
+# Prefer: yarn sync:dev from a laptop (WireGuard).
+# Do not enable mlm-cd-dev.timer. Disable/remove units if present
+# (see docs/05-ops/release-history.md).
 #
-# Installed as systemd timer `mlm-cd-dev.timer`.
-# Manual: PROJECT_DIR=/opt/MLM_Front bash /opt/MLM_Front/scripts/server-cd-dev.sh
+# Legacy: polls Azure `develop` and runs remote-deploy-dev.sh.
+# Kept only for cleanup / emergency reference.
 #
 set -euo pipefail
 

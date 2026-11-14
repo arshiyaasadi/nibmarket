@@ -6,7 +6,7 @@
 # Writes logs/dev/<timestamp>.txt and prints that path.
 #
 # Includes deploy status/log, blue/green slots, git SHA/branch, and
-# mlm-cd-dev.timer / service state (push-only CD poller).
+# mlm-cd-dev.timer state (should be disabled/absent — dig has no auto CD).
 #
 #   yarn logs:dev
 #   DEV_SSH_HOST=<host> yarn logs:dev
@@ -126,7 +126,7 @@ else
   echo "no deploy.log"
 fi
 echo
-echo "===== mlm-cd-dev.timer (push-only CD) ====="
+echo "===== mlm-cd-dev.timer (should be OFF — dig has no auto CD) ====="
 systemctl is-enabled mlm-cd-dev.timer 2>&1 || true
 systemctl is-active mlm-cd-dev.timer 2>&1 || true
 systemctl list-timers mlm-cd-dev.timer --no-pager 2>&1 || true
@@ -159,4 +159,4 @@ REMOTE
 
 echo ""
 echo ">>> Saved ${OUT_FILE}"
-echo ">>> Tip: if timer is disabled, push alone will NOT deploy — see docs/05-ops/release-history.md"
+echo ">>> Tip: dig ships only via yarn sync:dev (no auto CD). See docs/05-ops/release-history.md"

@@ -147,7 +147,7 @@ if [[ "${FOLLOW}" -eq 1 ]] && [[ "${FORCE}" -eq 0 ]] && [[ "${RSYNC_ONLY}" -eq 0
   echo ">>> --follow only tails the remote log; it does NOT start a deploy."
   echo "    Start one with:  yarn sync:dev"
   echo "    Then follow:     yarn sync:dev --follow"
-  echo "    (git push alone deploys only if mlm-cd-dev.timer is enabled on the host.)"
+  echo "    (Dig has no auto CD — git push does not deploy nibdev.)"
   echo ""
   print_remote_status
   if ! remote_is_running; then
