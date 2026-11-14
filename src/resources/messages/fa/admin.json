@@ -111,6 +111,7 @@
       "role": "نقش",
       "status": "وضعیت",
       "kyc": "KYC",
+      "sejam": "سجام",
       "referralCode": "کد معرف",
       "joinedAt": "تاریخ عضویت",
       "actions": "عملیات"
@@ -126,7 +127,18 @@
       "pending": "در انتظار",
       "verified": "تأیید شده",
       "rejected": "رد شده"
-    }
+    },
+    "sejam": {
+      "yes": "دارد",
+      "no": "ندارد",
+      "all": "همه وضعیت سجام",
+      "verified": "سجام دارد",
+      "unverified": "سجام ندارد"
+    },
+    "syncUsers": "بروز رسانی اطلاعات کاربران (نیب مارکت)",
+    "syncUsersPending": "در حال بروزرسانی…",
+    "syncUsersSuccess": "بروزرسانی کاربران از نیب مارکت با موفقیت انجام شد.",
+    "syncUsersError": "بروزرسانی کاربران ناموفق بود."
   },
   "demographics": {
     "ageTitle": "توزیع سنی کاربران",

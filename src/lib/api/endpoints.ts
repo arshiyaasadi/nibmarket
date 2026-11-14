@@ -111,6 +111,8 @@ export const ENDPOINTS = {
       LIST: "/admin/users",
       DEMOGRAPHICS: "/admin/users/demographics",
       GEO: "/admin/users/geo",
+      /** POST — refresh users from Nibmarket (empty body) */
+      SYNC: "/admin/users/sync",
       DETAIL: (userId: string) => `/admin/users/${userId}` as const,
       UPDATE_STATUS: (userId: string) => `/admin/users/${userId}/status` as const,
       UPDATE_ROLE: (userId: string) => `/admin/users/${userId}/role` as const,

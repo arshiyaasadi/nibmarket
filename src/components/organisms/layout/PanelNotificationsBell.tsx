@@ -4,12 +4,20 @@
  */
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Bell, ChevronLeft } from "lucide-react";
+import { useAuthProfile } from "@/features/auth/queries";
+import {
+  needsSejamKyc,
+  SEJAM_KYC_MODAL_ID,
+  SEJAM_KYC_NOTIFICATION_ID,
+} from "@/features/auth/sejam-kyc";
+import { withSejamKycNotification } from "@/features/auth/with-sejam-kyc-notification";
 import { useMarkNotificationRead, useNotifications } from "@/features/notifications/queries";
 import { ROUTES } from "@/config/routes";
+import { useUiSlice } from "@/store/slices/ui.slice";
 import { cn, formatDateTime } from "@/lib/utils";
 
 export function PanelNotificationsBell() {
@@ -18,8 +26,20 @@ export function PanelNotificationsBell() {
   const ref = useRef<HTMLDivElement>(null);
   const { data } = useNotifications({ page: 1, limit: 3 });
   const markRead = useMarkNotificationRead();
+  const profileQuery = useAuthProfile();
+  const openModal = useUiSlice((s) => s.openModal);
 
-  const items = data?.items ?? [];
+  const needsKyc = needsSejamKyc(profileQuery.data?.hasSejamIdentity);
+  const merged = useMemo(
+    () =>
+      withSejamKycNotification(data, needsKyc, {
+        title: t("kycRequiredTitle"),
+        body: t("kycRequiredBody"),
+      }),
+    [data, needsKyc, t],
+  );
+
+  const items = merged?.items ?? [];
   const unreadCount = items.filter((n) => !n.isRead).length;
 
   useEffect(() => {
@@ -75,6 +95,11 @@ export function PanelNotificationsBell() {
                       !item.isRead && "bg-primary/5",
                     )}
                     onClick={() => {
+                      if (item.id === SEJAM_KYC_NOTIFICATION_ID) {
+                        setOpen(false);
+                        openModal(SEJAM_KYC_MODAL_ID);
+                        return;
+                      }
                       if (!item.isRead) markRead.mutate(item.id);
                     }}
                   >

@@ -115,12 +115,28 @@ export interface AdminUserListItem {
   role: UserRole;
   status: AdminUserStatus;
   kycStatus: AdminUserKycStatus;
+  /**
+   * Sejam identity flag from club BE users API.
+   * Missing/false → treat as unverified in admin UI.
+   */
+  hasSejamIdentity?: boolean;
   referralCode: string;
   createdAt: string;
   nibId?: number | null;
   isClubMember?: boolean;
   /** Present when BE attaches Sejam KYC payload */
   sejam?: AdminUserSejam | null;
+}
+
+/**
+ * POST /admin/users/sync — pull/refresh club users from Nibmarket.
+ * Empty body. Response shape is best-effort until OpenAPI is confirmed.
+ */
+export interface AdminUsersSyncResponse {
+  success: boolean;
+  /** How many users were created/updated when BE reports it */
+  syncedCount?: number;
+  message?: string;
 }
 
 /** GET /admin/users/geo — one member pinned on the density map */

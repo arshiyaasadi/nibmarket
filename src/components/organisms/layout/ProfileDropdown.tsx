@@ -22,12 +22,14 @@ import {
 import { BottomSheetPanel, Modal, ModalBody, Tabs } from "@/components/atoms";
 import { ThemeToggle } from "./ThemeToggle";
 import { performLogout } from "@/lib/auth/session";
-import { BFF_API_BASE } from "@/lib/api/endpoints";
+import { BFF_API_BASE, ENDPOINTS } from "@/lib/api/endpoints";
 import { getPanelProfileUrl } from "@/config/sso";
 import { ROUTES } from "@/config/routes";
 import { isAdminRole } from "@/config/roles";
+import { SEJAM_KYC_MODAL_ID } from "@/features/auth/sejam-kyc";
 import { useSession } from "@/hooks/use-session";
 import { useIsMobile } from "@/hooks/use-is-mobile";
+import { useUiSlice } from "@/store/slices/ui.slice";
 import { cn, formatDisplayDate, formatDisplayDateTime } from "@/lib/utils";
 import type { LoginActivity } from "@/types/mlm";
 import packageInfo from "../../../../package.json";
@@ -42,6 +44,7 @@ type ProfileDetails = {
   birthDate: string | null;
   nationalId: string | null;
   nibMarketLinked: boolean;
+  hasSejamIdentity?: boolean;
   recentSessions: LoginActivity[];
 };
 
@@ -54,6 +57,7 @@ export function ProfileDropdown() {
   const isMobile = useIsMobile();
   const { fullName, role, inviteCode } = useSession();
   const showAdminLink = role ? isAdminRole(role) : false;
+  const openModal = useUiSlice((s) => s.openModal);
 
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -69,7 +73,9 @@ export function ProfileDropdown() {
   const fetchProfile = useCallback(async () => {
     setLoadingProfile(true);
     try {
-      const res = await fetch(`${BFF_API_BASE}/auth/profile`, { credentials: "include" });
+      const res = await fetch(`${BFF_API_BASE}${ENDPOINTS.AUTH.PROFILE}`, {
+        credentials: "include",
+      });
       if (res.ok) {
         setProfileDetails(await res.json());
       }
@@ -150,6 +156,12 @@ export function ProfileDropdown() {
         nationalId={profileDetails?.nationalId}
         inviteCode={inviteCode}
         role={role}
+        hasSejamIdentity={profileDetails?.hasSejamIdentity}
+        onStartKyc={() => {
+          setProfileOpen(false);
+          closeSheet();
+          openModal(SEJAM_KYC_MODAL_ID);
+        }}
       />
     );
 
@@ -403,6 +415,8 @@ function ProfileInfoTab({
   nationalId,
   inviteCode,
   role,
+  hasSejamIdentity,
+  onStartKyc,
 }: {
   fullName: string | null | undefined;
   mobile?: string | null;
@@ -411,9 +425,12 @@ function ProfileInfoTab({
   nationalId?: string | null;
   inviteCode?: string | null;
   role?: string | null;
+  hasSejamIdentity?: boolean;
+  onStartKyc?: () => void;
 }) {
   const t = useTranslations("auth");
   const panelProfileUrl = getPanelProfileUrl();
+  const verified = hasSejamIdentity === true;
 
   const fields = [
     { label: t("profileFullName"), value: fullName ?? "" },
@@ -443,6 +460,27 @@ function ProfileInfoTab({
           <ProfileField key={field.label} {...field} />
         ))}
       </dl>
+
+      <div className="border-border/60 flex flex-col gap-2.5 rounded-xl border px-3 py-3">
+        {verified ? (
+          <p className="flex items-center gap-1.5 text-xs font-medium text-green-700">
+            <BadgeCheck className="size-3.5 shrink-0" />
+            {t("kycProfileVerified")}
+          </p>
+        ) : (
+          <>
+            <p className="text-muted text-xs leading-relaxed">{t("kycProfileUnverifiedHint")}</p>
+            <button
+              type="button"
+              onClick={onStartKyc}
+              className="bg-primary hover:bg-primary-600 flex h-9 items-center justify-center gap-1.5 rounded-lg text-xs font-semibold text-white transition-colors"
+            >
+              <Shield className="size-3.5" />
+              {t("kycProfileCta")}
+            </button>
+          </>
+        )}
+      </div>
 
       <div className="bg-surface-2/50 border-border/60 flex flex-col gap-2.5 rounded-xl border px-3 py-3">
         <p className="text-muted text-xs leading-relaxed">{t("profileEditOnNibMarketDesc")}</p>

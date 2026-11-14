@@ -4,8 +4,11 @@ import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { type ColumnDef, type PaginationState } from "@tanstack/react-table";
+import { RefreshCw } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { ENDPOINTS } from "@/lib/api/endpoints";
+import { Button } from "@/components/atoms/Button";
+import { Alert } from "@/components/atoms/Alert";
 import { DataTable } from "@/components/ui/DataTable";
 import { AdminTableToolbar } from "@/components/molecules/AdminTableToolbar";
 import { AdminUserDemographicsCards } from "@/components/organisms/admin/users/AdminUserDemographicsCards";
@@ -13,11 +16,13 @@ import { ChangeUserStatusModal } from "@/components/organisms/admin/users/Change
 import { UserRowActions } from "@/components/organisms/admin/users/UserRowActions";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { formatDisplayDate } from "@/lib/utils";
+import { ApiException } from "@/types/api";
 import type {
   AdminUserKycStatus,
   AdminUserListItem,
   AdminUsersDemographicsResponse,
   AdminUsersListResponse,
+  AdminUsersSyncResponse,
   AdminUserStatus,
   UpdateAdminUserStatusRequest,
 } from "@/types/admin";
@@ -38,7 +43,12 @@ export default function UsersPageContent() {
   const [searchInput, setSearchInput] = useState("");
   const search = useDebouncedValue(searchInput);
   const [statusFilter, setStatusFilter] = useState("");
+  const [sejamFilter, setSejamFilter] = useState<"" | "true" | "false">("");
   const [statusModalUser, setStatusModalUser] = useState<AdminUserListItem | null>(null);
+  const [syncMessage, setSyncMessage] = useState<{
+    variant: "success" | "danger";
+    text: string;
+  } | null>(null);
 
   function handleSearchChange(value: string) {
     setSearchInput(value);
@@ -50,6 +60,11 @@ export default function UsersPageContent() {
     setPagination((p) => (p.pageIndex === 0 ? p : { ...p, pageIndex: 0 }));
   }
 
+  function handleSejamFilterChange(value: string) {
+    setSejamFilter(value === "true" || value === "false" ? value : "");
+    setPagination((p) => (p.pageIndex === 0 ? p : { ...p, pageIndex: 0 }));
+  }
+
   const { data: demographics, isLoading: demographicsLoading } =
     useQuery<AdminUsersDemographicsResponse>({
       queryKey: ["admin", "users", "demographics"],
@@ -57,10 +72,10 @@ export default function UsersPageContent() {
     });
 
   const { data, isLoading } = useQuery<AdminUsersListResponse>({
-    queryKey: ["admin", "users", pagination, search, statusFilter],
+    queryKey: ["admin", "users", pagination, search, statusFilter, sejamFilter],
     queryFn: () =>
       apiClient.get(
-        `${ENDPOINTS.ADMIN.USERS.LIST}?page=${pagination.pageIndex}&pageSize=${pagination.pageSize}&search=${encodeURIComponent(search)}&status=${statusFilter}`,
+        `${ENDPOINTS.ADMIN.USERS.LIST}?page=${pagination.pageIndex}&pageSize=${pagination.pageSize}&search=${encodeURIComponent(search)}&status=${statusFilter}&hasSejamIdentity=${sejamFilter}`,
       ),
   });
 
@@ -72,6 +87,23 @@ export default function UsersPageContent() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin", "users"] });
       setStatusModalUser(null);
+    },
+  });
+
+  const syncMutation = useMutation({
+    mutationFn: () => apiClient.post<AdminUsersSyncResponse>(ENDPOINTS.ADMIN.USERS.SYNC, {}),
+    onSuccess: (result) => {
+      qc.invalidateQueries({ queryKey: ["admin", "users"] });
+      const count = typeof result?.syncedCount === "number" ? ` (${result.syncedCount})` : "";
+      setSyncMessage({
+        variant: "success",
+        text: `${t("syncUsersSuccess")}${count}`,
+      });
+    },
+    onError: (error) => {
+      const message =
+        error instanceof ApiException && error.message ? error.message : t("syncUsersError");
+      setSyncMessage({ variant: "danger", text: message });
     },
   });
 
@@ -135,6 +167,23 @@ export default function UsersPageContent() {
         },
       },
       {
+        id: "hasSejamIdentity",
+        accessorFn: (row) => row.hasSejamIdentity === true,
+        header: t("columns.sejam"),
+        cell: ({ row }) => {
+          const verified = row.original.hasSejamIdentity === true;
+          return (
+            <span
+              className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                verified ? "bg-green-500/10 text-green-700" : "bg-amber-500/10 text-amber-700"
+              }`}
+            >
+              {verified ? t("sejam.yes") : t("sejam.no")}
+            </span>
+          );
+        },
+      },
+      {
         accessorKey: "referralCode",
         header: t("columns.referralCode"),
         cell: ({ getValue }) => (
@@ -163,10 +212,30 @@ export default function UsersPageContent() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-foreground text-xl font-bold">{t("title")}</h1>
-        <p className="text-muted mt-1 text-xs">{t("subtitle")}</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-foreground text-xl font-bold">{t("title")}</h1>
+          <p className="text-muted mt-1 text-xs">{t("subtitle")}</p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          loading={syncMutation.isPending}
+          startIcon={<RefreshCw size={14} />}
+          onClick={() => {
+            setSyncMessage(null);
+            syncMutation.mutate();
+          }}
+        >
+          {syncMutation.isPending ? t("syncUsersPending") : t("syncUsers")}
+        </Button>
       </div>
+
+      {syncMessage && (
+        <Alert variant={syncMessage.variant} onClose={() => setSyncMessage(null)}>
+          {syncMessage.text}
+        </Alert>
+      )}
 
       <AdminUserDemographicsCards data={demographics} isLoading={demographicsLoading} />
 
@@ -177,18 +246,29 @@ export default function UsersPageContent() {
         total={data?.total}
         totalLabel={(count) => t("tableUserCount", { count })}
         filters={
-          <select
-            value={statusFilter}
-            onChange={(e) => handleStatusFilterChange(e.target.value)}
-            className="border-border bg-surface text-foreground rounded-xl border px-3 py-2 text-sm outline-none"
-          >
-            <option value="">{t("allStatuses")}</option>
-            {STATUS_OPTIONS.map((status) => (
-              <option key={status} value={status}>
-                {t(`status.${status}`)}
-              </option>
-            ))}
-          </select>
+          <>
+            <select
+              value={statusFilter}
+              onChange={(e) => handleStatusFilterChange(e.target.value)}
+              className="border-border bg-surface text-foreground rounded-xl border px-3 py-2 text-sm outline-none"
+            >
+              <option value="">{t("allStatuses")}</option>
+              {STATUS_OPTIONS.map((status) => (
+                <option key={status} value={status}>
+                  {t(`status.${status}`)}
+                </option>
+              ))}
+            </select>
+            <select
+              value={sejamFilter}
+              onChange={(e) => handleSejamFilterChange(e.target.value)}
+              className="border-border bg-surface text-foreground rounded-xl border px-3 py-2 text-sm outline-none"
+            >
+              <option value="">{t("sejam.all")}</option>
+              <option value="true">{t("sejam.verified")}</option>
+              <option value="false">{t("sejam.unverified")}</option>
+            </select>
+          </>
         }
       />
 

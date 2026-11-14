@@ -14,6 +14,7 @@ import {
   listAdminMissions,
   listAdminUsers,
   listNetworkClosure,
+  syncAdminUsersFromNibmarket,
   updateAdminMissionStatus,
   updateAdminUserRole,
   updateAdminUserStatus,
@@ -94,8 +95,20 @@ export async function adminUsersHandler(req: Request): Promise<Response> {
   const pageSize = parseInt(url.searchParams.get("pageSize") ?? "20");
   const search = url.searchParams.get("search") ?? "";
   const status = url.searchParams.get("status") ?? "";
+  const hasSejamRaw = url.searchParams.get("hasSejamIdentity") ?? "";
+  const hasSejamIdentity =
+    hasSejamRaw === "true" || hasSejamRaw === "false" ? hasSejamRaw : ("" as const);
 
-  return NextResponse.json(await listAdminUsers({ page, pageSize, search, status }));
+  return NextResponse.json(
+    await listAdminUsers({ page, pageSize, search, status, hasSejamIdentity }),
+  );
+}
+
+/** POST /admin/users/sync — refresh users from Nibmarket (empty body). */
+export async function adminUsersSyncHandler(_req: Request): Promise<Response> {
+  const auth = await requireAdmin();
+  if (!auth) return unauthorized();
+  return NextResponse.json(await syncAdminUsersFromNibmarket());
 }
 
 export async function adminUsersDemographicsHandler(_req: Request): Promise<Response> {
