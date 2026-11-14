@@ -22,6 +22,15 @@ export async function getRecentLoginSessions(userId: string, limit = 10): Promis
   return getMockLoginSessions(userId).slice(0, limit);
 }
 
+function resolveHasSejamIdentity(user: {
+  hasSejamIdentity?: boolean;
+  kycStatus: string;
+  nationalId: string | null;
+}): boolean {
+  if (typeof user.hasSejamIdentity === "boolean") return user.hasSejamIdentity;
+  return user.kycStatus === "verified" && Boolean(user.nationalId);
+}
+
 export async function getUserProfileDetails(userId: string) {
   await ensureMockStore();
   const user = getMockUser(userId);
@@ -31,11 +40,27 @@ export async function getUserProfileDetails(userId: string) {
     fullName: `${user.firstName} ${user.lastName}`.trim(),
     mobile: user.mobile,
     email: user.email,
-    birthDate: null,
-    nationalId: null,
-    nibMarketLinked: false,
+    birthDate: user.birthDate,
+    nationalId: user.nationalId,
+    nibMarketLinked: user.nibMarketLinked,
+    hasSejamIdentity: resolveHasSejamIdentity(user),
     recentSessions: getMockLoginSessions(userId),
   };
+}
+
+/** Persist Sejam KYC result on the mock user (UI/mock mode). */
+export async function applyMockKycVerification(
+  userId: string,
+  input: { nationalCode: string; birthDate: string },
+) {
+  await ensureMockStore();
+  const user = getMockUser(userId);
+  if (!user) return null;
+  user.nationalId = input.nationalCode;
+  user.birthDate = input.birthDate;
+  user.kycStatus = "verified";
+  user.hasSejamIdentity = true;
+  return getUserProfileDetails(userId);
 }
 
 export async function findUserByLogin(login: string) {

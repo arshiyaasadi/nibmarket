@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { PanelSidebar } from "@/components/organisms/layout/PanelSidebar";
 import { PanelHeader } from "@/components/organisms/layout/PanelHeader";
 import { PanelAdminTour } from "@/components/organisms/layout/PanelAdminTour";
+import { SejamKycGate } from "@/components/organisms/auth/SejamKycGate";
 import { useSyncWalletStore } from "@/hooks/use-sync-wallet-store";
 
 export function PanelLayoutShell({ children }: { children: React.ReactNode }) {
@@ -18,6 +19,8 @@ export function PanelLayoutShell({ children }: { children: React.ReactNode }) {
       <Suspense fallback={null}>
         <PanelAdminTour />
       </Suspense>
+
+      <SejamKycGate />
 
       {/* Main: full width, small padding-start to clear collapsed icon sidebar */}
       <div className="">

@@ -8,6 +8,7 @@ import {
   forgotVerifyHandler,
   forgotResetHandler,
   profileHandler,
+  kycVerifyHandler,
   registerHandler,
   registerOtpSendHandler,
   registerOtpVerifyHandler,
@@ -134,6 +135,7 @@ const CUSTOM_ROUTES: Record<string, RouteHandler> = {
   "POST:/auth/forgot/reset": forgotResetHandler,
   "POST:/auth/refresh": refreshHandler,
   "GET:/auth/profile": profileHandler,
+  "POST:/auth/kyc/verify": kycVerifyHandler,
 
   "GET:/dashboard/rewards": dashboardRewardsHandler,
   "GET:/dashboard/wallet": dashboardWalletHandler,

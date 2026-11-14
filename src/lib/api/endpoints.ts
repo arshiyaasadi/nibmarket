@@ -17,6 +17,9 @@ export const ENDPOINTS = {
     LOGIN: "/auth/login",
     LOGOUT: "/auth/logout",
     REFRESH: "/auth/refresh",
+    PROFILE: "/auth/profile",
+    /** Body `{ nationalCode, birthDate }` — no mobile */
+    KYC_VERIFY: "/auth/kyc/verify",
     SSO_EXCHANGE: "/auth/sso/exchange",
     SSO_COMPLETE: "/auth/sso/complete",
     REGISTER_OTP_SEND: "/auth/register/otp/send",
