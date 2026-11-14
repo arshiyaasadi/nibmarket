@@ -34,22 +34,25 @@ Competing nginx vhosts (e.g. `club.nibmarket.ir`) are disabled during deploy so 
 
 ## Deploy
 
-**Preferred (auto CD):** merge `develop` → `main`, then `git push novin main`. Host `mlm-cd.timer` polls Azure and runs `remote-deploy.sh` (~2 min). Enable once: [release-history.md](./release-history.md).
+**Target (auto CD):** merge `develop` → `main`, then **`git push novin main`** (Azure tip — GitHub alone is not enough). Host `mlm-cd.timer` polls Azure (~2 min). Enable once: [release-history.md](./release-history.md).
+
+**2026-11-14:** push-only did not ship (Azure tip stale); live was updated with **`yarn sync:live`**. Next cut: `git ls-remote novin refs/heads/main` must match tip before waiting on the timer. Verify with `/api/ping` (`version` + `deploy` + `cd`) or `yarn logs:live`.
 
 ```bash
-# After push to Azure main:
+# After push to Azure main (when novin tip is current):
+curl -sS https://club.nibmarket.com/api/ping
 yarn logs:live                # confirm SHA / status → logs/live/
 yarn sync:live:status
 yarn sync:live:follow         # tails only
 
-# Fallback (timer down / first bootstrap):
+# Break-glass / when auto path fails (this cut):
 yarn sync:live
 yarn sync:live --force
 # SKIP_NGINX=1 yarn sync:live   # only when host nginx must not change
 # yarn sync:live:ui             # temporary UI-mock on live (not default)
 ```
 
-Fallback / bootstrap flow (`SKIP_NGINX=0`):
+Break-glass / bootstrap flow (`SKIP_NGINX=0`):
 
 1. rsync → `/opt/MLM_Front`
 2. Patch `.env.live` (real API, clear UI-mock, `BACKEND_API_BASE_URL=http://club-srv…`, bake origin)
