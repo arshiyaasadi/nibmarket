@@ -31,13 +31,14 @@ export const ROLE_GUARDS: Record<string, UserRole[]> = {
 export const ADMIN_ROLE_GUARDS: Record<string, UserRole[]> = {
   "/admin": ["manager", "admin"],
   "/admin/users": ["manager", "admin"],
+  "/admin/map": ["manager", "admin"],
+  "/admin/system-messages": ["manager", "admin"],
   "/admin/network": ["manager", "admin"],
   "/admin/missions": ["manager", "admin"],
   "/admin/twin": ["manager", "admin"],
   "/admin/pool": ["manager", "admin"],
   "/admin/sediment": ["manager", "admin"],
   "/admin/notifications": ["manager", "admin"],
-  "/admin/map": ["manager", "admin"],
   "/admin/reports": ["admin"],
 };
 

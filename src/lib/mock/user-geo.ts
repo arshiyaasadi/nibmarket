@@ -1,4 +1,10 @@
-import type { AdminUserGeoPoint, AdminUserGeoResponse } from "@/types/admin";
+import type {
+  AdminUserGeoLookupResponse,
+  AdminUserGeoPoint,
+  AdminUserGeoResponse,
+  AdminUsersPostalCodesResponse,
+} from "@/types/admin";
+import { toEnglishDigits } from "@/lib/normalization/digits";
 
 /**
  * City anchors with a member weight and a scatter radius in degrees.
@@ -13,13 +19,34 @@ const CITY_SEEDS = [
   { city: "مشهد", province: "خراسان رضوی", lat: 36.2605, lng: 59.6168, count: 78, spread: 0.14 },
   { city: "اصفهان", province: "اصفهان", lat: 32.6546, lng: 51.668, count: 66, spread: 0.14 },
   { city: "شیراز", province: "فارس", lat: 29.5918, lng: 52.5837, count: 54, spread: 0.13 },
-  { city: "تبریز", province: "آذربایجان شرقی", lat: 38.0962, lng: 46.2738, count: 48, spread: 0.12 },
+  {
+    city: "تبریز",
+    province: "آذربایجان شرقی",
+    lat: 38.0962,
+    lng: 46.2738,
+    count: 48,
+    spread: 0.12,
+  },
   { city: "اهواز", province: "خوزستان", lat: 31.3183, lng: 48.6706, count: 36, spread: 0.12 },
   { city: "قم", province: "قم", lat: 34.6416, lng: 50.8746, count: 30, spread: 0.1 },
   { city: "کرمانشاه", province: "کرمانشاه", lat: 34.3142, lng: 47.065, count: 24, spread: 0.1 },
   { city: "رشت", province: "گیلان", lat: 37.2808, lng: 49.5832, count: 24, spread: 0.1 },
-  { city: "ارومیه", province: "آذربایجان غربی", lat: 37.5527, lng: 45.0761, count: 20, spread: 0.1 },
-  { city: "زاهدان", province: "سیستان و بلوچستان", lat: 29.4963, lng: 60.8629, count: 16, spread: 0.1 },
+  {
+    city: "ارومیه",
+    province: "آذربایجان غربی",
+    lat: 37.5527,
+    lng: 45.0761,
+    count: 20,
+    spread: 0.1,
+  },
+  {
+    city: "زاهدان",
+    province: "سیستان و بلوچستان",
+    lat: 29.4963,
+    lng: 60.8629,
+    count: 16,
+    spread: 0.1,
+  },
   { city: "کرمان", province: "کرمان", lat: 30.2839, lng: 57.0834, count: 18, spread: 0.1 },
   { city: "یزد", province: "یزد", lat: 31.8974, lng: 54.3569, count: 16, spread: 0.1 },
   { city: "بندرعباس", province: "هرمزگان", lat: 27.1865, lng: 56.2808, count: 15, spread: 0.1 },
@@ -32,13 +59,34 @@ const CITY_SEEDS = [
   { city: "سنندج", province: "کردستان", lat: 35.3219, lng: 46.9862, count: 9, spread: 0.09 },
   { city: "بیرجند", province: "خراسان جنوبی", lat: 32.8663, lng: 59.2211, count: 7, spread: 0.09 },
   { city: "ایلام", province: "ایلام", lat: 33.6374, lng: 46.4227, count: 6, spread: 0.09 },
-  { city: "شهرکرد", province: "چهارمحال و بختیاری", lat: 32.3256, lng: 50.8644, count: 6, spread: 0.09 },
+  {
+    city: "شهرکرد",
+    province: "چهارمحال و بختیاری",
+    lat: 32.3256,
+    lng: 50.8644,
+    count: 6,
+    spread: 0.09,
+  },
   { city: "سمنان", province: "سمنان", lat: 35.5769, lng: 53.3958, count: 6, spread: 0.09 },
   { city: "زنجان", province: "زنجان", lat: 36.6736, lng: 48.4787, count: 7, spread: 0.09 },
   { city: "قزوین", province: "قزوین", lat: 36.2688, lng: 50.0041, count: 8, spread: 0.09 },
-  { city: "یاسوج", province: "کهگیلویه و بویراحمد", lat: 30.6682, lng: 51.5878, count: 5, spread: 0.08 },
+  {
+    city: "یاسوج",
+    province: "کهگیلویه و بویراحمد",
+    lat: 30.6682,
+    lng: 51.5878,
+    count: 5,
+    spread: 0.08,
+  },
   { city: "بجنورد", province: "خراسان شمالی", lat: 37.4747, lng: 57.329, count: 5, spread: 0.08 },
-  { city: "چابهار", province: "سیستان و بلوچستان", lat: 25.2919, lng: 60.643, count: 4, spread: 0.08 },
+  {
+    city: "چابهار",
+    province: "سیستان و بلوچستان",
+    lat: 25.2919,
+    lng: 60.643,
+    count: 4,
+    spread: 0.08,
+  },
   { city: "کیش", province: "هرمزگان", lat: 26.5578, lng: 53.9807, count: 4, spread: 0.05 },
 ] as const;
 
@@ -121,6 +169,39 @@ function buildPoints(): AdminUserGeoPoint[] {
 
 const USER_GEO_POINTS = buildPoints();
 
+/** Deterministic 10-digit Iran-style postal from geo seed id. */
+function postalFromPointId(id: string): string {
+  const n = Number(id.replace(/\D/g, "")) || 1;
+  const raw = String(Math.floor(Math.abs(Math.sin(n * 9.1) * 1e12))).padStart(10, "0");
+  return raw.slice(0, 10);
+}
+
 export function getAdminUserGeoPoints(): AdminUserGeoResponse {
   return { points: USER_GEO_POINTS, total: USER_GEO_POINTS.length };
+}
+
+/** GET /admin/users/postal-codes — postal strings only (one per geo fixture user). */
+export function getAdminUsersPostalCodes(): AdminUsersPostalCodesResponse {
+  return {
+    postalCodes: USER_GEO_POINTS.map((point) => postalFromPointId(point.id)),
+  };
+}
+
+/** GET /admin/users/geo/lookup?mobile= — exact mobile match against fixture points. */
+export function lookupAdminUserGeoByMobile(mobile: string): AdminUserGeoLookupResponse {
+  const needle = toEnglishDigits(mobile).replace(/\D/g, "");
+  if (needle.length < 10) return { user: null };
+
+  const point = USER_GEO_POINTS.find((item) => item.mobile === needle);
+  if (!point) return { user: null };
+
+  return {
+    user: {
+      id: point.id,
+      fullName: point.fullName,
+      mobile: point.mobile,
+      postalCode: postalFromPointId(point.id),
+      status: point.status,
+    },
+  };
 }

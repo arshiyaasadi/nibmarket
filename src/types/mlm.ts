@@ -26,6 +26,42 @@ export interface User {
   status: "pending_verification" | "active" | "suspended" | "closed";
 }
 
+/**
+ * GET /auth/profile — panel profile drawer + Sejam KYC gate.
+ * Missing/false `hasSejamIdentity` → user must complete in-app KYC.
+ */
+export interface AuthProfile {
+  fullName: string;
+  mobile: string;
+  email: string;
+  /** Jalali `YYYY/MM/DD` or Gregorian ISO date string when present */
+  birthDate: string | null;
+  nationalId: string | null;
+  nibMarketLinked: boolean;
+  /**
+   * Sejam identity verified for the current user.
+   * Treat missing/false as unverified (show KYC gate).
+   */
+  hasSejamIdentity?: boolean;
+  recentSessions?: LoginActivity[];
+}
+
+/**
+ * POST /auth/kyc/verify — body only; do **not** send `mobile`
+ * (server derives identity from the session).
+ * `birthDate` is Jalali `YYYY/MM/DD` (Sejam convention used elsewhere in admin DTOs).
+ */
+export interface KycVerifyRequest {
+  nationalCode: string;
+  birthDate: string;
+}
+
+export interface KycVerifyResponse {
+  success: boolean;
+  hasSejamIdentity?: boolean;
+  message?: string;
+}
+
 export interface UserReferralInfo {
   inviteCode: string;
   referralCode: string;
@@ -251,6 +287,8 @@ export interface NetworkSubset {
   firstName: string;
   lastName: string;
   fullName: string;
+  /** Present when BE sends it — used on tree when name is missing (unverified). */
+  mobile?: string | null;
   level: number;
   joinDate: string;
   subMembersCount: number;
@@ -261,6 +299,8 @@ export interface NetworkSubset {
 export interface NetworkTreeNode {
   id: string;
   fullName: string;
+  /** Fallback label when fullName is empty (unverified / no Sejam name). */
+  mobile?: string | null;
   level: number;
   isSelf: boolean;
   children?: NetworkTreeNode[];

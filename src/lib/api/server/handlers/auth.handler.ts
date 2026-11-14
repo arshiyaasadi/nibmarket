@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import {
+  applyMockKycVerification,
   buildAuthPayload,
   createUserWithWallet,
   findUserById,
@@ -25,11 +26,14 @@ import {
   verifySignedToken,
 } from "@/lib/api/server/session";
 import { MOCK_OTP } from "@/config/mock-hints";
-import { normalizeMobile, normalizeOtp } from "@/lib/normalization/digits";
+import { normalizeMobile, normalizeOtp, toEnglishDigits } from "@/lib/normalization/digits";
+import { isValidIranianNationalCode, normalizeNationalCode } from "@/lib/validation/national-code";
 import { isSuperAdminId, SUPER_ADMIN } from "@/config/super-admin";
 import { isDevAdminId } from "@/config/dev-admin-auth";
 import { buildDevAdminAuthResponse, getDevAdminProfile } from "@/lib/api/server/dev-admin-auth";
 export { MOCK_OTP };
+
+const JALALI_BIRTH_DATE_RE = /^\d{4}\/\d{2}\/\d{2}$/;
 
 function buildSuperAdminAuthResponse() {
   const token = createAccessToken({
@@ -151,6 +155,7 @@ export async function profileHandler(req: Request): Promise<Response> {
       birthDate: null,
       nationalId: null,
       nibMarketLinked: false,
+      hasSejamIdentity: true,
       recentSessions: [],
     });
   }
@@ -160,6 +165,40 @@ export async function profileHandler(req: Request): Promise<Response> {
   const profile = await getUserProfileDetails(userId);
   if (!profile) return unauthorized();
   return NextResponse.json(profile);
+}
+
+/**
+ * POST /auth/kyc/verify — Sejam identity check.
+ * Body: `{ nationalCode, birthDate }` (Jalali YYYY/MM/DD). Do not accept/send mobile.
+ */
+export async function kycVerifyHandler(req: Request): Promise<Response> {
+  const userId = getCurrentUserId(req);
+  if (!userId) return unauthorized();
+  if (isSuperAdminId(userId) || isDevAdminId(userId)) {
+    return NextResponse.json({ success: true, hasSejamIdentity: true });
+  }
+
+  const body = await req.json().catch(() => ({}));
+  const nationalCode = normalizeNationalCode(String(body.nationalCode ?? ""));
+  const birthDate = toEnglishDigits(String(body.birthDate ?? ""))
+    .trim()
+    .replace(/-/g, "/");
+
+  if (!isValidIranianNationalCode(nationalCode)) {
+    return badRequest("invalid_national_code");
+  }
+  if (!JALALI_BIRTH_DATE_RE.test(birthDate)) {
+    return badRequest("invalid_birth_date");
+  }
+
+  const profile = await applyMockKycVerification(userId, { nationalCode, birthDate });
+  if (!profile) return unauthorized();
+
+  return NextResponse.json({
+    success: true,
+    hasSejamIdentity: true,
+    message: "kyc_verified",
+  });
 }
 
 // POST /auth/otp/send — send OTP to mobile
@@ -223,11 +262,8 @@ export async function refreshHandler(req: Request): Promise<Response> {
 
   if (refreshToken) {
     const { refreshNibAuthTokens } = await import("@/lib/auth/nib-auth");
-    const {
-      decodeJwtPayload,
-      roleFromNibClaims,
-      userIdFromNibClaims,
-    } = await import("@/lib/auth/nib-jwt");
+    const { decodeJwtPayload, roleFromNibClaims, userIdFromNibClaims } =
+      await import("@/lib/auth/nib-jwt");
 
     const tokens = await refreshNibAuthTokens(refreshToken);
     if (tokens) {

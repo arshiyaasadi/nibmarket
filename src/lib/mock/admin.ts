@@ -10,6 +10,7 @@ import type {
   AdminUserModuleAccess,
   AdminUserProfileResponse,
   AdminUsersDemographicsResponse,
+  AdminUsersKycSummaryResponse,
   AdminTwinAllocationSource,
   AdminTwinAllocationsResponse,
   AdminTwinOverviewResponse,
@@ -28,9 +29,15 @@ const ALLOCATION_SOURCES: AdminTwinAllocationSource[] = [
   "pool_deposit",
 ];
 
+function resolveHasSejamIdentity(user: MockUserRecord): boolean {
+  if (typeof user.hasSejamIdentity === "boolean") return user.hasSejamIdentity;
+  return user.kycStatus === "verified" && Boolean(user.nationalId);
+}
+
 function toAdminUserListItem(user: MockUserRecord): AdminUserListItem {
   const fullName = `${user.firstName} ${user.lastName}`.trim();
-  const hasKyc = user.kycStatus === "verified" && user.nationalId;
+  const hasSejamIdentity = resolveHasSejamIdentity(user);
+  const hasKyc = hasSejamIdentity;
 
   return {
     id: user.id,
@@ -42,6 +49,7 @@ function toAdminUserListItem(user: MockUserRecord): AdminUserListItem {
     role: user.role,
     status: user.status,
     kycStatus: user.kycStatus,
+    hasSejamIdentity,
     referralCode: user.referralCode,
     createdAt: user.createdAt,
     sejam: hasKyc
@@ -218,16 +226,35 @@ export async function getAdminUsersDemographics(): Promise<AdminUsersDemographic
   return MOCK_ADMIN_DEMOGRAPHICS;
 }
 
+/** GET /admin/users/kyc-summary — identity verification counts. */
+export async function getAdminUsersKycSummary(): Promise<AdminUsersKycSummaryResponse> {
+  await ensureMockStore();
+  const users = [...getMockUsers().values()];
+  const verifiedCount = users.filter((u) => resolveHasSejamIdentity(u)).length;
+  const totalUsers = users.length;
+  return {
+    totalUsers,
+    verifiedCount,
+    unverifiedCount: totalUsers - verifiedCount,
+  };
+}
+
 export async function listAdminUsers(params: {
   page: number;
   pageSize: number;
   search: string;
   status: string;
+  hasSejamIdentity?: "" | "true" | "false";
 }) {
   await ensureMockStore();
   let users = [...getMockUsers().values()];
   if (params.status) {
     users = users.filter((u) => u.status === params.status);
+  }
+  if (params.hasSejamIdentity === "true") {
+    users = users.filter((u) => resolveHasSejamIdentity(u));
+  } else if (params.hasSejamIdentity === "false") {
+    users = users.filter((u) => !resolveHasSejamIdentity(u));
   }
   if (params.search) {
     const q = normalizeSearchInput(params.search);
@@ -249,6 +276,17 @@ export async function listAdminUsers(params: {
     page: params.page,
     pageSize: params.pageSize,
     pageCount: Math.ceil(total / params.pageSize) || 1,
+  };
+}
+
+/** Mock stand-in for POST /admin/users/sync (Nibmarket refresh). */
+export async function syncAdminUsersFromNibmarket() {
+  await ensureMockStore();
+  const count = getMockUsers().size;
+  return {
+    success: true as const,
+    syncedCount: count,
+    message: "mock_users_synced",
   };
 }
 

@@ -15,6 +15,7 @@ import OrgTree from "react-d3-tree";
 import type { CustomNodeElementProps, RawNodeDatum, TreeProps } from "react-d3-tree";
 
 import type { NetworkTreeNode } from "@/types/mlm";
+import { displayPersonName, looksLikePhoneNumber } from "@/lib/person-name";
 import { cn } from "@/lib/utils";
 
 const Tree = OrgTree as ComponentType<TreeProps>;
@@ -38,11 +39,24 @@ type Props = {
 };
 
 function toD3Datum(node: NetworkTreeNode): RawNodeDatum {
+  const mobile = (node.mobile ?? "").trim();
+  const personName = displayPersonName({
+    fullName: node.fullName,
+    fallback: "",
+  });
+  // No real name (empty or phone-as-name) → show mobile + unverified label.
+  const named = Boolean(personName) && !looksLikePhoneNumber(personName);
+  const label = named
+    ? personName
+    : mobile || (looksLikePhoneNumber(node.fullName) ? String(node.fullName).trim() : "—");
+
   return {
-    name: node.fullName,
+    name: label,
     attributes: {
       isSelf: node.isSelf ? "1" : "0",
       level: String(node.level),
+      unverified: named || node.isSelf ? "0" : "1",
+      mobile,
     },
     children: (node.children?.length ?? 0) > 0 ? node.children!.map(toD3Datum) : undefined,
   };
@@ -101,15 +115,23 @@ function renderOrgChartNode(
   colors: NodeColors,
   selfLabel: string,
   levelLabel: (n: string) => string,
+  unverifiedLabel: string,
 ) {
   return function OrgChartNode({ nodeDatum }: CustomNodeElementProps) {
     const isSelf = nodeDatum.attributes?.isSelf === "1";
+    const isUnverified = nodeDatum.attributes?.unverified === "1";
     const level = nodeDatum.attributes?.level;
     const showLevel = Boolean(level && level !== "0");
 
     const radius = isSelf ? 9 : 7;
     const displayName = truncateName(String(nodeDatum.name || "—"));
-    const subtitle = isSelf ? selfLabel : showLevel ? levelLabel(String(level)) : null;
+    const subtitle = isSelf
+      ? selfLabel
+      : isUnverified
+        ? unverifiedLabel
+        : showLevel
+          ? levelLabel(String(level))
+          : null;
     // The box ends one gap before the dot, so text never touches the branch joint.
     const labelX = -(LABEL_BOX_WIDTH + LABEL_GAP + radius);
     const labelHeight = subtitle ? 36 : 20;
@@ -146,7 +168,7 @@ function renderOrgChartNode(
             <span
               style={{
                 maxWidth: "100%",
-                direction: "rtl",
+                direction: isUnverified ? "ltr" : "rtl",
                 textAlign: "right",
                 fontSize: 12,
                 fontWeight: 400,
@@ -154,6 +176,7 @@ function renderOrgChartNode(
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
+                fontVariantNumeric: isUnverified ? "tabular-nums" : undefined,
               }}
             >
               {displayName}
@@ -165,7 +188,11 @@ function renderOrgChartNode(
                   textAlign: "right",
                   fontSize: 10,
                   fontWeight: 300,
-                  color: isSelf ? colors.primaryMain : colors.textSecondary,
+                  color: isUnverified
+                    ? "#d97706"
+                    : isSelf
+                      ? colors.primaryMain
+                      : colors.textSecondary,
                   whiteSpace: "nowrap",
                 }}
               >
@@ -304,7 +331,15 @@ export default function NetworkOrgChart({
   const levelLabel = useMemo(() => (level: string) => t("treeLevel", { level }), [t]);
 
   const renderNode = useMemo(
-    () => (layout ? renderOrgChartNode(layout.colors, t("treeSelfLabel"), levelLabel) : null),
+    () =>
+      layout
+        ? renderOrgChartNode(
+            layout.colors,
+            t("treeSelfLabel"),
+            levelLabel,
+            t("treeUnverifiedLabel"),
+          )
+        : null,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       layout?.colors.primaryMain,

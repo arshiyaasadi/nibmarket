@@ -115,6 +115,11 @@ export interface AdminUserListItem {
   role: UserRole;
   status: AdminUserStatus;
   kycStatus: AdminUserKycStatus;
+  /**
+   * Sejam identity flag from club BE users API.
+   * Missing/false → treat as unverified in admin UI.
+   */
+  hasSejamIdentity?: boolean;
   referralCode: string;
   createdAt: string;
   nibId?: number | null;
@@ -123,7 +128,18 @@ export interface AdminUserListItem {
   sejam?: AdminUserSejam | null;
 }
 
-/** GET /admin/users/geo — one member pinned on the density map */
+/**
+ * POST /admin/users/sync — pull/refresh club users from Nibmarket.
+ * Empty body. Response shape is best-effort until OpenAPI is confirmed.
+ */
+export interface AdminUsersSyncResponse {
+  success: boolean;
+  /** How many users were created/updated when BE reports it */
+  syncedCount?: number;
+  message?: string;
+}
+
+/** GET /admin/users/geo — one member pinned on the density map (legacy fixture until postal→geo lands) */
 export interface AdminUserGeoPoint {
   id: string;
   fullName: string;
@@ -133,12 +149,40 @@ export interface AdminUserGeoPoint {
   lat: number;
   lng: number;
   status: AdminUserStatus;
+  /** Present when point is derived from a postal code */
+  postalCode?: string | null;
 }
 
-/** GET /admin/users/geo — response */
+/** GET /admin/users/geo — response (fixture/legacy density points) */
 export interface AdminUserGeoResponse {
   points: AdminUserGeoPoint[];
   total: number;
+}
+
+/**
+ * GET /admin/users/postal-codes — full list of user postal codes for density map.
+ * Response items are **postal code strings only** (one per user with a usable address).
+ * FE sums `postalCodes.length` for total locations and later maps Iran postal → province/city/approx latlng.
+ */
+export interface AdminUsersPostalCodesResponse {
+  postalCodes: string[];
+}
+
+/**
+ * GET /admin/users/geo/lookup?mobile= — find one user by mobile for map pin / search card.
+ * `user` is null when no match.
+ */
+export interface AdminUserGeoLookupUser {
+  id: string;
+  fullName: string;
+  mobile: string;
+  /** Primary / default Sejam address postal code when available */
+  postalCode: string | null;
+  status: AdminUserStatus;
+}
+
+export interface AdminUserGeoLookupResponse {
+  user: AdminUserGeoLookupUser | null;
 }
 
 /** GET /admin/users — paginated response */
@@ -150,14 +194,27 @@ export interface AdminUsersListResponse {
   pageCount: number;
 }
 
-/** GET /admin/users/demographics — age bucket */
+/**
+ * GET /admin/users/kyc-summary — identity verification counts for admin users page.
+ * Counts are based on `hasSejamIdentity` (true = verified).
+ */
+export interface AdminUsersKycSummaryResponse {
+  /** All club users */
+  totalUsers: number;
+  /** Users with hasSejamIdentity === true */
+  verifiedCount: number;
+  /** Users with hasSejamIdentity !== true */
+  unverifiedCount: number;
+}
+
+/** GET /admin/users/demographics — age bucket (legacy; FE no longer calls) */
 export interface AdminAgeDistributionItem {
   range: string;
   count: number;
   percent: number;
 }
 
-/** GET /admin/users/demographics — gender bucket */
+/** GET /admin/users/demographics — gender bucket (legacy; FE no longer calls) */
 export interface AdminGenderDistributionItem {
   gender: AdminUserGender;
   label: string;
@@ -165,7 +222,7 @@ export interface AdminGenderDistributionItem {
   percent: number;
 }
 
-/** GET /admin/users/demographics */
+/** GET /admin/users/demographics (legacy; FE no longer calls) */
 export interface AdminUsersDemographicsResponse {
   totalUsers: number;
   ageDistribution: AdminAgeDistributionItem[];

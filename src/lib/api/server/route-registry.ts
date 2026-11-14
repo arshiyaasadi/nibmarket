@@ -8,6 +8,7 @@ import {
   forgotVerifyHandler,
   forgotResetHandler,
   profileHandler,
+  kycVerifyHandler,
   registerHandler,
   registerOtpSendHandler,
   registerOtpVerifyHandler,
@@ -18,8 +19,12 @@ import {
   adminStatsHandler,
   adminLoginHandler,
   adminUsersHandler,
+  adminUsersSyncHandler,
   adminUsersDemographicsHandler,
+  adminUsersKycSummaryHandler,
+  adminUsersPostalCodesHandler,
   adminUsersGeoHandler,
+  adminUsersGeoLookupHandler,
   adminUserDetailHandler,
   adminUserStatusHandler,
   adminUserRoleHandler,
@@ -134,6 +139,7 @@ const CUSTOM_ROUTES: Record<string, RouteHandler> = {
   "POST:/auth/forgot/reset": forgotResetHandler,
   "POST:/auth/refresh": refreshHandler,
   "GET:/auth/profile": profileHandler,
+  "POST:/auth/kyc/verify": kycVerifyHandler,
 
   "GET:/dashboard/rewards": dashboardRewardsHandler,
   "GET:/dashboard/wallet": dashboardWalletHandler,
@@ -195,8 +201,12 @@ const CUSTOM_ROUTES: Record<string, RouteHandler> = {
   "POST:/admin/system-messages": adminSystemMessageCreateHandler,
   "GET:/admin/stats": adminStatsHandler,
   "GET:/admin/users": adminUsersHandler,
+  "POST:/admin/users/sync": adminUsersSyncHandler,
+  "GET:/admin/users/kyc-summary": adminUsersKycSummaryHandler,
+  "GET:/admin/users/postal-codes": adminUsersPostalCodesHandler,
   "GET:/admin/users/demographics": adminUsersDemographicsHandler,
   "GET:/admin/users/geo": adminUsersGeoHandler,
+  "GET:/admin/users/geo/lookup": adminUsersGeoLookupHandler,
   "GET:/admin/twin/overview": adminTwinOverviewHandler,
   "GET:/admin/twin/allocations": adminTwinAllocationsHandler,
   "GET:/admin/pool/overview": adminPoolOverviewHandler,
@@ -226,7 +236,14 @@ export function resolveHandler(method: string, segments: string[]): RouteHandler
   if (CUSTOM_ROUTES[key]) return CUSTOM_ROUTES[key];
 
   // Admin dynamic routes
-  const RESERVED_ADMIN_USER_SEGMENTS = new Set(["demographics", "geo", "messages"]);
+  const RESERVED_ADMIN_USER_SEGMENTS = new Set([
+    "demographics",
+    "geo",
+    "messages",
+    "kyc-summary",
+    "postal-codes",
+    "sync",
+  ]);
   if (
     method === "GET" &&
     segments[0] === "admin" &&

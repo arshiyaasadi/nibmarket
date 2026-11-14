@@ -43,6 +43,7 @@ export async function getNetworkSubsets(_userId: string): Promise<NetworkSubset[
     firstName: item.firstName,
     lastName: item.lastName,
     fullName: item.fullName,
+    mobile: item.mobile || null,
     level: item.level ?? 1,
     joinDate: formatDateTime(item.joinDate),
     subMembersCount: item.subMembersCount ?? 0,

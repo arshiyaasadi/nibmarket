@@ -52,11 +52,11 @@ export function PanelHeader({ onOpenMobile: _onOpenMobile }: PanelHeaderProps) {
         {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Admin switch + Notifications + Wallet + Profile */}
+        {/* Admin switch + Wallet + Notifications (beside profile) + Profile */}
         <div className="gap-atom-md relative flex items-center">
           <AdminPanelLink />
-          <PanelNotificationsBell />
           <WalletBalanceChip />
+          <PanelNotificationsBell />
           <ProfileDropdown />
         </div>
       </div>

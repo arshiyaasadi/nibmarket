@@ -9,10 +9,14 @@ import { Check, MapPin, Search, Users, X } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { ENDPOINTS } from "@/lib/api/endpoints";
 import { MAP_CITY_QUERY } from "@/config/map";
-import { normalizeSearchInput } from "@/lib/normalization/digits";
+import { normalizeSearchInput, toEnglishDigits } from "@/lib/normalization/digits";
 import { cn } from "@/lib/utils";
 import type { UserDensityMapLabels } from "@/components/organisms/admin/UserDensityMap";
-import type { AdminUserGeoResponse } from "@/types/admin";
+import type {
+  AdminUserGeoLookupResponse,
+  AdminUserGeoResponse,
+  AdminUsersPostalCodesResponse,
+} from "@/types/admin";
 
 // Leaflet touches `window` on import, so the map only renders on the client.
 const UserDensityMap = dynamic(
@@ -40,6 +44,16 @@ function foldText(value: string): string {
     .replace(/[\u200c\s]+/g, " ");
 }
 
+function extractMobileDigits(value: string): string {
+  return toEnglishDigits(value).replace(/\D/g, "");
+}
+
+/** Treat as mobile lookup when the query is mostly digits (Iran mobile length). */
+function isMobileSearchQuery(value: string): boolean {
+  const digits = extractMobileDigits(value);
+  return digits.length >= 10 && digits.length <= 11;
+}
+
 export function UserMapContent() {
   const t = useTranslations("admin.userMap");
   const tStatus = useTranslations("admin.users.status");
@@ -61,16 +75,22 @@ export function UserMapContent() {
     [t, tStatus],
   );
 
-  const { data, isLoading } = useQuery<AdminUserGeoResponse>({
+  /** Live contract: postal codes only — FE sums length for total locations. */
+  const { data: postalData, isLoading: postalLoading } = useQuery<AdminUsersPostalCodesResponse>({
+    queryKey: ["admin", "users", "postal-codes"],
+    queryFn: () => apiClient.get(ENDPOINTS.ADMIN.USERS.POSTAL_CODES),
+    staleTime: 300_000,
+  });
+
+  /** Fixture density points until FE postal→province/city/latlng algorithm ships. */
+  const { data, isLoading: geoLoading } = useQuery<AdminUserGeoResponse>({
     queryKey: ["admin", "users", "geo"],
     queryFn: () => apiClient.get(ENDPOINTS.ADMIN.USERS.GEO),
     staleTime: 300_000,
   });
 
   const searchParams = useSearchParams();
-  const [city, setCity] = useState<string | null>(
-    () => searchParams.get(MAP_CITY_QUERY) || null,
-  );
+  const [city, setCity] = useState<string | null>(() => searchParams.get(MAP_CITY_QUERY) || null);
   const [provinceQuery, setProvinceQuery] = useState("");
   const [province, setProvince] = useState<string | null>(null);
   const [provinceOpen, setProvinceOpen] = useState(false);
@@ -78,11 +98,27 @@ export function UserMapContent() {
   const provinceRef = useRef<HTMLDivElement>(null);
 
   const deferredUserQuery = useDeferredValue(userQuery);
+  const mobileLookupDigits = isMobileSearchQuery(deferredUserQuery)
+    ? extractMobileDigits(deferredUserQuery)
+    : "";
+
+  const { data: lookupData } = useQuery<AdminUserGeoLookupResponse>({
+    queryKey: ["admin", "users", "geo", "lookup", mobileLookupDigits],
+    queryFn: () =>
+      apiClient.get(
+        `${ENDPOINTS.ADMIN.USERS.GEO_LOOKUP}?mobile=${encodeURIComponent(mobileLookupDigits)}`,
+      ),
+    enabled: mobileLookupDigits.length >= 10,
+    staleTime: 60_000,
+  });
 
   const points = useMemo(() => data?.points ?? [], [data]);
+  const locationTotal = postalData?.postalCodes.length ?? 0;
+  const focusedUser = lookupData?.user ?? null;
 
   const provinces = useMemo(
-    () => [...new Set(points.map((point) => point.province))].sort((a, b) => a.localeCompare(b, "fa")),
+    () =>
+      [...new Set(points.map((point) => point.province))].sort((a, b) => a.localeCompare(b, "fa")),
     [points],
   );
 
@@ -93,6 +129,12 @@ export function UserMapContent() {
   }, [provinces, provinceQuery]);
 
   const filteredPoints = useMemo(() => {
+    if (focusedUser) {
+      return points.filter(
+        (point) => point.id === focusedUser.id || point.mobile === focusedUser.mobile,
+      );
+    }
+
     const needle = foldText(deferredUserQuery);
 
     return points.filter((point) => {
@@ -106,7 +148,12 @@ export function UserMapContent() {
         foldText(point.city).includes(needle)
       );
     });
-  }, [points, city, province, deferredUserQuery]);
+  }, [points, city, province, deferredUserQuery, focusedUser]);
+
+  const focusPointId = focusedUser
+    ? (filteredPoints.find((p) => p.id === focusedUser.id || p.mobile === focusedUser.mobile)?.id ??
+      null)
+    : null;
 
   const topCities = useMemo(() => {
     const counts = new Map<string, number>();
@@ -117,6 +164,7 @@ export function UserMapContent() {
   }, [filteredPoints]);
 
   const hasFilters = city !== null || province !== null || userQuery.trim().length > 0;
+  const isLoading = postalLoading || geoLoading;
 
   useEffect(() => {
     if (!provinceOpen) return;
@@ -154,9 +202,9 @@ export function UserMapContent() {
         </div>
         <div className="border-border bg-surface flex items-center gap-2 rounded-xl border px-4 py-2">
           <Users size={16} className="text-primary" />
-          <span className="text-muted text-xs">{t("totalUsers")}</span>
+          <span className="text-muted text-xs">{t("totalLocations")}</span>
           <span className="text-foreground text-sm font-bold tabular-nums">
-            {pn(data?.total ?? 0)}
+            {pn(locationTotal)}
           </span>
         </div>
       </div>
@@ -197,13 +245,26 @@ export function UserMapContent() {
           </div>
         )}
 
+        {focusedUser && (
+          <div className="border-border bg-surface-2 flex flex-wrap items-center justify-between gap-3 rounded-xl border px-3 py-2.5">
+            <div className="min-w-0">
+              <p className="text-foreground text-sm font-semibold">{focusedUser.fullName}</p>
+              <p className="text-muted mt-0.5 text-xs" dir="ltr">
+                {focusedUser.mobile}
+                {focusedUser.postalCode ? ` · ${focusedUser.postalCode}` : ""}
+              </p>
+            </div>
+            <span className="text-muted text-xs">{tStatus(focusedUser.status)}</span>
+          </div>
+        )}
+
         <div className="grid gap-3 md:grid-cols-2">
           <div className="relative" ref={provinceRef}>
             <label className="text-muted mb-1.5 block text-xs">{t("provinceLabel")}</label>
             <div className="relative">
               <MapPin
                 size={16}
-                className="text-muted pointer-events-none absolute top-1/2 start-3 -translate-y-1/2"
+                className="text-muted pointer-events-none absolute start-3 top-1/2 -translate-y-1/2"
               />
               <input
                 value={provinceQuery}
@@ -221,7 +282,7 @@ export function UserMapContent() {
                   type="button"
                   onClick={() => selectProvince(null)}
                   aria-label={t("provinceAll")}
-                  className="text-muted hover:text-foreground absolute top-1/2 end-3 -translate-y-1/2"
+                  className="text-muted hover:text-foreground absolute end-3 top-1/2 -translate-y-1/2"
                 >
                   <X size={15} />
                 </button>
@@ -264,7 +325,7 @@ export function UserMapContent() {
             <div className="relative">
               <Search
                 size={16}
-                className="text-muted pointer-events-none absolute top-1/2 start-3 -translate-y-1/2"
+                className="text-muted pointer-events-none absolute start-3 top-1/2 -translate-y-1/2"
               />
               <input
                 value={userQuery}
@@ -277,7 +338,7 @@ export function UserMapContent() {
                   type="button"
                   onClick={() => setUserQuery("")}
                   aria-label={t("resetFilters")}
-                  className="text-muted hover:text-foreground absolute top-1/2 end-3 -translate-y-1/2"
+                  className="text-muted hover:text-foreground absolute end-3 top-1/2 -translate-y-1/2"
                 >
                   <X size={15} />
                 </button>
@@ -294,7 +355,8 @@ export function UserMapContent() {
           <UserDensityMap
             points={filteredPoints}
             labels={mapLabels}
-            fitKey={`${city ?? "all"}|${province ?? "all"}|${deferredUserQuery.trim()}`}
+            focusPointId={focusPointId}
+            fitKey={`${city ?? "all"}|${province ?? "all"}|${deferredUserQuery.trim()}|${focusPointId ?? ""}`}
           />
         )}
         {!isLoading && filteredPoints.length === 0 && (
@@ -309,11 +371,11 @@ export function UserMapContent() {
       <section className="border-border bg-surface flex flex-col gap-4 rounded-2xl border p-5">
         <h2 className="text-foreground text-sm font-semibold">{t("topCitiesTitle")}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {topCities.map(([city, count]) => (
-            <div key={city} className="border-border rounded-xl border p-3">
+          {topCities.map(([cityName, count]) => (
+            <div key={cityName} className="border-border rounded-xl border p-3">
               <div className="text-muted flex items-center gap-1.5 text-xs">
                 <MapPin size={13} />
-                {city}
+                {cityName}
               </div>
               <p className="text-foreground mt-1 text-lg font-bold tabular-nums">{pn(count)}</p>
             </div>

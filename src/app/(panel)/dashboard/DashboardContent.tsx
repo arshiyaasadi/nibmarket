@@ -10,6 +10,7 @@ import { useCompetitionPool } from "@/features/leaderboard/queries";
 import { NetworkTreeWidget } from "@/components/organisms/network/NetworkTreeWidget";
 import { InviteModal } from "@/components/organisms/network/InviteModal";
 import { InviteKycGateModal } from "@/components/organisms/network/InviteKycGateModal";
+import { SejamKycNoticeBanner } from "@/components/organisms/auth/SejamKycNoticeBanner";
 import { MissionsBonusBanner } from "@/components/molecules/MissionsBonusBanner";
 import { SubsetDepositsWidget } from "@/components/molecules/SubsetDepositsWidget";
 import { useInviteLauncher } from "@/features/network/use-invite-launcher";
@@ -294,6 +295,8 @@ export function DashboardContent() {
   return (
     <>
       <div className="flex flex-col gap-4">
+        <SejamKycNoticeBanner />
+
         <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
           <div className="flex min-w-0 flex-1 flex-col">
             <MissionsWidget onInvite={openInvite} />

@@ -59,6 +59,7 @@ export function getDevAdminProfile() {
     birthDate: null,
     nationalId: null,
     nibMarketLinked: true,
+    hasSejamIdentity: true,
     recentSessions: [],
   };
 }

@@ -39,10 +39,10 @@ export const MOCK_INVITED: InvitedPerson[] = [
   },
   {
     id: "11",
-    firstName: "امير ",
-    lastName: "زارع كاريزي",
-    fullName: "امير  زارع كاريزي",
-    mobile: "",
+    firstName: "",
+    lastName: "",
+    fullName: "",
+    mobile: "09121112233",
     status: "active",
     joinDate: "2023-01-29T14:12:03.8186700",
     level: 1,
@@ -168,6 +168,7 @@ export function buildMockNetworkTree(): NetworkTreeNode {
   const toNode = (p: InvitedPerson, children: NetworkTreeNode[] = []): NetworkTreeNode => ({
     id: p.id,
     fullName: p.fullName,
+    mobile: p.mobile || null,
     level: p.level ?? 1,
     isSelf: false,
     children,
@@ -201,6 +202,8 @@ export interface MockUserRecord {
   gender: "male" | "female";
   birthDate: string | null;
   nationalId: string | null;
+  /** Explicit Sejam flag for KYC gate; omit → derived from kycStatus + nationalId */
+  hasSejamIdentity?: boolean;
   nibMarketLinked: boolean;
   createdAt: string;
 }
@@ -217,10 +220,12 @@ export function createDefaultMockUser(passwordHash: string): MockUserRecord {
     firstName: "کاربر",
     lastName: "تست",
     balance: 1250,
-    kycStatus: "verified",
+    // UI/mock default: force Sejam KYC gate so local demos exercise the flow.
+    kycStatus: "none",
+    hasSejamIdentity: false,
     gender: "male",
-    birthDate: "1370-05-12",
-    nationalId: "0012345678",
+    birthDate: null,
+    nationalId: null,
     nibMarketLinked: true,
     createdAt: "2023-01-24T14:33:08.792Z",
   };

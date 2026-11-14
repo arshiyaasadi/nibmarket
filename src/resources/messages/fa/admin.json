@@ -11,13 +11,14 @@
     "dashboard": "داشبورد",
     "users": "کاربران",
     "usersList": "لیست کاربران",
-    "usersMessages": "ارسال پیام",
+    "userMap": "نقشه تراکم کاربران",
+    "systemMessages": "پیام سیستمی",
+    "usersMessages": "پیام سیستمی",
     "twin": "تنوین",
     "pool": "استخر",
     "network": "دعوت از دوستان",
     "missions": "مأموریت‌ها",
     "sediment": "رسوب",
-    "userMap": "نقشه تراکم کاربران",
     "notifications": "اعلان‌ها",
     "logout": "خروج",
     "brandAdmin": "ADMIN",
@@ -47,6 +48,7 @@
     "title": "نقشه تراکم کاربران",
     "subtitle": "پراکندگی جغرافیایی کاربران در سراسر ایران",
     "totalUsers": "کل کاربران",
+    "totalLocations": "موقعیت مکانی",
     "hint": "برای مشاهده جزئیات روی نقشه زوم کنید؛ در حالت دورتر، تعداد کاربران هر محدوده روی خوشه نمایش داده می‌شود.",
     "topCitiesTitle": "شهرهای پرتراکم",
     "usersUnit": "کاربر",
@@ -56,7 +58,7 @@
     "provinceAll": "همه استان‌ها",
     "provinceEmpty": "استانی یافت نشد",
     "userLabel": "کاربر",
-    "userPlaceholder": "شماره موبایل، نام یا نام خانوادگی...",
+    "userPlaceholder": "شماره موبایل...",
     "resultCount": "{count} کاربر در نتیجه فیلتر",
     "resetFilters": "حذف فیلترها",
     "cityChip": "شهر: {city}",
@@ -111,6 +113,7 @@
       "role": "نقش",
       "status": "وضعیت",
       "kyc": "KYC",
+      "sejam": "احراز هویت",
       "referralCode": "کد معرف",
       "joinedAt": "تاریخ عضویت",
       "actions": "عملیات"
@@ -126,6 +129,22 @@
       "pending": "در انتظار",
       "verified": "تأیید شده",
       "rejected": "رد شده"
+    },
+    "sejam": {
+      "yes": "بله",
+      "no": "خیر",
+      "all": "همه وضعیت احراز هویت",
+      "verified": "احراز‌شده",
+      "unverified": "احراز‌نشده"
+    },
+    "syncUsers": "بروز رسانی اطلاعات کاربران (نیب مارکت)",
+    "syncUsersPending": "در حال بروزرسانی…",
+    "syncUsersSuccess": "بروزرسانی کاربران از نیب مارکت با موفقیت انجام شد.",
+    "syncUsersError": "بروزرسانی کاربران ناموفق بود.",
+    "kycSummary": {
+      "title": "تعداد کاربران",
+      "verified": "احراز هویت شده",
+      "unverified": "احراز هویت نشده"
     }
   },
   "demographics": {

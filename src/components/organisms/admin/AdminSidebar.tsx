@@ -1,7 +1,7 @@
 /**
  * @level organism
  * Liquid-glass island rail — collapsed shows icons only, hover expands over the content.
- * Users item nests: list + send message (sub-links only when expanded).
+ * Users nests: list + density map. System messages is its own top-level section.
  */
 "use client";
 import Link from "next/link";
@@ -52,10 +52,10 @@ const NAV: NavEntry[] = [
     icon: Users,
     children: [
       { href: ROUTES.ADMIN.USERS, labelKey: "usersList", icon: List },
-      { href: ROUTES.ADMIN.USER_MESSAGES, labelKey: "usersMessages", icon: MessageSquare },
+      { href: ROUTES.ADMIN.USER_MAP, labelKey: "userMap", icon: Map },
     ],
   },
-  { href: ROUTES.ADMIN.USER_MAP, labelKey: "userMap", icon: Map },
+  { href: ROUTES.ADMIN.SYSTEM_MESSAGES, labelKey: "systemMessages", icon: MessageSquare },
   { href: ROUTES.ADMIN.TWIN, labelKey: "twin", icon: Coins },
   { href: ROUTES.ADMIN.POOL, labelKey: "pool", icon: Trophy },
   { href: ROUTES.ADMIN.SEDIMENT, labelKey: "sediment", icon: Layers },
@@ -166,7 +166,9 @@ export function AdminSidebar() {
                         const childActive =
                           child.href === ROUTES.ADMIN.USERS
                             ? pathname === ROUTES.ADMIN.USERS
-                            : pathname === child.href || pathname.startsWith(`${child.href}/`);
+                            : pathname === child.href ||
+                              (child.href !== ROUTES.ADMIN.USERS &&
+                                pathname.startsWith(`${child.href}/`));
                         return (
                           <Link
                             key={child.href}

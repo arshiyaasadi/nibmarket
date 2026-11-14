@@ -109,7 +109,8 @@ function clusterTooltip(cluster: L.MarkerCluster, usersLabel: string): string {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
     .map(
-      ([city, count]) => `<span>${escapeHtml(city)}: <b>${count.toLocaleString("en-US")}</b></span>`,
+      ([city, count]) =>
+        `<span>${escapeHtml(city)}: <b>${count.toLocaleString("en-US")}</b></span>`,
     )
     .join("");
 
@@ -124,10 +125,12 @@ function ClusteredMembers({
   points,
   labels,
   fitKey,
+  focusPointId,
 }: {
   points: AdminUserGeoPoint[];
   labels: UserDensityMapLabels;
   fitKey: string;
+  focusPointId?: string | null;
 }) {
   const map = useMap();
   // `null` forces an initial fit so a deep link (e.g. ?city=…) opens framed on its result.
@@ -141,6 +144,8 @@ function ClusteredMembers({
       disableClusteringAtZoom: MAP_ZOOM.max,
       iconCreateFunction: (cluster) => clusterIcon(cluster.getChildCount()),
     });
+
+    let focusMarker: L.Marker | null = null;
 
     for (const point of points) {
       const marker = L.marker([point.lat, point.lng], {
@@ -162,6 +167,10 @@ function ClusteredMembers({
       // Hover reveals the card; it stays open so the action inside stays clickable.
       marker.on("mouseover", () => marker.openPopup());
       marker.addTo(group);
+
+      if (focusPointId && point.id === focusPointId) {
+        focusMarker = marker;
+      }
     }
 
     group.on("clustermouseover", (event) => {
@@ -179,15 +188,21 @@ function ClusteredMembers({
     // Re-frame the viewport only when the filters changed the visible set.
     if (fitKey !== lastFitKey.current && points.length > 0) {
       lastFitKey.current = fitKey;
-      const bounds = L.latLngBounds(points.map((point) => [point.lat, point.lng]));
-      map.fitBounds(bounds.pad(0.25), { maxZoom: MAP_ZOOM.focus, animate: true });
+      if (focusMarker) {
+        const latLng = focusMarker.getLatLng();
+        map.flyTo(latLng, MAP_ZOOM.focus, { animate: true });
+        window.setTimeout(() => focusMarker?.openPopup(), 350);
+      } else {
+        const bounds = L.latLngBounds(points.map((point) => [point.lat, point.lng]));
+        map.fitBounds(bounds.pad(0.25), { maxZoom: MAP_ZOOM.focus, animate: true });
+      }
     }
 
     return () => {
       group.off();
       map.removeLayer(group);
     };
-  }, [map, points, labels, fitKey]);
+  }, [map, points, labels, fitKey, focusPointId]);
 
   return null;
 }
@@ -262,10 +277,13 @@ export function UserDensityMap({
   points,
   labels,
   fitKey,
+  focusPointId,
 }: {
   points: AdminUserGeoPoint[];
   labels: UserDensityMapLabels;
   fitKey: string;
+  /** When set, fly to this member and open their popup. */
+  focusPointId?: string | null;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -290,7 +308,12 @@ export function UserDensityMap({
           maxNativeZoom={19}
           noWrap
         />
-        <ClusteredMembers points={points} labels={labels} fitKey={fitKey} />
+        <ClusteredMembers
+          points={points}
+          labels={labels}
+          fitKey={fitKey}
+          focusPointId={focusPointId}
+        />
         <MapControls containerRef={containerRef} labels={labels} />
       </MapContainer>
     </div>

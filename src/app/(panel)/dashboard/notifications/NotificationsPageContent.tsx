@@ -1,15 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { BellOff, CheckCheck } from "lucide-react";
 import { Button } from "@/components/atoms/Button";
 import { EmptyState } from "@/components/atoms/EmptyState";
+import { useAuthProfile } from "@/features/auth/queries";
+import {
+  needsSejamKyc,
+  SEJAM_KYC_MODAL_ID,
+  SEJAM_KYC_NOTIFICATION_ID,
+} from "@/features/auth/sejam-kyc";
+import { withSejamKycNotification } from "@/features/auth/with-sejam-kyc-notification";
 import {
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
   useNotifications,
 } from "@/features/notifications/queries";
+import { useUiSlice } from "@/store/slices/ui.slice";
 import type { NotificationType } from "@/types/mlm";
 import { cn, formatDateTime } from "@/lib/utils";
 
@@ -27,10 +35,23 @@ export function NotificationsPageContent() {
   });
   const markRead = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();
+  const profileQuery = useAuthProfile();
+  const openModal = useUiSlice((s) => s.openModal);
 
-  const items = data?.items ?? [];
-  const total = data?.total ?? 0;
-  const limit = data?.limit ?? 20;
+  const needsKyc =
+    needsSejamKyc(profileQuery.data?.hasSejamIdentity) && (filter === "all" || filter === "system");
+  const merged = useMemo(
+    () =>
+      withSejamKycNotification(data, needsKyc, {
+        title: t("kycRequiredTitle"),
+        body: t("kycRequiredBody"),
+      }),
+    [data, needsKyc, t],
+  );
+
+  const items = merged?.items ?? [];
+  const total = merged?.total ?? 0;
+  const limit = merged?.limit ?? 20;
   const hasMore = page * limit < total;
 
   return (
@@ -96,6 +117,10 @@ export function NotificationsPageContent() {
                 !item.isRead && "border-primary/30 bg-primary/5",
               )}
               onClick={() => {
+                if (item.id === SEJAM_KYC_NOTIFICATION_ID) {
+                  openModal(SEJAM_KYC_MODAL_ID);
+                  return;
+                }
                 if (!item.isRead) markRead.mutate(item.id);
               }}
             >

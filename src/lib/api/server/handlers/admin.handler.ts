@@ -7,6 +7,7 @@ import {
   getAdminTwinOverview,
   getAdminUserProfile,
   getAdminUsersDemographics,
+  getAdminUsersKycSummary,
   getAdminMissionJobsHealth,
   getAdminMissionsOverview,
   listAdminMissionCompletions,
@@ -14,6 +15,7 @@ import {
   listAdminMissions,
   listAdminUsers,
   listNetworkClosure,
+  syncAdminUsersFromNibmarket,
   updateAdminMissionStatus,
   updateAdminUserRole,
   updateAdminUserStatus,
@@ -40,7 +42,11 @@ import {
   listAdminSedimentDeposits,
 } from "@/lib/mock/admin-sediment";
 import { handleAdminLogin } from "@/lib/api/server/dev-admin-auth";
-import { getAdminUserGeoPoints } from "@/lib/mock/user-geo";
+import {
+  getAdminUserGeoPoints,
+  getAdminUsersPostalCodes,
+  lookupAdminUserGeoByMobile,
+} from "@/lib/mock/user-geo";
 import { isMockDevelopmentMode } from "@/config/api-service";
 
 function unauthorized(msg = "Unauthorized") {
@@ -94,14 +100,33 @@ export async function adminUsersHandler(req: Request): Promise<Response> {
   const pageSize = parseInt(url.searchParams.get("pageSize") ?? "20");
   const search = url.searchParams.get("search") ?? "";
   const status = url.searchParams.get("status") ?? "";
+  const hasSejamRaw = url.searchParams.get("hasSejamIdentity") ?? "";
+  const hasSejamIdentity =
+    hasSejamRaw === "true" || hasSejamRaw === "false" ? hasSejamRaw : ("" as const);
 
-  return NextResponse.json(await listAdminUsers({ page, pageSize, search, status }));
+  return NextResponse.json(
+    await listAdminUsers({ page, pageSize, search, status, hasSejamIdentity }),
+  );
+}
+
+/** POST /admin/users/sync — refresh users from Nibmarket (empty body). */
+export async function adminUsersSyncHandler(_req: Request): Promise<Response> {
+  const auth = await requireAdmin();
+  if (!auth) return unauthorized();
+  return NextResponse.json(await syncAdminUsersFromNibmarket());
 }
 
 export async function adminUsersDemographicsHandler(_req: Request): Promise<Response> {
   const auth = await requireAdmin();
   if (!auth) return unauthorized();
   return NextResponse.json(await getAdminUsersDemographics());
+}
+
+/** GET /admin/users/kyc-summary — verified / unverified identity counts. */
+export async function adminUsersKycSummaryHandler(_req: Request): Promise<Response> {
+  const auth = await requireAdmin();
+  if (!auth) return unauthorized();
+  return NextResponse.json(await getAdminUsersKycSummary());
 }
 
 /**
@@ -114,6 +139,21 @@ export async function adminUsersGeoHandler(_req: Request): Promise<Response> {
     if (!cookieStore.get("nib_token")?.value) return unauthorized();
   }
   return NextResponse.json(getAdminUserGeoPoints());
+}
+
+/** GET /admin/users/postal-codes — postal code strings only for density totals / later geo decode. */
+export async function adminUsersPostalCodesHandler(_req: Request): Promise<Response> {
+  const auth = await requireAdmin();
+  if (!auth) return unauthorized();
+  return NextResponse.json(getAdminUsersPostalCodes());
+}
+
+/** GET /admin/users/geo/lookup?mobile= — pin/search one user by mobile. */
+export async function adminUsersGeoLookupHandler(req: Request): Promise<Response> {
+  const auth = await requireAdmin();
+  if (!auth) return unauthorized();
+  const mobile = new URL(req.url).searchParams.get("mobile") ?? "";
+  return NextResponse.json(lookupAdminUserGeoByMobile(mobile));
 }
 
 export async function adminUserDetailHandler(_req: Request, userId: string): Promise<Response> {
