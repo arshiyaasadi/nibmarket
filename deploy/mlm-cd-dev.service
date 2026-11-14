@@ -1,0 +1,14 @@
+[Unit]
+Description=MLM Front continuous deploy (poll develop + blue/green on nibdev)
+After=network-online.target docker.service
+Wants=network-online.target docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/MLM_Front
+Environment=PROJECT_DIR=/opt/MLM_Front
+Environment=GIT_BRANCH=develop
+ExecStart=/opt/MLM_Front/scripts/server-cd-dev.sh
+# Override User= to the SSH login that owns /opt/MLM_Front on nibdev (often arshia).
+User=arshia
+Group=arshia

@@ -116,26 +116,31 @@ deploy_stack() {
   built="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   export GIT_SHA="${sha}"
   export BUILD_TIME="${built}"
+  export PROJECT_DIR
 
   ensure_env_file
 
-  set -a
-  # shellcheck disable=SC1091
-  source <(grep -E '^(APP_ENV|NEXT_PUBLIC_APP_ENV|APP_PORT)=' "${ENV_FILE}" | sed 's/\r$//')
-  set +a
-  echo "${LOG_PREFIX} building live (GIT_SHA=${sha})"
-  if grep -qE '^APP_PORT=' "${ENV_FILE}" 2>/dev/null; then
-    sed -i.bak "s|^APP_PORT=.*|APP_PORT=${LIVE_PORT}|" "${ENV_FILE}" && rm -f "${ENV_FILE}.bak"
+  # Prefer the same worker used by `yarn sync:live` (nginx + staged build).
+  if [[ -x "${PROJECT_DIR}/scripts/remote-deploy.sh" || -f "${PROJECT_DIR}/scripts/remote-deploy.sh" ]]; then
+    echo "${LOG_PREFIX} running remote-deploy.sh (GIT_SHA=${sha})"
+    bash "${PROJECT_DIR}/scripts/remote-deploy.sh"
+  else
+    set -a
+    # shellcheck disable=SC1091
+    source <(grep -E '^(APP_ENV|NEXT_PUBLIC_APP_ENV|APP_PORT)=' "${ENV_FILE}" | sed 's/\r$//')
+    set +a
+    echo "${LOG_PREFIX} building live via compose (GIT_SHA=${sha})"
+    if grep -qE '^APP_PORT=' "${ENV_FILE}" 2>/dev/null; then
+      sed -i.bak "s|^APP_PORT=.*|APP_PORT=${LIVE_PORT}|" "${ENV_FILE}" && rm -f "${ENV_FILE}.bak"
+    fi
+    export APP_PORT="${LIVE_PORT}"
+    compose "${COMPOSE_PROJECT}" -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" up -d --build --remove-orphans
+    docker_cmd rm -f mlm_front_v2 mlm_front_prod mlm_front 2>/dev/null || true
+    compose "${COMPOSE_PROJECT}" -f "${COMPOSE_FILE}" ps || true
   fi
-  export APP_PORT="${LIVE_PORT}"
-  compose "${COMPOSE_PROJECT}" -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" up -d --build --remove-orphans
-
-  # One-shot cleanup of legacy containers
-  docker_cmd rm -f mlm_front_v2 mlm_front_prod mlm_front 2>/dev/null || true
 
   echo "${sha}" > "${LAST_SHA_FILE}"
   echo "${LOG_PREFIX} deployed ${sha} at ${built}"
-  compose "${COMPOSE_PROJECT}" -f "${COMPOSE_FILE}" ps || true
 }
 
 # ---------- main ----------

@@ -1,9 +1,16 @@
-# Azure DevOps access may be unavailable. Prefer local → server sync:
+# Club FE — Azure Pipelines stub
 #
-#   yarn sync:live
+# Shipping is NOT this pipeline. Auto release path:
+#   push branch to Azure Repos (remote `novin` / MLM_Front)
+#     → host systemd timer polls git every ~2m
+#     → develop  → scripts/server-cd-dev.sh → nibdev (club.nibdev.com)
+#     → main     → scripts/server-cd.sh     → live  (club.nibmarket.com)
 #
-# That rsyncs the tree and builds both Docker stacks on the host.
-# The live host sits behind WireGuard — run sync from a machine with WG ON.
+# History / fallback (laptop + WireGuard):
+#   yarn sync:dev   / yarn sync:live
+# See docs/05-ops/release-history.md and docs/05-ops/deploy.md
+#
+# Keep trigger none so ADO does not double-build in the cloud.
 
 trigger: none
 
@@ -12,5 +19,6 @@ pool:
 
 steps:
   - script: |
-      echo "Use yarn sync:live instead of cloud CD when Azure push is unavailable."
-    displayName: "Prefer rsync deploy (sync:live)"
+      echo "No cloud build. Push to Azure Repos; app hosts poll main/develop."
+      echo "Fallback: yarn sync:dev | yarn sync:live (WireGuard)."
+    displayName: "Point to host git-poll CD"
