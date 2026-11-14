@@ -169,21 +169,75 @@ function buildPoints(): AdminUserGeoPoint[] {
 
 const USER_GEO_POINTS = buildPoints();
 
-/** Deterministic 10-digit Iran-style postal from geo seed id. */
-function postalFromPointId(id: string): string {
-  const n = Number(id.replace(/\D/g, "")) || 1;
-  const raw = String(Math.floor(Math.abs(Math.sin(n * 9.1) * 1e12))).padStart(10, "0");
-  return raw.slice(0, 10);
+/** Representative 5-digit routing prefixes per city for mock postal codes. */
+const CITY_POSTAL_PREFIX: Record<string, number> = {
+  تهران: 16199,
+  کرج: 31456,
+  اسلامشهر: 14818,
+  ورامین: 33718,
+  شهریار: 33516,
+  مشهد: 91881,
+  اصفهان: 81465,
+  شیراز: 71876,
+  تبریز: 51579,
+  اهواز: 61398,
+  قم: 37198,
+  کرمانشاه: 67157,
+  رشت: 41869,
+  ارومیه: 57156,
+  زاهدان: 98167,
+  کرمان: 76186,
+  یزد: 89168,
+  بندرعباس: 79169,
+  اردبیل: 56164,
+  همدان: 65156,
+  ساری: 48167,
+  گرگان: 49167,
+  بوشهر: 75157,
+  خرم‌آباد: 68167,
+  سنندج: 66157,
+  بیرجند: 97167,
+  ایلام: 69316,
+  شهرکرد: 88167,
+  سمنان: 35167,
+  زنجان: 45157,
+  قزوین: 34157,
+  یاسوج: 75916,
+  بجنورد: 94167,
+  چابهار: 99716,
+  کیش: 79416,
+};
+
+/** Live-like samples used in FE/BE acceptance checks. */
+const SAMPLE_POSTAL_CODES = [
+  "1619918413",
+  "1635648556",
+  "1651645414",
+  "1893954169",
+  "8196887843",
+] as const;
+
+/** Deterministic 10-digit Iran-style postal anchored to the point's city prefix. */
+function postalFromPoint(point: AdminUserGeoPoint): string {
+  const n = Number(point.id.replace(/\D/g, "")) || 1;
+  const prefix = CITY_POSTAL_PREFIX[point.city] ?? 16199;
+  const suffix = String(Math.floor(Math.abs(Math.sin(n * 9.1) * 1e5)))
+    .padStart(5, "0")
+    .slice(0, 5);
+  return `${String(prefix).padStart(5, "0")}${suffix}`;
 }
 
 export function getAdminUserGeoPoints(): AdminUserGeoResponse {
   return { points: USER_GEO_POINTS, total: USER_GEO_POINTS.length };
 }
 
-/** GET /admin/users/postal-codes — postal strings only (one per geo fixture user). */
+/** GET /admin/users/postal-codes — postal strings only (samples + one per geo fixture user). */
 export function getAdminUsersPostalCodes(): AdminUsersPostalCodesResponse {
   return {
-    postalCodes: USER_GEO_POINTS.map((point) => postalFromPointId(point.id)),
+    postalCodes: [
+      ...SAMPLE_POSTAL_CODES,
+      ...USER_GEO_POINTS.map((point) => postalFromPoint(point)),
+    ],
   };
 }
 
@@ -200,7 +254,7 @@ export function lookupAdminUserGeoByMobile(mobile: string): AdminUserGeoLookupRe
       id: point.id,
       fullName: point.fullName,
       mobile: point.mobile,
-      postalCode: postalFromPointId(point.id),
+      postalCode: postalFromPoint(point),
       status: point.status,
     },
   };

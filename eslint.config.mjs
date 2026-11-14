@@ -36,8 +36,14 @@ const eslintConfig = defineConfig([
     rules: { "no-restricted-syntax": "off" },
   },
   // Mock fixtures + static Tanvin landing markup are intentionally Persian / non-token CSS.
+  // Geo datasets (postal ranges / city names) are proper nouns, not UI copy.
   {
-    files: ["src/lib/mock/**/*", "src/features/landing-tanvin/**/*", "src/features/landing/**/*"],
+    files: [
+      "src/lib/mock/**/*",
+      "src/lib/geo/**/*",
+      "src/features/landing-tanvin/**/*",
+      "src/features/landing/**/*",
+    ],
     rules: { "no-restricted-syntax": "off" },
   },
 ]);

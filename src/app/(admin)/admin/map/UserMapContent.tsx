@@ -9,14 +9,11 @@ import { Check, MapPin, Search, Users, X } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { ENDPOINTS } from "@/lib/api/endpoints";
 import { MAP_CITY_QUERY } from "@/config/map";
+import { lookupUserToGeoPoint, postalCodesToGeoPoints } from "@/lib/geo/iran-postal";
 import { normalizeSearchInput, toEnglishDigits } from "@/lib/normalization/digits";
 import { cn } from "@/lib/utils";
 import type { UserDensityMapLabels } from "@/components/organisms/admin/UserDensityMap";
-import type {
-  AdminUserGeoLookupResponse,
-  AdminUserGeoResponse,
-  AdminUsersPostalCodesResponse,
-} from "@/types/admin";
+import type { AdminUserGeoLookupResponse, AdminUsersPostalCodesResponse } from "@/types/admin";
 
 // Leaflet touches `window` on import, so the map only renders on the client.
 const UserDensityMap = dynamic(
@@ -75,17 +72,10 @@ export function UserMapContent() {
     [t, tStatus],
   );
 
-  /** Live contract: postal codes only — FE sums length for total locations. */
+  /** Live contract: postal codes only — FE decodes Iran postal → approx city/latlng. */
   const { data: postalData, isLoading: postalLoading } = useQuery<AdminUsersPostalCodesResponse>({
     queryKey: ["admin", "users", "postal-codes"],
     queryFn: () => apiClient.get(ENDPOINTS.ADMIN.USERS.POSTAL_CODES),
-    staleTime: 300_000,
-  });
-
-  /** Fixture density points until FE postal→province/city/latlng algorithm ships. */
-  const { data, isLoading: geoLoading } = useQuery<AdminUserGeoResponse>({
-    queryKey: ["admin", "users", "geo"],
-    queryFn: () => apiClient.get(ENDPOINTS.ADMIN.USERS.GEO),
     staleTime: 300_000,
   });
 
@@ -112,9 +102,22 @@ export function UserMapContent() {
     staleTime: 60_000,
   });
 
-  const points = useMemo(() => data?.points ?? [], [data]);
   const locationTotal = postalData?.postalCodes.length ?? 0;
   const focusedUser = lookupData?.user ?? null;
+
+  const points = useMemo(() => {
+    const fromPostal = postalCodesToGeoPoints(postalData?.postalCodes ?? []);
+    if (!focusedUser) return fromPostal;
+
+    const focusedPoint = lookupUserToGeoPoint(focusedUser);
+    const withoutDup = fromPostal.filter(
+      (point) =>
+        point.id !== focusedPoint.id &&
+        point.mobile !== focusedPoint.mobile &&
+        point.postalCode !== focusedPoint.postalCode,
+    );
+    return [...withoutDup, focusedPoint];
+  }, [postalData, focusedUser]);
 
   const provinces = useMemo(
     () =>
@@ -145,6 +148,7 @@ export function UserMapContent() {
       return (
         foldText(point.fullName).includes(needle) ||
         point.mobile.includes(needle) ||
+        (point.postalCode?.includes(needle) ?? false) ||
         foldText(point.city).includes(needle)
       );
     });
@@ -164,7 +168,7 @@ export function UserMapContent() {
   }, [filteredPoints]);
 
   const hasFilters = city !== null || province !== null || userQuery.trim().length > 0;
-  const isLoading = postalLoading || geoLoading;
+  const isLoading = postalLoading;
 
   useEffect(() => {
     if (!provinceOpen) return;

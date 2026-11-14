@@ -139,7 +139,7 @@ export interface AdminUsersSyncResponse {
   message?: string;
 }
 
-/** GET /admin/users/geo — one member pinned on the density map (legacy fixture until postal→geo lands) */
+/** Density-map pin — FE builds these from postal codes (city/latlng decoded client-side). */
 export interface AdminUserGeoPoint {
   id: string;
   fullName: string;
@@ -153,7 +153,7 @@ export interface AdminUserGeoPoint {
   postalCode?: string | null;
 }
 
-/** GET /admin/users/geo — response (fixture/legacy density points) */
+/** GET /admin/users/geo — legacy fixture response (BFF-local only; map no longer depends on it). */
 export interface AdminUserGeoResponse {
   points: AdminUserGeoPoint[];
   total: number;
@@ -162,7 +162,7 @@ export interface AdminUserGeoResponse {
 /**
  * GET /admin/users/postal-codes — full list of user postal codes for density map.
  * Response items are **postal code strings only** (one per user with a usable address).
- * FE sums `postalCodes.length` for total locations and later maps Iran postal → province/city/approx latlng.
+ * FE sums `postalCodes.length` for total locations and maps Iran postal → province/city/approx latlng.
  */
 export interface AdminUsersPostalCodesResponse {
   postalCodes: string[];
