@@ -114,7 +114,9 @@ export function JalaliDatePicker({
       )}
       <style>{`
         .rmdp-prime-dark.rmdp-wrapper,
-        .rmdp-prime-dark .rmdp-calendar {
+        .rmdp-prime-dark .rmdp-calendar,
+        .rmdp-prime-dark .rmdp-month-picker,
+        .rmdp-prime-dark .rmdp-year-picker {
           background: #16161d !important;
           border: 1px solid rgba(255, 255, 255, 0.12) !important;
           border-radius: 1rem !important;
@@ -122,9 +124,20 @@ export function JalaliDatePicker({
           color: #f4f4f5 !important;
           font-family: inherit !important;
         }
+        .rmdp-prime-dark .rmdp-month-picker,
+        .rmdp-prime-dark .rmdp-year-picker {
+          /* overlays sit on calendar; keep same dark fill so labels stay readable */
+          background-color: #16161d !important;
+        }
         .rmdp-prime-dark .rmdp-header-values,
+        .rmdp-prime-dark .rmdp-header-values span,
         .rmdp-prime-dark .rmdp-day,
-        .rmdp-prime-dark .rmdp-week-day {
+        .rmdp-prime-dark .rmdp-day span,
+        .rmdp-prime-dark .rmdp-week-day,
+        .rmdp-prime-dark .rmdp-month-picker .rmdp-day,
+        .rmdp-prime-dark .rmdp-month-picker .rmdp-day span,
+        .rmdp-prime-dark .rmdp-year-picker .rmdp-day,
+        .rmdp-prime-dark .rmdp-year-picker .rmdp-day span {
           color: #e4e4e7 !important;
         }
         .rmdp-prime-dark .rmdp-week-day {
@@ -135,13 +148,18 @@ export function JalaliDatePicker({
           border: 1px solid rgba(167, 139, 250, 0.7) !important;
           background: transparent !important;
         }
-        .rmdp-prime-dark .rmdp-day.rmdp-selected span:not(.highlight) {
+        .rmdp-prime-dark .rmdp-day.rmdp-selected span:not(.highlight),
+        .rmdp-prime-dark .rmdp-month-picker .rmdp-day.rmdp-selected span,
+        .rmdp-prime-dark .rmdp-year-picker .rmdp-day.rmdp-selected span {
           background: #7c3aed !important;
           box-shadow: none !important;
           color: #fff !important;
         }
-        .rmdp-prime-dark .rmdp-day:not(.rmdp-disabled):not(.rmdp-day-hidden) span:hover {
+        .rmdp-prime-dark .rmdp-day:not(.rmdp-disabled):not(.rmdp-day-hidden) span:hover,
+        .rmdp-prime-dark .rmdp-month-picker .rmdp-day:not(.rmdp-disabled) span:hover,
+        .rmdp-prime-dark .rmdp-year-picker .rmdp-day:not(.rmdp-disabled) span:hover {
           background: rgba(124, 58, 237, 0.25) !important;
+          color: #fff !important;
         }
         .rmdp-prime-dark .rmdp-arrow {
           border-color: #c4b5fd !important;
@@ -150,7 +168,10 @@ export function JalaliDatePicker({
           background: rgba(124, 58, 237, 0.2) !important;
           box-shadow: none !important;
         }
-        .rmdp-prime-dark .rmdp-day.rmdp-disabled span {
+        .rmdp-prime-dark .rmdp-day.rmdp-disabled span,
+        .rmdp-prime-dark .rmdp-day.rmdp-deactive span,
+        .rmdp-prime-dark .rmdp-month-picker .rmdp-day.rmdp-disabled span,
+        .rmdp-prime-dark .rmdp-year-picker .rmdp-day.rmdp-disabled span {
           color: #52525b !important;
         }
       `}</style>
