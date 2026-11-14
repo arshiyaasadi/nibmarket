@@ -3,35 +3,39 @@
 | Zone | Brand | How to ship | Details |
 |------|-------|-------------|---------|
 | **dev / dig** | nibdev | **Manual only:** `yarn sync:dev` | [nibdev.md](./nibdev.md) — blue/green `:3000` / `127.0.0.1:2999` |
-| **live** | nibmarket | **Auto:** push `main` to Azure `novin` | [nibmarket.md](./nibmarket.md) — `:3000` + nginx origin `:80` behind CDN |
+| **live** | nibmarket | **Target auto:** `git push novin main` → `mlm-cd.timer` | [nibmarket.md](./nibmarket.md) — break-glass: `yarn sync:live` |
 
 ## Git branch policy
 
-Primary remote for **live** releases: **`novin`** (Azure DevOps `MLM_Front`).
+Primary remote for **live auto CD**: **`novin`** (Azure DevOps `MLM_Front`).  
+GitHub (`github`) is the day-to-day remote; **pushing GitHub alone does not deploy live.**
 
 | Branch | Role | Deploy |
 |--------|------|--------|
-| **`develop`** | Day-to-day work | **No** server auto CD. Ship dig with `yarn sync:dev` (WireGuard). |
-| **`main`** | Live baseline | Push → **nibmarket** via `mlm-cd.timer` → `server-cd.sh` → `remote-deploy.sh` |
+| **`develop`** | Day-to-day work | **No** server auto CD. Dig = `yarn sync:dev` (WireGuard). |
+| **`main`** | Live baseline | Auto: `git push novin main` → `mlm-cd.timer` → `server-cd.sh` → `remote-deploy.sh` |
 
 ### Workflow (preferences)
 
-1. Feature work → merge into **`develop`** → push github (and Azure `novin develop` if useful for backup — dig will **not** auto-deploy).
-2. Dig preview: WireGuard ON → `yarn sync:dev` → optional `yarn sync:dev --follow` / `yarn logs:dev`.
-3. Live cut: merge **`develop` → `main`** → `git push novin main` → wait ~2m for `mlm-cd.timer` (fallback: `yarn sync:live`).
+1. Feature work → merge into **`develop`** → `git push github develop`
+2. Dig preview: WireGuard ON → `yarn sync:dev` → `yarn logs:dev` / dig `/api/ping`
+3. Live cut:
+   - merge **`develop` → `main`** → `git push github main`
+   - **also** `git push novin main` (required for auto CD)
+   - wait ~2m → verify ping-pong
+   - if auto path fails → **`yarn sync:live`** (manual versioning)
 
 Notes:
 
-- Azure Pipelines YAML stays `trigger: none` (live ship path is git push + **live** host timer only).
-- Feature branches target **`develop`**, not `main`.
-- Dig must **not** run `mlm-cd-dev.timer` — see [release-history.md](./release-history.md) (disable if present).
-- Live timer enable (one-time): [release-history.md](./release-history.md).
+- Azure Pipelines YAML stays `trigger: none`.
+- Dig must **not** run `mlm-cd-dev.timer` — [release-history.md](./release-history.md).
+- Live timer enable + post-mortem of the 2026-11-14 cut: [release-history.md](./release-history.md).
 
-Env / presets: [env.md](./env.md) · Live log collection: [`scripts/live-logs-prompt.md`](../../scripts/live-logs-prompt.md)
+Env / presets: [env.md](./env.md) · Store plan: Project Agent Store `docs/club-auto-cd-azure-plan.md`
 
 ## Shared prerequisites
 
-1. WireGuard on (for SSH / dig sync / first-time live timer install)
+1. WireGuard on (Azure DNS, dig sync, live SSH / timer install)
 2. SSH: alias `nibdev` / `nibmarket-live` (or `DEV_SSH_HOST` / `LIVE_SSH_HOST`)
 3. Server project path: `/opt/MLM_Front`
 4. External Docker network named `nginx`
@@ -39,13 +43,12 @@ Env / presets: [env.md](./env.md) · Live log collection: [`scripts/live-logs-pr
 ## Dev (nibdev) — summary
 
 ```bash
-yarn sync:dev                 # only supported dig ship path (rsync + blue/green)
+yarn sync:dev                 # only dig ship path
 yarn sync:dev --status
 yarn sync:dev --follow        # tails only; does not start deploy
-yarn sync:dev --rollback      # instant swap, no rebuild
+yarn sync:dev --rollback
 yarn sync:dev --force
-yarn logs:dev                 # pull dig snapshot → logs/dev/*.txt
-yarn logs:live                # pull live snapshot → logs/live/*.txt
+yarn logs:dev
 ```
 
 | | |
@@ -53,47 +56,69 @@ yarn logs:live                # pull live snapshot → logs/live/*.txt
 | Host | `pod1.nibdev.com` |
 | Public | https://club.nibdev.com |
 | BE | `https://api-club.nibdev.com` |
-| Panel SSO | https://panel.nibdev.com → callback `https://club.nibdev.com/login/sso/` |
-| Compose | `docker-compose.dev.yml` + `.env` → `mlm_front_dev_blue` / `_green` |
+| Compose | `docker-compose.dev.yml` → blue/green |
 | Worker | `scripts/remote-deploy-dev.sh` |
+| Auto CD | **Off** |
 
 ## Live (nibmarket) — summary
 
-**Versioning = merge develop→main + `git push novin main`.** Host polls `main` every ~2 minutes.
+**Target versioning** = merge develop→main + **`git push novin main`** (Azure tip) + `mlm-cd.timer`.
 
-### Verify live auto CD (ping-pong)
+### 2026-11-14 cut (what happened)
 
-1. Note tip: `git rev-parse --short HEAD` on `main`
-2. `git push novin main` → wait **~2 minutes**
-3. Profile → **درباره اپلیکیشن**, or `curl -sS https://club.nibmarket.com/api/ping`
-4. Compare `version.git` / `deploy.gitSha` to the tip
-5. Fallback: `yarn logs:live`
+- GitHub `main` already had tip `5476954`; live stayed on `3ff8582` until **manual** `yarn sync:live`.
+- Root cause: Azure `novin/main` was not updated (VPN/DNS / push skipped) — timer had nothing new to deploy.
+- Old live build also lacked ping `cd` block (added in that tip); `.cd` looked null until the new build landed.
+
+### Verify (ping-pong)
 
 ```bash
-# After push to Azure main (preferred):
-curl -sS https://club.nibmarket.com/api/ping
-yarn logs:live                # confirm SHA / deploy status
-yarn sync:live:status
-yarn sync:live:follow         # tails only
+# Tip you expect:
+git rev-parse --short main
 
-# Fallback if timer not enabled / stuck:
+# After auto or manual ship (~2m for timer):
+curl -sS https://club.nibmarket.com/api/ping | jq '{git:.version.git, deploy:.deploy, cd:.cd}'
+# UI: profile → درباره اپلیکیشن → refresh
+yarn logs:live                # → logs/live/<ts>.txt
+```
+
+Expect `version.git` (and `deploy.gitSha` when present) to match tip; on new builds `cd.autoCdExpected === true`.
+
+### Commands
+
+```bash
+# Preferred auto path (WireGuard + Azure reachable):
+git push novin main
+# wait ~2m, then ping / logs:live
+
+# Confirm Azure tip matches local:
+git ls-remote novin refs/heads/main
+
+# Break-glass (this cut’s working path):
 yarn sync:live
 yarn sync:live --force
 # SKIP_NGINX=1 yarn sync:live   # only when host nginx must not change
 ```
 
+### Checklist before relying on push-only next time
+
+1. WireGuard ON  
+2. `git push novin main` succeeded; `git ls-remote novin refs/heads/main` == tip  
+3. `systemctl is-enabled mlm-cd.timer` → `enabled` on live host  
+4. Wait ~2m → `/api/ping` matches tip  
+5. If not: journal `mlm-cd.service`, then break-glass `yarn sync:live`
+
 | | |
 |--|--|
 | Host | `club-docker.nibmarket.com` (`nibmarket-live`) |
-| Public | https://club.nibmarket.com (Arvan CDN → origin `:80`) |
+| Public | https://club.nibmarket.com |
 | App | `mlm_front_live` → `:3000` |
-| Origin nginx | **HTTP `:80` only** → `127.0.0.1:3000` — **no certbot** |
-| BE | `http://club-srv.nibmarket.com` (internal HTTP) |
-| Panel SSO | https://panel.nibmarket.com → callback `https://club.nibmarket.com/login/sso/` |
+| Origin nginx | **HTTP `:80` only** → `127.0.0.1:3000` |
 | Compose | `docker-compose.live.yml` + `.env.live` |
-| Auto CD | `mlm-cd.timer` → `scripts/server-cd.sh` → `remote-deploy.sh` |
+| Auto CD | `mlm-cd.timer` → `server-cd.sh` → `remote-deploy.sh` |
+| Ping-pong | `GET /api/ping` + profile «درباره اپلیکیشن» |
 
 ## Related
 
-- [release-history.md](./release-history.md) — dig manual vs live auto, enable/disable checklists
-- Store plan: Project Agent Store `docs/club-auto-cd-azure-plan.md`
+- [release-history.md](./release-history.md) — eras, enable/disable, incident notes  
+- [nibdev.md](./nibdev.md) · [nibmarket.md](./nibmarket.md)

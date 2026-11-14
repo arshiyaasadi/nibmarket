@@ -7,9 +7,27 @@ Keep this as the **historical record**. Day-to-day commands: [deploy.md](./deplo
 | Zone | Ship path | Auto CD? |
 |------|-----------|----------|
 | **dig / nibdev** | `yarn sync:dev` only (WireGuard + rsync + blue/green) | **No** — do not enable `mlm-cd-dev.timer` |
-| **live / nibmarket** | `git push novin main` → `mlm-cd.timer` | **Yes** |
+| **live / nibmarket** | **Target:** `git push novin main` → `mlm-cd.timer` | **Yes** (when Azure tip is current) |
+| live break-glass | `yarn sync:live` | Manual rsync path |
 
-Live versioning: merge **`develop` → `main`**, then `git push novin main`. Dig is never advanced by git push alone.
+Live versioning target: merge **`develop` → `main`**, push **GitHub and Azure (`novin`)**, wait for timer.  
+Dig is never advanced by git push alone.
+
+**Important:** Live polls **Azure**, not GitHub. `git push github main` alone will not move live.
+
+---
+
+## Incident log — 2026-11-14 first “auto” live cut
+
+| | |
+|--|--|
+| GitHub | `develop` + `main` at tip `5476954` (merge OK) |
+| Live before fix | Stuck on `3ff8582` (~26 commits behind) |
+| Auto pipeline | **Failed to ship** — `novin/main` never got the tip (no successful Azure push / VPN DNS) |
+| What worked | Manual **`yarn sync:live`** |
+| Ping `.cd` | Null/missing on old build; `cd` arrives only after new ping-pong code is deployed |
+
+Timer may have been enabled; without a new Azure tip it correctly did nothing.
 
 ---
 
@@ -17,16 +35,14 @@ Live versioning: merge **`develop` → `main`**, then `git push novin main`. Dig
 
 | Zone | Branch (intended) | Command | What it does |
 |------|-------------------|---------|--------------|
-| nibdev | `develop` (local tree) | `yarn sync:dev` | rsync → `/opt/MLM_Front`, `remote-deploy-dev.sh` (blue/green) |
-| live | `main` | `yarn sync:live` | rsync → `/opt/MLM_Front`, `remote-deploy.sh` (compose + nginx `:80`) — **fallback** if live timer down |
+| nibdev | local tree | `yarn sync:dev` | rsync → `/opt/MLM_Front`, `remote-deploy-dev.sh` |
+| live | `main` tip (local) | `yarn sync:live` | rsync → `/opt/MLM_Front`, `remote-deploy.sh` — **fallback / this cut’s ship path** |
 
-**Files:** `scripts/sync-dev.sh`, `sync-live.sh`, `remote-deploy-dev.sh`, `remote-deploy.sh`, compose files, `deploy/nginx/club.nibmarket.com.conf`.
-
-**Why dig stays Era A:** operator wants explicit dig releases; no host poll of `develop`.
+**Why dig stays Era A:** explicit dig releases; no host poll of `develop`.
 
 ---
 
-## Era B — Azure git push → host poll (**live only**)
+## Era B — Azure git push → host poll (**live only**, target)
 
 Repo remote **`novin`** = Azure DevOps `MLM_Front`.
 
@@ -35,21 +51,16 @@ Repo remote **`novin`** = Azure DevOps `MLM_Front`.
 | **live** | `main` | `mlm-cd.timer` → `scripts/server-cd.sh` | `remote-deploy.sh` |
 | nibdev | ~~`develop`~~ | ~~`mlm-cd-dev.timer`~~ | **Retired — do not enable** |
 
-**Operator flow:**
+**Operator flow (when push-only works):**
 
-1. Day-to-day → **`develop`** + dig via `yarn sync:dev` when needed
-2. Live cut → merge `develop` → **`main`** → `git push novin main` → ~2 minutes live rebuilds
-3. If live auto CD fails → `yarn sync:live` (WireGuard)
-
-**Azure Pipelines** (`azure-pipelines.yml`): `trigger: none` — not the ship path.
-
-Legacy dig poll scripts (`server-cd-dev.sh`, `deploy/mlm-cd-dev.*`) may remain in the repo for disable/cleanup only — **not** an intended path.
+1. Day-to-day → **`develop`** + dig via `yarn sync:dev` when needed  
+2. Live cut → merge → **`main`** → **`git push novin main`** → ~2 minutes  
+3. Verify `/api/ping` + optional `yarn logs:live`  
+4. If auto fails → `yarn sync:live`
 
 ---
 
 ## Dig — ensure auto CD is OFF
-
-If units were ever installed on `pod1`:
 
 ```bash
 sudo systemctl disable --now mlm-cd-dev.timer 2>/dev/null || true
@@ -59,17 +70,13 @@ sudo systemctl daemon-reload
 systemctl is-enabled mlm-cd-dev.timer 2>&1 || echo "dig auto CD off (expected)"
 ```
 
-From laptop: `yarn logs:dev` — timer section should show units missing / disabled.
-
-**Do not** run `systemctl enable mlm-cd-dev.timer`.
+**Do not** enable `mlm-cd-dev.timer`.
 
 ---
 
-## Live — enable auto CD once (WireGuard ON)
+## Live — enable auto CD once + next-cut checklist
 
-1. `/opt/MLM_Front` is a git checkout of Azure `MLM_Front`, branch **`main`**
-2. `.cd-git-credentials` present if origin has no embedded creds
-3. Install units (also done by `bootstrap-live-server.sh`):
+### Enable (WireGuard ON)
 
 ```bash
 sudo cp deploy/mlm-cd.service deploy/mlm-cd.timer /etc/systemd/system/
@@ -78,24 +85,31 @@ sudo systemctl enable --now mlm-cd.timer
 systemctl status mlm-cd.timer --no-pager
 ```
 
-### Verify live poller
+One-liner:
+
+```bash
+ssh nibmarket-live 'cd /opt/MLM_Front && sudo cp deploy/mlm-cd.service deploy/mlm-cd.timer /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl enable --now mlm-cd.timer && systemctl is-enabled mlm-cd.timer'
+```
+
+### Before trusting push-only next time
+
+1. WireGuard ON (Azure DNS resolves)  
+2. `git push novin main` + `git ls-remote novin refs/heads/main` matches tip  
+3. `systemctl is-enabled mlm-cd.timer` → enabled  
+4. Host checkout tracks `main`; `.cd-git-credentials` OK if needed  
+5. Wait ~2m → `curl -sS https://club.nibmarket.com/api/ping` → `version.git` + `deploy` + `cd`  
+6. Else journal + **`yarn sync:live`**
+
+### Verify poller / ping
 
 ```bash
 systemctl is-enabled mlm-cd.timer
-systemctl is-active mlm-cd.timer
-systemctl list-timers mlm-cd.timer --no-pager
 journalctl -u mlm-cd.service -n 80 --no-pager
 cat /opt/MLM_Front/.cd-state/last-deployed-sha
-git -C /opt/MLM_Front rev-parse HEAD
-git -C /opt/MLM_Front branch --show-current   # expect: main
-```
+git -C /opt/MLM_Front rev-parse --short HEAD
 
-From laptop: `yarn logs:live` → `logs/live/<timestamp>.txt`.
-
-One-liner from Mac:
-
-```bash
-ssh nibmarket-live 'cd /opt/MLM_Front && sudo cp deploy/mlm-cd.service deploy/mlm-cd.timer /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl enable --now mlm-cd.timer && systemctl is-enabled mlm-cd.timer && systemctl list-timers mlm-cd.timer --no-pager'
+curl -sS https://club.nibmarket.com/api/ping | jq '{git:.version.git, deploy:.deploy, cd:.cd}'
+yarn logs:live
 ```
 
 ---
@@ -105,4 +119,4 @@ ssh nibmarket-live 'cd /opt/MLM_Front && sudo cp deploy/mlm-cd.service deploy/ml
 | Zone | If … | Do |
 |------|------|-----|
 | dig | always | `yarn sync:dev` |
-| live | timer / Azure fetch broken | `yarn sync:live` |
+| live | Azure tip missing / timer broken / push-only fails | `yarn sync:live` |
