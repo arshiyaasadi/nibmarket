@@ -11,7 +11,7 @@ import { Button } from "@/components/atoms/Button";
 import { Alert } from "@/components/atoms/Alert";
 import { DataTable } from "@/components/ui/DataTable";
 import { AdminTableToolbar } from "@/components/molecules/AdminTableToolbar";
-import { AdminUserDemographicsCards } from "@/components/organisms/admin/users/AdminUserDemographicsCards";
+import { AdminUserKycSummaryCard } from "@/components/organisms/admin/users/AdminUserKycSummaryCard";
 import { ChangeUserStatusModal } from "@/components/organisms/admin/users/ChangeUserStatusModal";
 import { UserRowActions } from "@/components/organisms/admin/users/UserRowActions";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -20,7 +20,6 @@ import { ApiException } from "@/types/api";
 import type {
   AdminUserKycStatus,
   AdminUserListItem,
-  AdminUsersDemographicsResponse,
   AdminUsersListResponse,
   AdminUsersSyncResponse,
   AdminUserStatus,
@@ -65,12 +64,6 @@ export default function UsersPageContent() {
     setPagination((p) => (p.pageIndex === 0 ? p : { ...p, pageIndex: 0 }));
   }
 
-  const { data: demographics, isLoading: demographicsLoading } =
-    useQuery<AdminUsersDemographicsResponse>({
-      queryKey: ["admin", "users", "demographics"],
-      queryFn: () => apiClient.get(ENDPOINTS.ADMIN.USERS.DEMOGRAPHICS),
-    });
-
   const { data, isLoading } = useQuery<AdminUsersListResponse>({
     queryKey: ["admin", "users", pagination, search, statusFilter, sejamFilter],
     queryFn: () =>
@@ -78,6 +71,22 @@ export default function UsersPageContent() {
         `${ENDPOINTS.ADMIN.USERS.LIST}?page=${pagination.pageIndex}&pageSize=${pagination.pageSize}&search=${encodeURIComponent(search)}&status=${statusFilter}&hasSejamIdentity=${sejamFilter}`,
       ),
   });
+
+  /** Totals for KYC summary card — reuse list filter, not demographics. */
+  const { data: verifiedUsers, isLoading: verifiedCountLoading } = useQuery<AdminUsersListResponse>(
+    {
+      queryKey: ["admin", "users", "kyc-count", "verified"],
+      queryFn: () =>
+        apiClient.get(`${ENDPOINTS.ADMIN.USERS.LIST}?page=0&pageSize=1&hasSejamIdentity=true`),
+    },
+  );
+
+  const { data: unverifiedUsers, isLoading: unverifiedCountLoading } =
+    useQuery<AdminUsersListResponse>({
+      queryKey: ["admin", "users", "kyc-count", "unverified"],
+      queryFn: () =>
+        apiClient.get(`${ENDPOINTS.ADMIN.USERS.LIST}?page=0&pageSize=1&hasSejamIdentity=false`),
+    });
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: AdminUserStatus }) =>
@@ -237,7 +246,11 @@ export default function UsersPageContent() {
         </Alert>
       )}
 
-      <AdminUserDemographicsCards data={demographics} isLoading={demographicsLoading} />
+      <AdminUserKycSummaryCard
+        verifiedCount={verifiedUsers?.total}
+        unverifiedCount={unverifiedUsers?.total}
+        isLoading={verifiedCountLoading || unverifiedCountLoading}
+      />
 
       <AdminTableToolbar
         value={searchInput}
