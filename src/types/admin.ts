@@ -284,17 +284,38 @@ export interface UpdateAdminUserRoleResponse {
 export type AdminTwinAllocationSource =
   "mission_reward" | "commission_reward" | "registration" | "adjustment" | "mint" | "pool_deposit";
 
-/** GET /admin/twin/overview */
+/** One bar in the twin source breakdown chart */
+export interface AdminTwinSourceBreakdownItem {
+  source: AdminTwinAllocationSource;
+  /** Sum of tokens attributed to this allocation source */
+  totalTokens: number;
+}
+
+/**
+ * GET /admin/twin/overview
+ * Invariant: `allocatedTokens + unallocatedTokens === totalTokens`
+ * and `totalFrozenTokens` is a subset of `allocatedTokens`.
+ */
 export interface AdminTwinOverviewResponse {
   tokenPriceRial: number;
   tokenPriceChangePercent24h: number;
+  /** Total supply (allocated + unallocated) */
   totalTokens: number;
+  /** Tokens held by users (includes frozen) */
+  allocatedTokens: number;
+  /** Treasury / not yet assigned to users */
+  unallocatedTokens: number;
+  /** Frozen portion of allocated (transfer/sale lock) */
   totalFrozenTokens: number;
+  /** frozen / allocated * 100 (0 when allocated is 0) */
   frozenPercent: number;
+  /** Allocated minus frozen (spendable by users) */
   totalAvailableTokens: number;
+  /** Sum of tokens per allocation source (for bar chart) */
+  sourceBreakdown: AdminTwinSourceBreakdownItem[];
 }
 
-/** GET /admin/twin/allocations — row */
+/** GET /admin/twin/allocations — row (user holdings / allocation ledger view) */
 export interface AdminTwinAllocationRow {
   id: string;
   userId: string;
@@ -308,9 +329,48 @@ export interface AdminTwinAllocationRow {
   lastAllocationAt: string;
 }
 
-/** GET /admin/twin/allocations — paginated response */
+/** GET /admin/twin/allocations — paginated; query: page, pageSize, search (mobile), source */
 export interface AdminTwinAllocationsResponse {
   data: AdminTwinAllocationRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+  pageCount: number;
+}
+
+/**
+ * POST /admin/twin/supply-adjustments — adjust unallocated treasury balance.
+ * `amount` may be negative (reduce unallocated).
+ */
+export interface AdminTwinSupplyAdjustmentRequest {
+  /** Token delta (positive or negative) */
+  amount: number;
+  /** ISO date `YYYY-MM-DD` or Jalali `YYYY/MM/DD` — FE sends Jalali */
+  effectiveDate: string;
+  note?: string;
+}
+
+export interface AdminTwinSupplyAdjustmentResponse {
+  ok: true;
+  entry: AdminTwinSupplyAdjustmentRow;
+  overview: AdminTwinOverviewResponse;
+}
+
+/** GET /admin/twin/supply-adjustments — internal mint/invoice log row */
+export interface AdminTwinSupplyAdjustmentRow {
+  id: string;
+  amount: number;
+  /** amount * tokenPriceRial at entry time */
+  approxValueRial: number;
+  effectiveDate: string;
+  createdAt: string;
+  createdByName: string;
+  createdByUserId?: string;
+  note?: string | null;
+}
+
+export interface AdminTwinSupplyAdjustmentsResponse {
+  data: AdminTwinSupplyAdjustmentRow[];
   total: number;
   page: number;
   pageSize: number;

@@ -14,6 +14,9 @@ import type {
   AdminTwinAllocationSource,
   AdminTwinAllocationsResponse,
   AdminTwinOverviewResponse,
+  AdminTwinSupplyAdjustmentRequest,
+  AdminTwinSupplyAdjustmentRow,
+  AdminTwinSupplyAdjustmentsResponse,
 } from "@/types/admin";
 import type { MockUserRecord } from "@/lib/mock/fixtures";
 import type { NetworkSubset } from "@/types/mlm";
@@ -374,16 +377,39 @@ function resolveAllocationSource(userId: string): AdminTwinAllocationSource {
   return ALLOCATION_SOURCES[hash];
 }
 
+/** Mock treasury (unallocated). Adjusted by supply-adjustments. */
+let mockUnallocatedTokens = 50_000;
+
+const mockSupplyAdjustments: AdminTwinSupplyAdjustmentRow[] = [];
+
+function buildSourceBreakdown(
+  users: { id: string; balance: number }[],
+): AdminTwinOverviewResponse["sourceBreakdown"] {
+  const sums = new Map<AdminTwinAllocationSource, number>();
+  for (const source of ALLOCATION_SOURCES) sums.set(source, 0);
+
+  for (const user of users) {
+    if (user.balance <= 0) continue;
+    const source = resolveAllocationSource(user.id);
+    sums.set(source, (sums.get(source) ?? 0) + user.balance);
+  }
+
+  return ALLOCATION_SOURCES.map((source) => ({
+    source,
+    totalTokens: sums.get(source) ?? 0,
+  }));
+}
+
 export async function getAdminTwinOverview(): Promise<AdminTwinOverviewResponse> {
   await ensureMockStore();
   const users = [...getMockUsers().values()];
-  let totalTokens = 0;
+  let allocatedTokens = 0;
   let totalFrozen = 0;
   let totalAvailable = 0;
 
   for (const user of users) {
     const wallet = buildWalletSummary(user.balance);
-    totalTokens += wallet.totalTokens;
+    allocatedTokens += wallet.totalTokens;
     totalFrozen += wallet.frozenTokens;
     totalAvailable += wallet.availableTokens;
   }
@@ -392,14 +418,19 @@ export async function getAdminTwinOverview(): Promise<AdminTwinOverviewResponse>
   const latest = history.at(-1)?.price ?? 24_500;
   const previous = history.at(-2)?.price ?? latest;
   const change = previous === 0 ? 0 : ((latest - previous) / previous) * 100;
+  const totalTokens = allocatedTokens + mockUnallocatedTokens;
 
   return {
     tokenPriceRial: latest,
     tokenPriceChangePercent24h: Number(change.toFixed(2)),
     totalTokens,
+    allocatedTokens,
+    unallocatedTokens: mockUnallocatedTokens,
     totalFrozenTokens: totalFrozen,
-    frozenPercent: totalTokens > 0 ? Number(((totalFrozen / totalTokens) * 100).toFixed(1)) : 0,
+    frozenPercent:
+      allocatedTokens > 0 ? Number(((totalFrozen / allocatedTokens) * 100).toFixed(1)) : 0,
     totalAvailableTokens: totalAvailable,
+    sourceBreakdown: buildSourceBreakdown(users),
   };
 }
 
@@ -407,12 +438,13 @@ export async function listAdminTwinAllocations(params: {
   page: number;
   pageSize: number;
   search: string;
+  source?: string;
 }): Promise<AdminTwinAllocationsResponse> {
   await ensureMockStore();
   let users = [...getMockUsers().values()].filter((user) => user.balance > 0);
 
   if (params.search) {
-    const q = params.search.trim();
+    const q = normalizeSearchInput(params.search);
     users = users.filter(
       (user) =>
         user.mobile.includes(q) ||
@@ -422,7 +454,7 @@ export async function listAdminTwinAllocations(params: {
     );
   }
 
-  const rows = users
+  let rows = users
     .map((user) => {
       const wallet = buildWalletSummary(user.balance);
       const frozenPercent =
@@ -445,6 +477,10 @@ export async function listAdminTwinAllocations(params: {
     })
     .sort((a, b) => b.totalTokens - a.totalTokens);
 
+  if (params.source && params.source.length > 0) {
+    rows = rows.filter((row) => row.primarySource === params.source);
+  }
+
   const total = rows.length;
   const slice = rows.slice(params.page * params.pageSize, (params.page + 1) * params.pageSize);
 
@@ -455,4 +491,53 @@ export async function listAdminTwinAllocations(params: {
     pageSize: params.pageSize,
     pageCount: Math.ceil(total / params.pageSize) || 1,
   };
+}
+
+export async function listAdminTwinSupplyAdjustments(params: {
+  page: number;
+  pageSize: number;
+}): Promise<AdminTwinSupplyAdjustmentsResponse> {
+  await ensureMockStore();
+  const rows = [...mockSupplyAdjustments].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const total = rows.length;
+  const slice = rows.slice(params.page * params.pageSize, (params.page + 1) * params.pageSize);
+  return {
+    data: slice,
+    total,
+    page: params.page,
+    pageSize: params.pageSize,
+    pageCount: Math.ceil(total / params.pageSize) || 1,
+  };
+}
+
+export async function createAdminTwinSupplyAdjustment(
+  body: AdminTwinSupplyAdjustmentRequest,
+  actor: { name: string; userId?: string },
+) {
+  await ensureMockStore();
+  const amount = Number(body.amount);
+  if (!Number.isFinite(amount) || amount === 0) {
+    throw new Error("INVALID_AMOUNT");
+  }
+
+  const next = mockUnallocatedTokens + amount;
+  if (next < 0) {
+    throw new Error("INSUFFICIENT_UNALLOCATED");
+  }
+
+  mockUnallocatedTokens = next;
+  const overview = await getAdminTwinOverview();
+  const entry: AdminTwinSupplyAdjustmentRow = {
+    id: `supply-${Date.now()}`,
+    amount,
+    approxValueRial: Math.round(amount * overview.tokenPriceRial),
+    effectiveDate: body.effectiveDate,
+    createdAt: new Date().toISOString(),
+    createdByName: actor.name,
+    createdByUserId: actor.userId,
+    note: body.note?.trim() || null,
+  };
+  mockSupplyAdjustments.unshift(entry);
+
+  return { ok: true as const, entry, overview };
 }
