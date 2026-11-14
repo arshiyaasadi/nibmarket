@@ -243,8 +243,11 @@ export default function TwinPageContent() {
                 <div>
                   <p className="text-muted text-xs">{t("instantPrice")}</p>
                   <p className="text-foreground mt-1.5 text-2xl font-bold tabular-nums">
-                    {pn(overview?.tokenPriceRial ?? 0)}{" "}
-                    <span className="text-muted text-sm font-normal">{t("rialUnit")}</span>
+                    {pn(overview?.tokenPriceToman ?? 0)}{" "}
+                    <span className="text-muted text-sm font-normal">{t("tomanUnit")}</span>
+                  </p>
+                  <p className="text-muted mt-1 text-[11px] tabular-nums">
+                    {pn(overview?.tokenPriceRial ?? 0)} {t("rialUnit")}
                   </p>
                   <p className="text-muted mt-1 flex items-center gap-1 text-[11px]">
                     {priceTrendUp ? (

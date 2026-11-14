@@ -292,9 +292,11 @@ export interface AdminTwinSourceCatalogItem {
   code: AdminTwinSourceCode;
   /** FA display label */
   label: string;
-  /** Optional grouping hint */
-  kind?:
-    "mission" | "goal" | "commission" | "registration" | "pool" | "treasury" | "system" | "other";
+  /**
+   * Optional grouping hint — BE primary: mission | commission | registration;
+   * fixed extras: pool | treasury | other.
+   */
+  kind?: "mission" | "commission" | "registration" | "pool" | "treasury" | "other";
 }
 
 /** GET /admin/twin/sources */
@@ -317,7 +319,10 @@ export interface AdminTwinSourceBreakdownItem {
  * and `totalFrozenTokens` ⊆ `allocatedTokens`.
  */
 export interface AdminTwinOverviewResponse {
+  /** Latest token price in Rial (derived / mirrored from toman on BE) */
   tokenPriceRial: number;
+  /** Latest token price in Toman — admin price form uses this unit */
+  tokenPriceToman: number;
   tokenPriceChangePercent24h: number;
   /** Total supply (allocated + unallocated) — current */
   totalTokens: number;
@@ -411,6 +416,39 @@ export interface AdminTwinSupplyAdjustmentsResponse {
   page: number;
   pageSize: number;
   pageCount: number;
+}
+
+/**
+ * POST /admin/twin/token-prices — register a new spot price (Toman).
+ * `priceToman` must be > 0.
+ */
+export interface AdminTwinTokenPriceRequest {
+  priceToman: number;
+  note?: string;
+}
+
+/** GET /admin/twin/token-prices — price history row */
+export interface AdminTwinTokenPriceRow {
+  id: string;
+  priceToman: number;
+  changedAt: string;
+  createdByName: string;
+  createdByUserId?: string;
+  note?: string | null;
+}
+
+export interface AdminTwinTokenPricesResponse {
+  data: AdminTwinTokenPriceRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+  pageCount: number;
+}
+
+export interface AdminTwinTokenPriceCreateResponse {
+  ok: true;
+  entry: AdminTwinTokenPriceRow;
+  overview: AdminTwinOverviewResponse;
 }
 
 /** GET /admin/pool/overview — aligned with client `CompetitionPool` + admin metrics */

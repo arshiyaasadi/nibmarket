@@ -17,6 +17,9 @@ import type {
   AdminTwinSupplyAdjustmentRequest,
   AdminTwinSupplyAdjustmentRow,
   AdminTwinSupplyAdjustmentsResponse,
+  AdminTwinTokenPriceRequest,
+  AdminTwinTokenPriceRow,
+  AdminTwinTokenPricesResponse,
   AdminTwinTransactionRow,
   AdminTwinTransactionsResponse,
 } from "@/types/admin";
@@ -25,18 +28,17 @@ import type { NetworkSubset } from "@/types/mlm";
 import { normalizeSearchInput } from "@/lib/normalization/digits";
 import { getTokenPriceHistory } from "@/lib/token-price/history";
 
-/** Mock Twin source catalog — BE owns the real list (missions + goals + system). */
+/** Mock Twin source catalog — BE owns codes (e.g. daily_login); kinds match BE. */
 const TWIN_SOURCE_CATALOG: AdminTwinSourceCatalogItem[] = [
-  { code: "mission_daily_login", label: "مأموریت ورود روزانه", kind: "mission" },
-  { code: "mission_kyc", label: "مأموریت احراز هویت", kind: "mission" },
-  { code: "mission_invite", label: "مأموریت دعوت", kind: "mission" },
-  { code: "goal_deposit", label: "هدف واریز", kind: "goal" },
-  { code: "goal_network", label: "هدف شبکه", kind: "goal" },
-  { code: "commission_reward", label: "کمیسیون شبکه", kind: "commission" },
+  { code: "daily_login", label: "مأموریت ورود روزانه", kind: "mission" },
+  { code: "kyc", label: "مأموریت احراز هویت", kind: "mission" },
+  { code: "invite", label: "مأموریت دعوت", kind: "mission" },
+  { code: "deposit", label: "واریز / رسوب", kind: "mission" },
+  { code: "commission", label: "کمیسیون شبکه", kind: "commission" },
   { code: "registration", label: "ثبت‌نام", kind: "registration" },
-  { code: "pool_deposit", label: "استخر", kind: "pool" },
-  { code: "treasury_inflow", label: "ورودی خزانه", kind: "treasury" },
-  { code: "system_adjustment", label: "تعدیل سیستمی", kind: "system" },
+  { code: "pool", label: "استخر", kind: "pool" },
+  { code: "treasury", label: "ورودی خزانه", kind: "treasury" },
+  { code: "other", label: "سایر", kind: "other" },
 ];
 
 function resolveHasSejamIdentity(user: MockUserRecord): boolean {
@@ -389,6 +391,23 @@ let mockUnallocatedTokens = 50_000;
 
 const mockSupplyAdjustments: AdminTwinSupplyAdjustmentRow[] = [];
 
+/** Spot price in Toman — admin token-prices POST updates this. Seed from rial history / 10. */
+let mockTokenPriceToman = Math.max(
+  1,
+  Math.round((getTokenPriceHistory(7).at(-1)?.price ?? 24_500) / 10),
+);
+
+const mockTokenPrices: AdminTwinTokenPriceRow[] = [
+  {
+    id: "price-seed-1",
+    priceToman: mockTokenPriceToman,
+    changedAt: new Date().toISOString(),
+    createdByName: "سیستم",
+    createdByUserId: undefined,
+    note: "قیمت اولیه mock",
+  },
+];
+
 function parseOptionalInt(value: string | undefined | null): number | null {
   if (value == null || value === "") return null;
   const n = Number(value);
@@ -482,15 +501,16 @@ export async function getAdminTwinOverview(params?: {
   }
 
   const history = getTokenPriceHistory(7);
-  const latest = history.at(-1)?.price ?? 24_500;
-  const previous = history.at(-2)?.price ?? latest;
-  const change = previous === 0 ? 0 : ((latest - previous) / previous) * 100;
+  const previousRial = history.at(-2)?.price ?? mockTokenPriceToman * 10;
+  const latestRial = mockTokenPriceToman * 10;
+  const change = previousRial === 0 ? 0 : ((latestRial - previousRial) / previousRial) * 100;
   const totalTokens = allocatedTokens + mockUnallocatedTokens;
 
   const txRows = filterTwinTransactionsByPeriod(buildMockTwinTransactions(), year, month);
 
   return {
-    tokenPriceRial: latest,
+    tokenPriceRial: latestRial,
+    tokenPriceToman: mockTokenPriceToman,
     tokenPriceChangePercent24h: Number(change.toFixed(2)),
     totalTokens,
     allocatedTokens,
@@ -581,6 +601,48 @@ export async function createAdminTwinSupplyAdjustment(
     note: body.note?.trim() || null,
   };
   mockSupplyAdjustments.unshift(entry);
+
+  return { ok: true as const, entry, overview };
+}
+
+export async function listAdminTwinTokenPrices(params: {
+  page: number;
+  pageSize: number;
+}): Promise<AdminTwinTokenPricesResponse> {
+  await ensureMockStore();
+  const rows = [...mockTokenPrices].sort((a, b) => b.changedAt.localeCompare(a.changedAt));
+  const total = rows.length;
+  const slice = rows.slice(params.page * params.pageSize, (params.page + 1) * params.pageSize);
+  return {
+    data: slice,
+    total,
+    page: params.page,
+    pageSize: params.pageSize,
+    pageCount: Math.ceil(total / params.pageSize) || 1,
+  };
+}
+
+export async function createAdminTwinTokenPrice(
+  body: AdminTwinTokenPriceRequest,
+  actor: { name: string; userId?: string },
+) {
+  await ensureMockStore();
+  const priceToman = Number(body.priceToman);
+  if (!Number.isFinite(priceToman) || priceToman <= 0) {
+    throw new Error("INVALID_PRICE");
+  }
+
+  mockTokenPriceToman = Math.round(priceToman);
+  const entry: AdminTwinTokenPriceRow = {
+    id: `price-${Date.now()}`,
+    priceToman: mockTokenPriceToman,
+    changedAt: new Date().toISOString(),
+    createdByName: actor.name,
+    createdByUserId: actor.userId,
+    note: body.note?.trim() || null,
+  };
+  mockTokenPrices.unshift(entry);
+  const overview = await getAdminTwinOverview();
 
   return { ok: true as const, entry, overview };
 }

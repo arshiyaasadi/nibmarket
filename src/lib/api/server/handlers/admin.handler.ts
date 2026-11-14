@@ -15,6 +15,8 @@ import {
   listAdminTwinTransactions,
   listAdminTwinSupplyAdjustments,
   createAdminTwinSupplyAdjustment,
+  listAdminTwinTokenPrices,
+  createAdminTwinTokenPrice,
   listAdminMissions,
   listAdminUsers,
   listNetworkClosure,
@@ -233,6 +235,44 @@ export async function adminTwinSupplyAdjustmentsCreateHandler(req: Request): Pro
   try {
     const result = await createAdminTwinSupplyAdjustment(
       { amount, effectiveDate, note: body.note },
+      { name: "مدیر سیستم" },
+    );
+    return NextResponse.json(result);
+  } catch (error) {
+    const code = error instanceof Error ? error.message : "FAILED";
+    return badRequest(code);
+  }
+}
+
+export async function adminTwinTokenPricesListHandler(req: Request): Promise<Response> {
+  const auth = await requireAdmin();
+  if (!auth) return unauthorized();
+
+  const url = new URL(req.url);
+  const page = parseInt(url.searchParams.get("page") ?? "0");
+  const pageSize = parseInt(url.searchParams.get("pageSize") ?? "20");
+
+  return NextResponse.json(await listAdminTwinTokenPrices({ page, pageSize }));
+}
+
+export async function adminTwinTokenPricesCreateHandler(req: Request): Promise<Response> {
+  const auth = await requireAdmin();
+  if (!auth) return unauthorized();
+
+  let body: { priceToman?: number; note?: string };
+  try {
+    body = (await req.json()) as typeof body;
+  } catch {
+    return badRequest("Invalid JSON");
+  }
+
+  const priceToman = Number(body.priceToman);
+  if (!Number.isFinite(priceToman) || priceToman <= 0)
+    return badRequest("priceToman must be a positive number");
+
+  try {
+    const result = await createAdminTwinTokenPrice(
+      { priceToman, note: body.note },
       { name: "مدیر سیستم" },
     );
     return NextResponse.json(result);

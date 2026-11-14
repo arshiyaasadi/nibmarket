@@ -157,12 +157,14 @@ export const ENDPOINTS = {
     },
     TWIN: {
       OVERVIEW: "/admin/twin/overview",
-      /** BE-owned catalog: missions, goals, and all Twin tx source types */
+      /** BE-owned catalog: mission/commission/registration/pool/treasury/other codes */
       SOURCES: "/admin/twin/sources",
       /** Paginated Twin ledger (mobile + source + optional Jalali period) */
       TRANSACTIONS: "/admin/twin/transactions",
       /** POST create + GET list — treasury mint / unallocated balance adjustments */
       SUPPLY_ADJUSTMENTS: "/admin/twin/supply-adjustments",
+      /** POST create + GET list — spot price history (Toman) */
+      TOKEN_PRICES: "/admin/twin/token-prices",
     },
     POOL: {
       OVERVIEW: "/admin/pool/overview",

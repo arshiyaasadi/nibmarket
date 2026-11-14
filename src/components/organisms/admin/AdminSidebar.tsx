@@ -69,6 +69,7 @@ const NAV: NavEntry[] = [
     children: [
       { href: ROUTES.ADMIN.TWIN, labelKey: "twinOverview", icon: Coins },
       { href: ROUTES.ADMIN.TWIN_TREASURY, labelKey: "twinTreasury", icon: Vault },
+      { href: ROUTES.ADMIN.TWIN_PRICE, labelKey: "twinPrice", icon: Coins },
     ],
   },
   { href: ROUTES.ADMIN.POOL, labelKey: "pool", icon: Trophy },
